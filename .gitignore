@@ -1,0 +1,15 @@
+# Node
+node_modules/
+.env
+.env.*
+dist/
+.DS_Store
+*.log
+coverage/
+
+# VS Code
+.vscode/
+
+# Build
+apps/**/dist/
+apps/**/.turbo/

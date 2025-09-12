@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { font-family: Poppins, ui-sans-serif, system-ui; }
+
+@layer components {
+	.h1 { @apply text-3xl font-semibold tracking-tight; }
+	.h2 { @apply text-2xl font-semibold tracking-tight; }
+	.h3 { @apply text-xl font-semibold; }
+	.h4 { @apply text-lg font-medium; }
+	.body-muted { @apply text-sm text-text-secondary; }
+	.stack > * + * { @apply mt-4; }
+	.stack-tight > * + * { @apply mt-2; }
+}
+

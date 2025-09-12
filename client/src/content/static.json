@@ -1,0 +1,24 @@
+{
+  "landing": {
+    "heroTitle": "Accelerated RC Mastery",
+    "heroSubtitle": "Daily, focused Reading Comprehension practice with tight feedback loops.",
+    "ctaPrimary": "Get Started",
+    "ctaSecondary": "Admin Console"
+  },
+  "about": {
+    "title": "About ARC",
+    "subtitle": "Built for aspirants. Optimized for learning.",
+    "body": "ARC is a daily practice platform for Reading Comprehension. It delivers two high-quality passages every day, provides instant results, and offers detailed analysis to help you improve faster."
+  },
+  "features": [
+    "Two curated RCs daily",
+    "Timed test with auto-submit",
+    "Detailed explanations",
+    "Practice mode for revision",
+    "Streaks to keep you consistent"
+  ],
+  "tos": {
+    "title": "Terms of Service",
+    "body": "By using ARC, you agree to practice respectfully, not redistribute content, and accept that the service is provided as-is during the pilot. See the README for contact details."
+  }
+}
