@@ -16,7 +16,7 @@ export default function Login(){
   const [error, setError] = useState('')
   const toast = useToast()
   const nav = useNavigate()
-  const { user } = useAuth()
+  const { user, setUser } = useAuth() // ensure user is set on login
   useEffect(()=>{ if(!user) return; if(user.role==='admin') nav('/admin'); else nav('/dashboard') },[user])
 
   async function onSubmit(e){
@@ -27,6 +27,7 @@ export default function Login(){
       // Fetch role to decide redirect; lightweight re-query
       try {
         const me = await api.get('/users/me')
+        setUser(me.data) // important to set user in context
         if(me?.data?.role === 'admin') nav('/admin'); else nav('/dashboard')
       } catch { nav('/dashboard') }
   }catch(err){ const msg = extractErrorMessage(err,'Login failed'); setError(msg); toast.show(msg,{ variant:'error'}) }

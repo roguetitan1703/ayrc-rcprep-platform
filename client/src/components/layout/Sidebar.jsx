@@ -38,27 +38,31 @@ export default function Sidebar({ bare = false }){
         </div>
         <div>
           <div className="space-y-1">
-            {user && !inAdminSection && (
+            {user && (
               <>
+                {user.role === "user" && (
+                <>
                 <Item to="/dashboard">{collapsed? 'Dshbd' : 'Dashboard'}</Item>
                 <Item to="/archive">{collapsed? 'Arch' : 'Archive'}</Item>
                 <Item to="/me">{collapsed? 'Profile' : 'Profile'}</Item>
                 <Item to="/feedback">{collapsed? 'FB' : 'Feedback'}</Item>
-                {isAdmin && (
+                {/* {isAdmin && (
                   <div className="pt-4">
                     <Item to="/admin">{collapsed? 'Admin' : 'Admin Console'}</Item>
                   </div>
-                )}
+                )} */}
               </>
             )}
-            {inAdminSection && (
+             {user.role === "admin" && (
               <>
                 <Item to="/admin">{collapsed? 'Dash' : 'Console'}</Item>
                 <Item to="/admin/schedule">{collapsed? 'Sched' : 'Schedule'}</Item>
                 <Item to="/admin/rcs/new">{collapsed? 'Create' : 'Create RC'}</Item>
-                <div className="pt-4 text-xs uppercase tracking-wide text-text-secondary">Switch</div>
-                <Item to="/dashboard">{collapsed? 'User' : 'User Area'}</Item>
+                {/* <div className="pt-4 text-xs uppercase tracking-wide text-text-secondary">Switch</div>
+                <Item to="/dashboard">{collapsed? 'User' : 'User Area'}</Item> */}
               </>
+            )}
+            </>
             )}
           </div>
         </div>
