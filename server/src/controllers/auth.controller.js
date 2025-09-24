@@ -81,7 +81,11 @@ export async function updateMe(req, res, next) {
 export async function changePassword(req, res, next) {
   try {
     const { oldPassword, newPassword } = req.body
-    if (!oldPassword || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
+    console.log('Received:', { oldPassword, newPassword }) // Debug log
+    if (!oldPassword || !newPassword || newPassword.length < 6) {
+      console.log('Validation failed') // Debug log
+      throw badRequest('Invalid input') 
+    }    
     const user = await User.findById(req.user.id)
     const ok = await bcrypt.compare(oldPassword, user.password)
     if (!ok) throw badRequest('Invalid old password')
