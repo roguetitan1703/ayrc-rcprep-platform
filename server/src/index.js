@@ -17,7 +17,7 @@ import { notFound, errorHandler } from './middleware/errors.js'
 const app = express()
 
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
-// app.use(cors({ origin: CLIENT_URL, credentials: true }))
+app.use(cors({ origin: CLIENT_URL, credentials: true }))
 const ORIGINS = (process.env.CORS_ORIGINS || process.env.CLIENT_URL || 'http://localhost:5173')
   .split(',')
   .map((s) => s.trim())
@@ -38,8 +38,8 @@ app.use(express.urlencoded({ extended: true }))
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'))
 
 // Global rate limit (relaxed for GET-heavy dashboard loads); sensitive routes add their own if needed.
-// const limiter = rateLimit({ windowMs: 60 * 1000, max: 800 })
-// app.use(limiter)
+const limiter = rateLimit({ windowMs: 60 * 1000, max: 800 })
+app.use(limiter)
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
