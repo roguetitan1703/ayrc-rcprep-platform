@@ -43,7 +43,7 @@ app.use(limiter)
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
-app.use('/auth', authRoutes)
+app.use('/api/v1/auth', authRoutes)
 
 // Minimal request id middleware for traceability
 app.use((req, _res, next) => {
