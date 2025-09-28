@@ -19,7 +19,7 @@ export default function ChangePassword(){
     if(next!==confirm){ setError('Passwords do not match'); return }
     try{
       setLoading(true)
-      await api.post('/users/me/change-password', { currentPassword: current, newPassword: next })
+      await api.post('/users/me/change-password', { oldPassword: current, newPassword: next })
       setMsg('Password updated')
       setError('')
       setCurrent(''); setNext(''); setConfirm('')
