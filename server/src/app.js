@@ -46,11 +46,17 @@ const limiter = rateLimit({ windowMs: 60 * 1000, max: 800 })
 app.use(limiter)
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ ok: true }))
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    ip: req.ip,
+    xForwardedFor: req.headers['x-forwarded-for']
+  })
+})
 
 // Routes
 app.use('/api/auth', authRoutes)
-
+app.set('trust proxy', true)
 // Minimal request id middleware
 app.use((req, _res, next) => {
   req.id = req.headers['x-request-id'] || Math.random().toString(36).slice(2)
