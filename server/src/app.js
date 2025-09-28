@@ -17,7 +17,7 @@ import { notFound, errorHandler } from './middleware/errors.js'
 const app = express()
 
 // CORS setup
-const ORIGINS = (process.env.CLIENT_URL, 'http://localhost:5173')
+const ORIGINS = (process.env.CLIENT_URL || 'http://localhost:5173')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
