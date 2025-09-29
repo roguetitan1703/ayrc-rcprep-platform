@@ -17,10 +17,12 @@ import { notFound, errorHandler } from './middleware/errors.js'
 const app = express()
 
 // CORS setup
-const ORIGINS = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map((s) => s.trim())
+const ORIGINS = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173'
+]
   .filter(Boolean)
+  .map((s) => s.trim());
 
 app.use(
   cors({
@@ -56,7 +58,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/v1/auth', authRoutes)
-app.set('trust proxy', false)
+app.set('trust proxy', process.env.NODE_ENV === 'production')
 // Minimal request id middleware
 app.use((req, _res, next) => {
   req.id = req.headers['x-request-id'] || Math.random().toString(36).slice(2)
