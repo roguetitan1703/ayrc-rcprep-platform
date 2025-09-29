@@ -4,12 +4,10 @@ import { User } from '../models/User.js'
 import { signJwt } from '../utils/jwt.js'
 import { success, badRequest } from '../utils/http.js'
 import { Attempt } from '../models/Attempt.js'
-import { startOfIST } from '../utils/date.js'
-import { RcPassage } from '../models/RcPassage.js'
+import { startOfIST, endOfIST } from '../utils/date.js'
 import { RcPassage as RcModel } from '../models/RcPassage.js'
 import { Feedback } from '../models/Feedback.js'
 import { feedbackLockInfo } from '../middleware/policy.js'
-import { endOfIST } from '../utils/date.js'
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -39,10 +37,14 @@ const loginSchema = z.object({
 export async function login(req, res, next) {
   try {
     const { email, password } = loginSchema.parse(req.body)
-    const user = await User.findOne({ email })
+
+    const user = await User.findOne({ email }).select('+password')
     if (!user) throw badRequest('Invalid credentials')
-    const ok = await bcrypt.compare(password, user.password)
+    if (!user.password) throw badRequest('Invalid credentials')
+
+    const ok = await user.correctPassword(password, user.password)
     if (!ok) throw badRequest('Invalid credentials')
+
     const token = signJwt({ id: user._id, role: user.role, name: user.name })
     res.cookie('token', token, {
       httpOnly: true,
@@ -59,9 +61,8 @@ export async function login(req, res, next) {
 export async function me(req, res, next) {
   try {
     const user = await User.findById(req.user.id).select('-password')
-  // light caching encouragement (client-side); adjust max-age as needed
-  res.set('Cache-Control', 'private, max-age=30')
-  return success(res, user)
+    res.set('Cache-Control', 'private, max-age=30')
+    return success(res, user)
   } catch (e) {
     next(e)
   }
@@ -81,14 +82,14 @@ export async function updateMe(req, res, next) {
 export async function changePassword(req, res, next) {
   try {
     const { oldPassword, newPassword } = req.body
-    console.log('Received:', { oldPassword, newPassword }) // Debug log
-    if (!oldPassword || !newPassword || newPassword.length < 6) {
-      console.log('Validation failed') // Debug log
-      throw badRequest('Invalid input') 
-    }    
-    const user = await User.findById(req.user.id)
-    const ok = await bcrypt.compare(oldPassword, user.password)
+    if (!oldPassword || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
+
+    const user = await User.findById(req.user.id).select('+password')
+    if (!user || !user.password) throw badRequest('Invalid user')
+
+    const ok = await user.correctPassword(oldPassword, user.password)
     if (!ok) throw badRequest('Invalid old password')
+
     user.password = await bcrypt.hash(newPassword, 10)
     await user.save()
     return success(res, { ok: true })
@@ -100,9 +101,9 @@ export async function changePassword(req, res, next) {
 export async function stats(req, res, next) {
   try {
     const userId = req.user.id
-  const attempts = await Attempt.find({ userId, attemptType: 'official' }).select('score attemptedAt')
-  const totalAttempts = attempts.length // official attempts only
-  const totalCorrect = attempts.reduce((a, c) => a + (c.score || 0), 0) // each score is #correct
+    const attempts = await Attempt.find({ userId, attemptType: 'official' }).select('score attemptedAt')
+    const totalAttempts = attempts.length // official attempts only
+    const totalCorrect = attempts.reduce((a, c) => a + (c.score || 0), 0) // each score is #correct
     const accuracy =
       totalAttempts > 0 ? Number(((totalCorrect / (totalAttempts * 4)) * 100).toFixed(1)) : 0
     // last 7 days streak-like continuity (based on actual attempt days) and per-day attempt presence
@@ -129,7 +130,7 @@ export async function analytics(req, res, next) {
     const userId = req.user.id
     const since = new Date()
     since.setDate(since.getDate() - 30)
-  const attempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select('score answers attemptedAt rcPassageId attemptType')
+    const attempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select('score answers attemptedAt rcPassageId attemptType')
     const rcMap = new Map()
     const passageIds = attempts.map((a) => a.rcPassageId)
     const passages = await RcPassage.find({ _id: { $in: passageIds } }).select(
@@ -241,7 +242,7 @@ export async function dashboardBundle(req, res, next) {
     let rolling = 0
     for (let i = 0; i < 7; i++) {
       const d = new Date(today); d.setDate(today.getDate() - i)
-      if (daySet.has(startOfIST(d).toISOString())) rolling++ ; else break
+      if (daySet.has(startOfIST(d).toISOString())) rolling++; else break
     }
     const statsData = { totalAttempts, accuracy, rollingConsistentDays: rolling }
 
