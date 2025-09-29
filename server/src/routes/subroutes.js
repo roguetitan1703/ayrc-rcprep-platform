@@ -11,4 +11,4 @@ router.route("/").post(subscription.subscribe).delete(subscription.unsubscribe);
 router.route("/create-order").post(subscription.createOrder);
 
 
-module.exports = router;
+export default router
