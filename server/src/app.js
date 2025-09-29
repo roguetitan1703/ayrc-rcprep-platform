@@ -59,7 +59,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/v1/auth', authRoutes)
-app.set('trust proxy', process.env.NODE_ENV === 'production')
+app.set("trust proxy", 1);
 // Minimal request id middleware
 app.use((req, _res, next) => {
   req.id = req.headers['x-request-id'] || Math.random().toString(36).slice(2)
