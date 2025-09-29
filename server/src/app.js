@@ -12,7 +12,7 @@ import rcRoutes from './routes/rcs.js'
 import adminRoutes from './routes/admin.js'
 import attemptRoutes from './routes/attempts.js'
 import feedbackRoutes from './routes/feedback.js'
-import subRoutes from './routes/subroutes.js'
+import subRoutes from './routes/subs.js'
 import { notFound, errorHandler } from './middleware/errors.js'
 
 const app = express()

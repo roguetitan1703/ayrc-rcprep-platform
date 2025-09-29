@@ -1,11 +1,11 @@
-const catchAsync = require("../utils/catchAsync");
-const User = require("../models/userModel");
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
-const mongoose = require("mongoose");
-// Initialize Razorpay instance
+import { User } from "../models/User.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+import mongoose from "mongoose";
+
 console.log(process.env.NODE_ENV);
 
+// Initialize Razorpay instance
 const razorpay = new Razorpay({
   key_id:
     process.env.NODE_ENV === "prod"
@@ -19,13 +19,12 @@ const razorpay = new Razorpay({
 
 // Subscription prices
 const SUBSCRIPTION_PRICES = {
-  Monthly: 150, // 1000 INR per month
-  Yearly: 1700, // 10000 INR per year
+  Monthly: 150,
+  Yearly: 1700,
 };
 
-
 // Create Razorpay order
-exports.createOrder = catchAsync(async (req, res, next) => {
+export const createOrder = async (req, res, next) => {
   try {
     const { subtype } = req.body;
     if (!["Yearly", "Monthly"].includes(subtype)) {
@@ -35,11 +34,10 @@ exports.createOrder = catchAsync(async (req, res, next) => {
           "Invalid subscription type. Allowed types: 'Yearly', 'Monthly'.",
       });
     }
-    // const amount = 1;
-    // console.log(req.user.id);
+
     const amount = SUBSCRIPTION_PRICES[subtype];
     const options = {
-      amount: amount * 100, // amount in smallest currency unit (paise)
+      amount: amount * 100, // in paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
       notes: {
@@ -55,6 +53,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         message: "Error creating order",
       });
     }
+
     res.status(200).json({
       status: "success",
       message: "Order created successfully",
@@ -64,79 +63,57 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     console.error("Error creating order:", error);
     res.status(500).json({ error: "Error creating order" });
   }
-});
+};
 
 // Verify payment and update subscription
-exports.verifyPayment = catchAsync(async (req, res, next) => {
+export const verifyPayment = async (req, res, next) => {
   try {
-    // console.log(JSON.stringify(req.body));
     if (req.body.event === "payment.captured") {
       const razorpay_payment_id = req.body.payload.payment.entity.id;
       const razorpay_order_id = req.body.payload.payment.entity.order_id;
       const subscriptionType = req.body.payload.payment.entity.notes.subtype;
-
       const userId = req.body.payload.payment.entity.notes.userid;
+
       if (!userId) {
-        return res.status(400).json({
-          status: "fail",
-          message: "User not found",
-        });
+        return res.status(400).json({ status: "fail", message: "User not found" });
       }
       if (!["Yearly", "Monthly"].includes(subscriptionType)) {
         return res.status(400).json({
           status: "fail",
-          message:
-            "Invalid subscription type. Allowed types: 'Yearly', 'Monthly'.",
+          message: "Invalid subscription type. Allowed types: 'Yearly', 'Monthly'.",
         });
       }
-      // Payment is successful, proceed with subscription update
+
+      const currentUser = await User.findById(new mongoose.Types.ObjectId(userId));
+      if (!currentUser) {
+        return res.status(404).json({ status: "fail", message: "User not found" });
+      }
 
       let subon = null;
       let subexp = null;
       let issubexp = false;
-
-      // Get current user to check existing subscription
-      const currentUser = await User.findById(
-        new mongoose.Types.ObjectId(userId)
-      );
-
-      if (!currentUser) {
-        return res.status(404).json({
-          status: "fail",
-          message: "User not found",
-        });
-      }
-
       const currentDate = new Date();
 
-      if (
-        currentUser.subexp &&
-        currentUser.subexp > currentDate &&
-        !currentUser.issubexp
-      ) {
-        // If subscription exists and is not expired, extend from current expiry
+      if (currentUser.subexp && currentUser.subexp > currentDate && !currentUser.issubexp) {
+        // Extend existing subscription
         if (subscriptionType === "Yearly") {
           const now = new Date();
           if (currentUser.parentrefCode) {
             const parentUser = await User.findOne({ referralCode: currentUser.parentrefCode });
-
             if (parentUser?.refinc.includes(currentUser.referralCode)) {
-              parentUser.refinc.pull(currentUser.referralCode)
+              parentUser.refinc.pull(currentUser.referralCode);
               if (!parentUser.issubexp) {
-                parentUser.subexp = new Date(parentUser.subexp);
-                parentUser.subexp = parentUser.subexp.setMonth(parentUser.subexp.getMonth() + 3);
+                parentUser.subexp = new Date(parentUser.subexp.setMonth(parentUser.subexp.getMonth() + 3));
               } else {
                 parentUser.subon = now;
-                parentUser.subexp = new Date(now);
-                parentUser.subexp = parentUser.subexp.setMonth(now.getMonth() + 3);
+                parentUser.subexp = new Date(now.setMonth(now.getMonth() + 3));
                 parentUser.issubexp = false;
               }
-              console.log("referral claimed")
               await parentUser.save();
 
               subexp = new Date(now);
               subexp.setFullYear(subexp.getFullYear() + 1);
-              subexp.setMonth(now.getMonth() + 1); // Adds a bonus month
+              subexp.setMonth(now.getMonth() + 1); // bonus month
             }
           } else {
             subexp = new Date(now);
@@ -147,34 +124,27 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
 
         if (subscriptionType === "Monthly") {
           subon = currentUser.subon;
-          subexp = new Date(
-            currentUser.subexp.setMonth(currentUser.subexp.getMonth() + 1)
-          );
+          subexp = new Date(currentUser.subexp.setMonth(currentUser.subexp.getMonth() + 1));
           issubexp = false;
         }
       } else {
-        // New subscription or expired subscription
+        // New or expired subscription
+        const now = new Date();
         if (subscriptionType === "Yearly") {
-          const now = new Date();
           subon = now;
           issubexp = false;
           if (currentUser.parentrefCode) {
             const parentUser = await User.findOne({ referralCode: currentUser.parentrefCode });
-
             if (parentUser?.refinc.includes(currentUser.referralCode)) {
-              const now = new Date();
               const updatedRefinc = parentUser.refinc.filter(ref => ref !== currentUser.referralCode);
-
               let newSubon = parentUser.subon;
               let newSubexp = parentUser.subexp ? new Date(parentUser.subexp) : now;
               let newIssubexp = parentUser.issubexp;
 
-              if (!parentUser.issubexp) {
-                newSubexp.setMonth(newSubexp.getMonth() + 3);
-              } else {
+              if (!parentUser.issubexp) newSubexp.setMonth(newSubexp.getMonth() + 3);
+              else {
                 newSubon = now;
-                newSubexp = new Date(now);
-                newSubexp.setMonth(newSubexp.getMonth() + 3);
+                newSubexp = new Date(now.setMonth(now.getMonth() + 3));
                 newIssubexp = false;
               }
 
@@ -187,24 +157,22 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
 
               subexp = new Date(now);
               subexp.setFullYear(subexp.getFullYear() + 1);
-              subexp.setMonth(now.getMonth() + 1); // Adds a bonus month
+              subexp.setMonth(now.getMonth() + 1); // bonus month
             }
           } else {
             subexp = new Date(now);
             subexp.setFullYear(now.getFullYear() + 1);
           }
-
-
         }
 
         if (subscriptionType === "Monthly") {
-          subon = new Date();
-          subexp = new Date(new Date().setMonth(new Date().getMonth() + 1));
+          subon = now;
+          subexp = new Date(now.setMonth(now.getMonth() + 1));
           issubexp = false;
         }
       }
 
-      // Update user subscription in the database
+      // Update user subscription
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         {
@@ -213,38 +181,24 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
           subexp,
           issubexp,
           orderids: currentUser?.orderids
-            ? [
-              { razorpay_order_id, razorpay_payment_id },
-              ...currentUser.orderids,
-            ]
+            ? [{ razorpay_order_id, razorpay_payment_id }, ...currentUser.orderids]
             : [{ razorpay_order_id, razorpay_payment_id }],
         },
         { new: true, runValidators: true }
       );
 
-      if (!updatedUser) {
-        return res.status(404).json({
-          status: "fail",
-          message: "User not found",
-        });
-      }
+      if (!updatedUser) return res.status(404).json({ status: "fail", message: "User not found" });
 
       res.status(200).json({
         status: "success",
         message: "Payment verified and subscription updated successfully",
       });
     } else if (req.body.event === "payment.authorized") {
-      res.status(200).json({
-        status: "success",
-        message: "Payment authorized",
-      });
+      res.status(200).json({ status: "success", message: "Payment authorized" });
     } else if (req.body.event === "payment.failed") {
-      res.status(200).json({
-        status: "success",
-        message: "Payment failed",
-      });
+      res.status(200).json({ status: "success", message: "Payment failed" });
     }
   } catch (error) {
     next(error);
   }
-});
+};
