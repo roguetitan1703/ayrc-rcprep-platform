@@ -52,8 +52,8 @@ const userSchema = new mongoose.Schema(
       ref: "User.referralCode",
       default: "0000000001",
     },
-    timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" }
-  }
+  },
+  { timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" } }
 );
 userSchema.methods.correctPassword = async function (
   candidatePassword,
