@@ -26,6 +26,8 @@ import { RequireAuth, RequireAdmin } from './components/auth/RequireAuth'
 import About from './features/static/About'
 import Terms from './features/static/Terms'
 import content from './content/static.json'
+import HomePage from './features/static/Home/HomePage'
+
 
 export default function App() {
   const location = useLocation()
@@ -53,6 +55,8 @@ export default function App() {
         <main id="main" tabIndex="-1" className="w-full px-6 py-8">
           <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/home" element={<HomePage />} />
+          {/* Auth routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot" element={<Forgot />} />
