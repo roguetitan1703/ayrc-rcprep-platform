@@ -1,37 +1,36 @@
-import React from 'react';
-import { BookOpen, Mail, Twitter, Linkedin, Github, Facebook, Instagram } from 'lucide-react';
+import React from 'react'
+import { BookOpen, Mail, Twitter, Linkedin, Github, Facebook, Instagram } from 'lucide-react'
 
 export default function Footer() {
   const footerLinks = {
     product: [
-      { name: "Home", href: "/" },
-      { name: "About", href: "/about" },
-      { name: "Features", href: "/#features" },
-      { name: "Pricing", href: "/#pricing" }
+      { name: 'Home', href: '/' },
+      { name: 'About', href: '/about' },
+      { name: 'Features', href: '/#features' },
+      { name: 'Pricing', href: '/pricing' },
     ],
     legal: [
-      { name: "Terms & Conditions", href: "/terms" },
-      { name: "Privacy Policy", href: "/privacy" },
-      { name: "Cookie Policy", href: "/cookies" },
-      { name: "Disclaimer", href: "/disclaimer" }
+      { name: 'Terms & Conditions', href: '/terms' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Cancellation/Refund Policy', href: '/refund-policy' },
     ],
     support: [
-      { name: "Contact Us", href: "/contact" },
-      { name: "FAQ", href: "/faq" },
-      { name: "Help Center", href: "/help" },
-      { name: "Feedback", href: "/feedback" }
-    ]
-  };
+      { name: 'Contact Us', href: '/contact' },
+      { name: 'FAQ', href: '/faq' },
+      { name: 'Help Center', href: '/help' },
+      { name: 'Feedback', href: '/feedback' },
+    ],
+  }
 
   const socialLinks = [
-    { icon: Twitter, href: "#", label: "Twitter", color: "hover:text-primary" },
-    { icon: Linkedin, href: "#", label: "LinkedIn", color: "hover:text-primary-light" },
-    { icon: Facebook, href: "#", label: "Facebook", color: "hover:text-primary" },
-    { icon: Instagram, href: "#", label: "Instagram", color: "hover:text-accent-amber" },
-    { icon: Github, href: "#", label: "GitHub", color: "hover:text-text-primary" }
-  ];
+    { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-primary' },
+    { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-primary-light' },
+    { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:text-primary' },
+    { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:text-accent-amber' },
+    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-text-primary' },
+  ]
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
   return (
     <footer className="bg-card-surface border-t border-neutral-grey border-opacity-20">
@@ -50,13 +49,14 @@ export default function Footer() {
 
             {/* Description */}
             <p className="text-text-secondary mb-6 max-w-sm">
-              Your trusted platform for mastering reading comprehension. Practice daily with expert-curated passages and improve your competitive exam scores.
+              Your trusted platform for mastering reading comprehension. Practice daily with
+              expert-curated passages and improve your competitive exam scores.
             </p>
 
             {/* Social Links */}
             <div className="flex gap-4">
               {socialLinks.map((social, index) => {
-                const Icon = social.icon;
+                const Icon = social.icon
                 return (
                   <a
                     key={index}
@@ -66,7 +66,7 @@ export default function Footer() {
                   >
                     <Icon className="w-5 h-5" />
                   </a>
-                );
+                )
               })}
             </div>
           </div>
@@ -156,13 +156,22 @@ export default function Footer() {
 
             {/* Additional Links */}
             <div className="flex items-center gap-6 text-sm">
-              <a href="/sitemap" className="text-text-secondary hover:text-primary-light transition-colors">
+              <a
+                href="/sitemap"
+                className="text-text-secondary hover:text-primary-light transition-colors"
+              >
                 Sitemap
               </a>
-              <a href="/accessibility" className="text-text-secondary hover:text-primary-light transition-colors">
+              <a
+                href="/accessibility"
+                className="text-text-secondary hover:text-primary-light transition-colors"
+              >
                 Accessibility
               </a>
-              <a href="/status" className="text-text-secondary hover:text-primary-light transition-colors">
+              <a
+                href="/status"
+                className="text-text-secondary hover:text-primary-light transition-colors"
+              >
                 Status
               </a>
             </div>
@@ -175,5 +184,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

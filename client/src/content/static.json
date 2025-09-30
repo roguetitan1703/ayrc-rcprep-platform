@@ -20,5 +20,30 @@
   "tos": {
     "title": "Terms of Service",
     "body": "By using ARC, you agree to practice respectfully, not redistribute content, and accept that the service is provided as-is during the pilot. See the README for contact details."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We'd love to hear from you.",
+    "body": "Email: support@example.com\nWe'll respond within 2 business days."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "Simple, transparent plans.",
+    "body": "Choose a plan that fits your prep.",
+    "plans": [
+      "Free: Limited daily RCs",
+      "Pro: Full access and analytics",
+      "Team: Bulk for institutes"
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "Your data, your control.",
+    "body": "We collect minimal data necessary to operate ARC. We never sell your data."
+  },
+  "refund": {
+    "title": "Cancellation & Refund Policy",
+    "subtitle": "Fair and clear.",
+    "body": "Subscriptions can be canceled anytime. Refunds are provided on a prorated basis within 7 days for annual plans and not available for monthly plans unless required by law."
   }
 }
