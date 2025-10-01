@@ -7,7 +7,7 @@ export default function StaticNavbar() {
   const location = useLocation()
 
   const navLinks = [
-    { to: '/home', label: 'Home' },
+    { to: '/', label: 'Home' },
     { to: '/about', label: 'About' },
     { to: '/pricing', label: 'Pricing' },
     { to: '/contact', label: 'Contact' },
