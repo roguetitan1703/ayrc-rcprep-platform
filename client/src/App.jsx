@@ -32,10 +32,11 @@ import Privacy from './features/static/Privacy'
 import Refund from './features/static/Refund'
 import content from './content/static.json'
 import HomePage from './features/static/Home/HomePage'
-import NavbarStatic from './components/layout/NavbarStatic'
+import StaticNavbar from './components/layout/StaticNavbar'
 
 export default function App() {
   const location = useLocation()
+  const { user, loading } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   useEffect(() => {
     const el = document.getElementById('main')
@@ -44,6 +45,9 @@ export default function App() {
     }
     setMobileOpen(false) // close mobile nav on route change
   }, [location.pathname])
+
+
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-background text-text-primary">
@@ -53,16 +57,30 @@ export default function App() {
         >
           Skip to content
         </a>
+
+          {/* Conditional Header Rendering */}
+      {!user ? (
+        // Static navbar for public pages (when NOT logged in)
         <header className="sticky top-0 z-10 border-b border-neutral-grey/40 bg-background/80 backdrop-blur">
-          <div className="w-full px-6 h-14 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 text-accent-amber">
-              <BookOpen size={20} />
-              <span className="font-semibold">ARC</span>
-            </Link>
-            <Navbar onOpenMobile={() => setMobileOpen(true)} />
-          </div>
+          <StaticNavbar />
         </header>
-        <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      ) : (
+        // Authenticated header (when logged in)
+        <>
+          <header className="sticky top-0 z-10 border-b border-neutral-grey/40 bg-background/80 backdrop-blur">
+            <div className="w-full px-6 h-14 flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-2 text-accent-amber">
+                <BookOpen size={20} />
+                <span className="font-semibold">ARC</span>
+              </Link>
+              <Navbar onOpenMobile={() => setMobileOpen(true)} />
+            </div>
+          </header>
+          <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+        </>
+      )}
+
+
         <ToastProvider>
           <main id="main" tabIndex="-1" className="w-full px-6 py-8">
             <Routes>
@@ -189,7 +207,7 @@ export default function App() {
                   </RequireAdmin>
                 }
               />
-              {/* <NavbarStatic /> */}
+
               {/* Static routes */}
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
@@ -253,7 +271,15 @@ function Landing() {
 }
 
 function NotFound() {
-  return <div>Not Found</div>
+  return (
+    <div className="max-w-4xl mx-auto text-center py-24">
+      <h1 className="text-4xl font-semibold mb-3">404 - Page Not Found</h1>
+      <p className="text-text-secondary mb-6">The page you're looking for doesn't exist.</p>
+      <Link to="/" className="text-accent-amber hover:underline">
+        Go back home
+      </Link>
+    </div>
+  )
 }
 
 function Navbar({ onOpenMobile }) {

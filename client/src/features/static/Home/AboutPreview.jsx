@@ -100,10 +100,10 @@ export default function AboutPreview() {
 
             {/* CTA */}
             <div className="text-center">
-              <button className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 mb-4">
+              <a href="/about" className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 mb-4">
                 Learn More About Us
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </a>
               <p className="text-text-secondary text-sm">
                 Discover our story, team, and commitment to your success
               </p>

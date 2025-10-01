@@ -6,7 +6,6 @@ export default function Footer() {
     product: [
       { name: 'Home', href: '/' },
       { name: 'About', href: '/about' },
-      { name: 'Features', href: '/#features' },
       { name: 'Pricing', href: '/pricing' },
     ],
     legal: [
@@ -33,7 +32,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gradient-primary text-text-primary mt-12 sm:mt-16 lg:mt-20">
+    <footer className="bg-[#16213e] border-t border-[#4A4A5A] border-opacity-20">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
@@ -156,10 +155,7 @@ export default function Footer() {
 
             {/* Additional Links */}
             <div className="flex items-center flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm order-3 md:order-2">
-              <a
-                href="/sitemap"
-                className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors"
-              >
+              <a href="/sitemap" className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors">
                 Sitemap
               </a>
               <a
@@ -168,10 +164,7 @@ export default function Footer() {
               >
                 Accessibility
               </a>
-              <a
-                href="/status"
-                className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors"
-              >
+              <a href="/status" className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors">
                 Status
               </a>
             </div>
@@ -186,4 +179,3 @@ export default function Footer() {
     </footer>
   )
 }
-

@@ -11,13 +11,13 @@ export default function Privacy() {
             <Shield className="w-8 h-8 text-white" />
           </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold mt-6 text-text-primary">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-6 text-text-primary">
          {c.title}
         </h1>
         <p className="text-lg text-text-secondary mt-4 max-w-2xl mx-auto">
          {c.subtitle}
         </p>
-        <p className="text-lg text-text-secondary mt-4 max-w-2xl mx-auto">
+        <p className="text-lg text-text-secondary mt-4 pt-4 max-w-2xl mx-auto">
           We respect your privacy and are committed to protecting your personal data.
         </p>
 
