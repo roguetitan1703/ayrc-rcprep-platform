@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, CheckCircle, Users, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function FinalCTABanner() {
   return (
@@ -53,13 +54,17 @@ export default function FinalCTABanner() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link to="/register">
               <button className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-primary font-bold rounded-lg text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200">
                 Create Free Account
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
+              </Link>
+              <Link to="/login">
               <button className="inline-flex items-center gap-2 px-8 py-4 bg-white bg-opacity-10 backdrop-blur-sm text-white font-semibold rounded-lg text-lg border-2 border-white border-opacity-30 hover:bg-opacity-20 transition-all duration-200">
                 Login
               </button>
+              </Link>
             </div>
 
             {/* Trust Indicators */}

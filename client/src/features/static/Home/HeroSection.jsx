@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Users, Calendar, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function HeroSection() {
   return (
@@ -19,13 +20,17 @@ export default function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <Link to="/register">
             <button className="group px-8 py-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg text-lg transition-all duration-200 flex items-center gap-2 shadow-card hover:shadow-card-hover">
               Start Practicing
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
+            </Link>
+            <Link to="/login">
             <button className="px-8 py-4 bg-card-surface text-text-primary font-semibold rounded-lg text-lg border border-neutral-grey hover:bg-opacity-80 transition-all duration-200">
               Login
             </button>
+            </Link>
           </div>
 
           {/* Trust Indicators */}

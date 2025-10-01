@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen, Clock, ArrowRight, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function SampleRCPreview() {
   return (
@@ -130,10 +131,12 @@ export default function SampleRCPreview() {
             <p className="text-text-secondary mb-6 max-w-md mx-auto">
               Get access to 100+ passages like this with instant feedback and detailed explanations
             </p>
+            <Link to="/register">
             <button className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
               Create Free Account
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
+            </Link>
             <p className="mt-4 text-text-secondary text-sm">
               No credit card required • Start practicing in 30 seconds
             </p>

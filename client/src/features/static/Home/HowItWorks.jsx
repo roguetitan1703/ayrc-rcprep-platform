@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserPlus, BookOpen, TrendingUp, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function HowItWorks() {
   const steps = [
@@ -115,10 +116,12 @@ export default function HowItWorks() {
 
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
+          <Link to="/register">
           <button className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
             Get Started Now
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
+          </Link>
           <p className="mt-4 text-text-secondary text-sm">
             Join thousands of aspirants already improving their skills
           </p>

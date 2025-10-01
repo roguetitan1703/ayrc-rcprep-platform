@@ -26,8 +26,7 @@ export default function Footer() {
     { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-[#8b5cf6]' },
     { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:text-[#6366f1]' },
     { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:text-[#fb923c]' },
-    { icon: Github, href: '#', label: 'GitHub', color: 'hover:text-[#e8eaed]' },
-  ]
+     ]
 
   const currentYear = new Date().getFullYear()
 
@@ -153,21 +152,7 @@ export default function Footer() {
               © {currentYear} ARC Prep. All rights reserved.
             </div>
 
-            {/* Additional Links */}
-            <div className="flex items-center flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm order-3 md:order-2">
-              <a href="/sitemap" className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors">
-                Sitemap
-              </a>
-              <a
-                href="/accessibility"
-                className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors"
-              >
-                Accessibility
-              </a>
-              <a href="/status" className="text-[#a9a9a9] hover:text-[#8b5cf6] transition-colors">
-                Status
-              </a>
-            </div>
+          
 
             {/* Made with love */}
             <div className="text-[#a9a9a9] text-xs sm:text-sm flex items-center gap-2 order-1 md:order-3">

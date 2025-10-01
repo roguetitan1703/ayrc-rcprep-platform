@@ -133,21 +133,7 @@ export default function VideoSection() {
                 </div>
               </div>
 
-              {/* Floating Stats */}
-              <div className="absolute -bottom-6 -left-6 hidden sm:block">
-                <div className="bg-card-surface rounded-xl p-4 border border-success-green border-opacity-30 shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-success-green bg-opacity-20 flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-success-green" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-text-primary">Easy Setup</div>
-                      <div className="text-xs text-text-secondary">No complexity</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+             {/*  Quick Tour Badge */}
               <div className="absolute -top-6 -right-6 hidden sm:block">
                 <div className="bg-card-surface rounded-xl p-4 border border-primary border-opacity-30 shadow-lg">
                   <div className="flex items-center gap-3">
