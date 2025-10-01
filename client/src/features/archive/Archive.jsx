@@ -24,16 +24,16 @@ export default function Archive(){
   },[page])
 
   if(loading) return (
-    <div className="space-y-4">
+    <div className="min-h-screen flex flex-col space-y-4">
   <h1 className="h3">Archive</h1>
       <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader></Card>
       <Card><CardHeader><Skeleton className="h-6 w-2/5" /></CardHeader></Card>
     </div>
   )
-  if(error) return <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  if(error) return <div className="min-h-screen flex flex-col p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
 
   return (
-    <div className="space-y-4">
+    <div className="min-h-screen flex flex-col space-y-4">
   <h1 className="h3">Archive</h1>
       <div className="grid gap-3">
         {items.length===0 && <div className="text-text-secondary">Your practice history will appear here once you complete your first RC.</div>}

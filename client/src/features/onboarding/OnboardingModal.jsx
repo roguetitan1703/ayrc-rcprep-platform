@@ -13,6 +13,7 @@ export function OnboardingModal({ open, onClose }){
   useEffect(()=>{ if(!open) setI(0) }, [open])
   if(!open) return null
   return createPortal(
+    <div className='min-h-screen'>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div className="relative w-full max-w-md bg-card-surface rounded-lg border border-white/10 shadow-lg p-6 space-y-4">
@@ -29,5 +30,6 @@ export function OnboardingModal({ open, onClose }){
           )}
         </div>
       </div>
+    </div>
     </div>, document.body)
 }

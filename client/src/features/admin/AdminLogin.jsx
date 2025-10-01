@@ -33,6 +33,7 @@ export default function AdminLogin() {
   }
 
   return (
+    <div className='min-h-screen'>
     <div className="max-w-md mx-auto py-16">
       <Card>
         <CardHeader>
@@ -65,6 +66,7 @@ export default function AdminLogin() {
           </form>
         </CardContent>
       </Card>
+    </div>
     </div>
   )
 }

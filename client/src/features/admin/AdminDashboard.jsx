@@ -29,7 +29,7 @@ export default function AdminDashboard(){
   },[rcs, statusFilter, search])
 
   if(loading) return (
-    <div className="py-6 space-y-4">
+    <div className="min-h-screen flex flex-col py-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Admin: RCs</h1>
         <div className="flex items-center gap-2">
@@ -43,10 +43,10 @@ export default function AdminDashboard(){
       </div>
     </div>
   )
-  if(error) return <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  if(error) return <div className="min-h-screen flex flex-col p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
 
   return (
-    <div className="py-6 space-y-4">
+    <div className="min-h-screen flex flex-col py-6 space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold">Admin: RCs</h1>
         <div className="flex flex-wrap items-center gap-2">

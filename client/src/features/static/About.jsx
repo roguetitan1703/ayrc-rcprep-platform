@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import {
   Heart,
   Brain,
@@ -13,7 +13,8 @@ import {
   FileText,
   Award,
   Globe,
-} from 'lucide-react';
+} from 'lucide-react'
+import { motion } from 'framer-motion' 
 
 export default function AboutPage() {
   const features = [
@@ -53,7 +54,7 @@ export default function AboutPage() {
       description: 'Zero ads. Zero paywalls. Just focused practice',
       gradient: 'from-[#fb923c] to-success-green',
     },
-  ];
+  ]
 
   const stats = [
     {
@@ -80,10 +81,10 @@ export default function AboutPage() {
       label: 'Free Forever',
       gradient: 'from-success-green to-[#3b82f6]',
     },
-  ];
+  ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card-surface">
+    <div className="min-h-screen">
       {/* Background decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 sm:w-96 sm:h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
@@ -99,10 +100,13 @@ export default function AboutPage() {
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-4 sm:mb-6">
               About{' '}
-              <span className="bg-gradient-accent bg-clip-text text-transparent">ARC RC Prep</span>
+              <span className="bg-gradient-to-r from-primary via-accent-amber to-primary-light bg-clip-text text-transparent">
+                ARC RC Prep
+              </span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-text-secondary leading-relaxed max-w-4xl mx-auto px-4">
-              A clean, no-nonsense platform for mastering reading comprehension — built by aspirants, for aspirants.
+              A clean, no-nonsense platform for mastering reading comprehension — built by
+              aspirants, for aspirants.
             </p>
           </div>
 
@@ -110,7 +114,12 @@ export default function AboutPage() {
           <div className="mb-12 sm:mb-16 lg:mb-20">
             <div className="flex justify-center mb-6 sm:mb-8">
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md">
-                <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                </motion.div>
               </div>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary text-center mb-8 sm:mb-12 px-4">
@@ -171,7 +180,9 @@ export default function AboutPage() {
                   >
                     {feature.icon}
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-2">{feature.title}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-text-primary mb-2">
+                    {feature.title}
+                  </h3>
                   <p className="text-sm sm:text-base text-text-secondary">{feature.description}</p>
                 </div>
               ))}
@@ -184,7 +195,9 @@ export default function AboutPage() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
                 Our Impact
               </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">Numbers that speak for themselves why we</p>
+              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">
+                Numbers that speak for themselves why we
+              </p>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
@@ -203,7 +216,9 @@ export default function AboutPage() {
                   >
                     {stat.number}
                   </div>
-                  <div className="text-text-secondary text-sm sm:text-base lg:text-xl font-medium">{stat.label}</div>
+                  <div className="text-text-secondary text-sm sm:text-base lg:text-xl font-medium">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -215,13 +230,17 @@ export default function AboutPage() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-2 sm:mb-3">
                 Our Philosophy
               </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">Why we do what we do</p>
+              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">
+                Why we do what we do
+              </p>
             </div>
 
             <div className="bg-gradient-to-r from-primary via-primary-light to-accent-amber p-1 rounded-2xl">
               <div className="bg-card-surface p-6 sm:p-8 lg:p-12 rounded-2xl">
                 <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                  <div className="text-4xl sm:text-5xl lg:text-6xl text-primary leading-none flex-shrink-0">"</div>
+                  <div className="text-4xl sm:text-5xl lg:text-6xl text-primary leading-none flex-shrink-0">
+                    "
+                  </div>
                   <div className="flex-1">
                     <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-text-primary mb-3 sm:mb-4 leading-relaxed">
                       Quality practice shouldn't be hidden behind paywalls. Everyone deserves access
@@ -305,7 +324,9 @@ export default function AboutPage() {
                   <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
               </div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-3 sm:mb-4 text-center">Thank You</h2>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-3 sm:mb-4 text-center">
+                Thank You
+              </h2>
               <p className="text-base sm:text-lg text-text-secondary leading-relaxed text-center">
                 Thanks to everyone who's supported, tested, and given feedback. We're constantly
                 working to improve ARC and make it better for you. Your trust and encouragement fuel
@@ -339,5 +360,5 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }

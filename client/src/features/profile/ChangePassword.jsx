@@ -28,7 +28,8 @@ export default function ChangePassword(){
   }
 
   return (
-    <div className="max-w-md mx-auto bg-card-surface rounded p-6 space-y-4">
+    <div className='min-h-screen'>
+    <div className="max-w-md mx-auto bg-card-surface rounded p-6 mt-10 space-y-4">
       <h1 className="h3">Change Password</h1>
       {msg && <div className="text-success-green text-sm">{msg}</div>}
       {error && <div className="bg-error-red/10 border border-error-red/40 text-error-red text-sm rounded p-2">{error}</div>}
@@ -43,6 +44,7 @@ export default function ChangePassword(){
       <div>
         <Button disabled={loading || !strong || !current || !confirm} onClick={submit} className="w-full">Update</Button>
       </div>
+    </div>
     </div>
   )
 }

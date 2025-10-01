@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
-import { Skeleton, SkeletonText } from '../../components/ui/Skeleton'
+import { Skeleton} from '../../components/ui/Skeleton'
 import { StatsRow } from './StatsRow'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { useToast } from '../../components/ui/Toast'
@@ -35,7 +35,7 @@ export default function Dashboard(){
   const [analyticsBundle, setAnalyticsBundle] = useState(null)
 
   if(loading) return (
-    <div className="space-y-6">
+    <div className="min-h-screen flex flex-col space-y-6 px-6 py-4">
   <h1 className="h2">Today's Practice</h1>
   <StatsRow initial={statsBundle} />
   <AnalyticsPanel initial={analyticsBundle} />
@@ -46,10 +46,10 @@ export default function Dashboard(){
       </div>
     </div>
   )
-  if(error) return <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  if(error) return <div className="min-h-screen flex items-center justify-center p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen flex flex-col space-y-6">
   <h1 className="h2">Today's Practice</h1>
       <StatsRow />
       {feedbackRequired && (

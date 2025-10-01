@@ -38,7 +38,7 @@ export default function Profile(){
     </div>
   )
   return (
-    <div className="max-w-lg space-y-4">
+    <div className="max-w-lg min-h-screen flex flex-col space-y-4">
   <h1 className="h3">My Profile</h1>
       {me?.dailyStreak>=0 && (
         <div className="flex items-center gap-2 bg-card-surface rounded p-3 text-sm">
