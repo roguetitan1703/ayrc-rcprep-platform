@@ -25,7 +25,7 @@ export default function FeaturesOverview() {
       icon: Shield,
       title: "Expert Curated Content",
       description: "Admin-managed quality passages and questions designed to match competitive exam standards.",
-      gradient: "from-accent-amber to-motivational-warm", // Changed to use motivational-warm
+      gradient: "from-accent-amber to-error-red", // Changed to use motivational-warm
     },
   ];
 

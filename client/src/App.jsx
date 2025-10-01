@@ -32,6 +32,7 @@ import Privacy from './features/static/Privacy'
 import Refund from './features/static/Refund'
 import content from './content/static.json'
 import HomePage from './features/static/Home/HomePage'
+import NavbarStatic from './components/layout/NavbarStatic'
 
 export default function App() {
   const location = useLocation()
@@ -188,6 +189,8 @@ export default function App() {
                   </RequireAdmin>
                 }
               />
+              {/* <NavbarStatic /> */}
+              {/* Static routes */}
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pricing" element={<Pricing />} />
