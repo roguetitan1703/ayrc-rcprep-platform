@@ -133,7 +133,7 @@ export async function analytics(req, res, next) {
     const attempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select('score answers attemptedAt rcPassageId attemptType')
     const rcMap = new Map()
     const passageIds = attempts.map((a) => a.rcPassageId)
-    const passages = await RcPassage.find({ _id: { $in: passageIds } }).select(
+    const passages = await RcModel.find({ _id: { $in: passageIds } }).select(
       'topicTags questions'
     )
     passages.forEach((p) => rcMap.set(p._id.toString(), p))
