@@ -34,25 +34,29 @@ export default function AboutPage() {
       icon: <BarChart3 className="w-6 h-6" />,
       title: 'Performance Analytics',
       description: 'Track your progress with instant feedback and insights',
-      gradient: 'from-accent-amber to-[#fb923c]',
+      // replaced raw hex #fb923c with semantic warm-orange
+      gradient: 'from-accent-amber to-warm-orange',
     },
     {
       icon: <Users className="w-6 h-6" />,
       title: 'Admin Portal',
       description: 'Robust tools for scheduling and managing quality content',
-      gradient: 'from-success-green to-[#3b82f6]',
+      // replaced raw hex #3b82f6 with semantic info-blue
+      gradient: 'from-success-green to-info-blue',
     },
     {
       icon: <Target className="w-6 h-6" />,
       title: 'Topic Tagging',
       description: 'Practice specific areas with targeted preparation',
-      gradient: 'from-[#3b82f6] to-primary',
+      // replaced raw hex #3b82f6 with semantic info-blue
+      gradient: 'from-info-blue to-primary',
     },
     {
       icon: <Shield className="w-6 h-6" />,
       title: 'No Distractions',
       description: 'Zero ads. Zero paywalls. Just focused practice',
-      gradient: 'from-[#fb923c] to-success-green',
+      // replaced raw hex #fb923c with semantic warm-orange
+      gradient: 'from-warm-orange to-success-green',
     },
   ]
 
@@ -73,13 +77,15 @@ export default function AboutPage() {
       icon: <Award className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '50+',
       label: 'Topics Covered',
-      gradient: 'from-accent-amber to-[#fb923c]',
+      // replaced raw hex #fb923c with semantic warm-orange
+      gradient: 'from-accent-amber to-warm-orange',
     },
     {
       icon: <Globe className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '100%',
       label: 'Free Forever',
-      gradient: 'from-success-green to-[#3b82f6]',
+      // replaced raw hex #3b82f6 with semantic info-blue
+      gradient: 'from-success-green to-info-blue',
     },
   ]
 
