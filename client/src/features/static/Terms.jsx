@@ -23,7 +23,7 @@ export default function Terms(){
           </p>
 
           <h2 className="text-2xl font-semibold text-text-primary">Account Responsibility</h2>
-          <p xlassName='text-text-secondary'>
+          <p className='text-text-secondary'>
             You are responsible for maintaining confidentiality of your account credentials. 
             We are not liable for unauthorized use of your account.
           </p>
