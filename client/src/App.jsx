@@ -11,6 +11,7 @@ import AdminLogin from './features/admin/AdminLogin'
 import AdminDashboard from './features/admin/AdminDashboard'
 import RcForm from './features/admin/RcForm'
 import AdminSchedule from './features/admin/Schedule'
+import RcAnalyticsPage from './features/admin/RcAnalyticsPage'
 import Login from './features/auth/Login'
 import Register from './features/auth/Register'
 import Forgot from './features/auth/Forgot'
@@ -234,6 +235,16 @@ export default function App() {
                   <RequireAdmin>
                     <Shell>
                       <RcForm />
+                    </Shell>
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/rcs/:id/analytics"
+                element={
+                  <RequireAdmin>
+                    <Shell>
+                      <RcAnalyticsPage />
                     </Shell>
                   </RequireAdmin>
                 }

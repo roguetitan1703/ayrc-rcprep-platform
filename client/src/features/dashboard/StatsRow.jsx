@@ -3,7 +3,7 @@ import { api } from '../../lib/api'
 import { Card, CardContent } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
 
-export function StatsRow({ initial }) {
+export function StatsRow({ initial, analytics }) {
   const [stats, setStats] = useState(initial || null)
   const [loading, setLoading] = useState(!initial)
   const [error, setError] = useState('')
@@ -25,12 +25,14 @@ export function StatsRow({ initial }) {
     </div>
   )
   if (error) return <div className="text-error-red text-sm">{error}</div>
-  if (!stats) return null
+  if (!stats && !analytics) return null
+  const attempts7d = stats?.attempts7d ?? analytics?.attempts7d ?? '-'
+  const coverage = stats?.coverage ?? analytics?.coverage ?? '-'
   return (
     <div className="grid sm:grid-cols-3 gap-3" aria-label="Key performance metrics">
-      <Metric title="Total Attempts" value={stats.totalAttempts} />
-      <Metric title="Accuracy" value={stats.accuracy + '%'} />
-      <Metric title="Attempts (7d) / Coverage" value={`${stats.attempts7d ?? '-'} / ${stats.coverage ?? '-'}%`} />
+      <Metric title="Total Attempts" value={stats?.totalAttempts ?? '-'} />
+      <Metric title="Accuracy" value={stats?.accuracy ? stats.accuracy + '%' : '-'} />
+      <Metric title="Attempts (7d) / Coverage" value={`${attempts7d} / ${coverage}%`} />
     </div>
   )
 }

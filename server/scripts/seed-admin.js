@@ -14,10 +14,11 @@ async function main() {
     existing.name = name;
     existing.role = "admin";
     existing.password = hash;
+    existing.passwordConfirm = hash;
     await existing.save();
     console.log("Updated admin:", email);
   } else {
-    await User.create({ name, email, password: hash, role: "admin" });
+    await User.create({ name, email, password: hash, passwordConfirm: hash, role: "admin" });
     console.log("Created admin:", email);
   }
   process.exit(0);
