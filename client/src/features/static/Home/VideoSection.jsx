@@ -47,7 +47,7 @@ export default function VideoSection() {
             </div>
 
             {/* CTA Button */}
-            <button className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <button className="group inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
               Start Your First RC Now
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

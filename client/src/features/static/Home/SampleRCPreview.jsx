@@ -31,8 +31,8 @@ export default function SampleRCPreview() {
           <div className="bg-background bg-opacity-50 px-6 py-4 border-b border-neutral-grey border-opacity-20">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-accent flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-text-primary" />
+                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-text-primary">Ancient Philosophy and Modern Ethics</h3>
@@ -132,7 +132,7 @@ export default function SampleRCPreview() {
               Get access to 100+ passages like this with instant feedback and detailed explanations
             </p>
             <Link to="/register">
-            <button className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-accent text-text-primary font-semibold rounded-lg text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <button className="inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-lg text-lg shadow-lg hover:bg-primary-dark transform hover:scale-105 transition-all duration-200">
               Create Free Account
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

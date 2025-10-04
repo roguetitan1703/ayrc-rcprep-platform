@@ -7,8 +7,8 @@ import { extractErrorMessage } from '../../lib/utils'
 
 export default function Feedback() {
   const nav = useNavigate()
-  const [difficulty, setDifficulty] = useState(3)
-  const [clarity, setClarity] = useState(3)
+  const [difficulty, setDifficulty] = useState(null)
+  const [clarity, setClarity] = useState(null)
   const [comment, setComment] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -16,15 +16,17 @@ export default function Feedback() {
   const [success, setSuccess] = useState(false)
   const toast = useToast()
 
-  const valid = difficulty >= 1 && clarity >= 1
+  const valid = difficulty !== null && clarity !== null
 
   useEffect(() => {
-    ;(async () => {
+    (async () => {
       try {
         const { data } = await api.get('/feedback/today')
         setSubmittedToday(!!data?.submitted)
       } catch (e) {
-        /* non-blocking */
+        const msg = extractErrorMessage(e, 'Could not check submission status')
+        setError(msg)
+        toast.show(msg, { variant: 'error' })
       }
     })()
   }, [])
@@ -49,13 +51,16 @@ export default function Feedback() {
     }
   }
 
+  const ratings = [1, 2, 3, 4, 5]
+
   return (
-    <div className="min-h-screen">
-      <div className="max-w-xl mx-auto bg-card-surface rounded p-6 space-y-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="max-w-xl w-full bg-card-surface rounded p-6 space-y-4">
         <h1 className="h3">Daily Feedback</h1>
         <p className="body-muted">
           Help us tune difficulty and explanations. This takes 10 seconds.
         </p>
+
         {error && (
           <div className="bg-error-red/10 border border-error-red/40 text-error-red text-sm rounded p-2">
             {error}
@@ -71,35 +76,56 @@ export default function Feedback() {
             Feedback saved. See you tomorrow!
           </div>
         )}
-        <div className="space-y-3">
+
+        {/* Ratings */}
+        <div className="space-y-4">
+          {/* Difficulty */}
           <div>
-            <label className="block text-sm mb-1">Overall difficulty (1 easy – 5 hard)</label>
-            <select
-              value={difficulty}
-              onChange={(e) => setDifficulty(Number(e.target.value))}
-              className="w-full bg-background border border-white/10 rounded p-2"
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
+            <label className="block text-sm mb-1 font-medium">Overall difficulty</label>
+            <div className="flex gap-2">
+              {ratings.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setDifficulty(n)}
+                  className={`w-10 h-10 rounded-full border flex items-center justify-center font-semibold
+                    ${
+                      difficulty === n
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-background border-white/20'
+                    }
+                  `}
+                >
                   {n}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
+
+          {/* Clarity */}
           <div>
-            <label className="block text-sm mb-1">Explanation clarity (1 poor – 5 excellent)</label>
-            <select
-              value={clarity}
-              onChange={(e) => setClarity(Number(e.target.value))}
-              className="w-full bg-background border border-white/10 rounded p-2"
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
+            <label className="block text-sm mb-1 font-medium">Explanation clarity</label>
+            <div className="flex gap-2">
+              {ratings.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setClarity(n)}
+                  className={`w-10 h-10 rounded-full border flex items-center justify-center font-semibold
+                    ${
+                      clarity === n
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-background border-white/20'
+                    }
+                  `}
+                >
                   {n}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
+
+          {/* Comment */}
           <div>
             <label className="block text-sm mb-1">Comments (optional)</label>
             <textarea
@@ -111,6 +137,8 @@ export default function Feedback() {
             />
           </div>
         </div>
+
+        {/* Submit */}
         <div className="pt-2">
           <Button
             disabled={submitting || !valid || submittedToday}
@@ -123,6 +151,7 @@ export default function Feedback() {
               ? 'Submitting...'
               : 'Submit & Unlock'}
           </Button>
+
           <div className="mt-2 text-center">
             <button
               onClick={() => nav('/dashboard')}

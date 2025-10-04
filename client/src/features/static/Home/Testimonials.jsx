@@ -61,11 +61,11 @@ export default function TestimonialsSection() {
       image: "S",
       rating: 5,
       text: "As someone preparing while working, the flexible schedule is perfect. I practice for 15-20 minutes daily and have seen consistent improvement in my reading speed.",
-      colorClasses: {
-        text: "text-error-red",
-        bg: "bg-error-red",
-        bgOpacity: "bg-error-red bg-opacity-20",
-        border: "border-error-red"
+       colorClasses: {
+        text: "text-success-green",
+        bg: "bg-success-green",
+        bgOpacity: "bg-success-green bg-opacity-20",
+        border: "border-success-green"
       }
     },
     {
@@ -74,11 +74,11 @@ export default function TestimonialsSection() {
       image: "A",
       rating: 5,
       text: "The admin-curated content ensures quality. No random passages here - everything is purposeful and aligned with competitive exam patterns. Highly recommended!",
-      colorClasses: {
-        text: "text-primary",
-        bg: "bg-primary",
-        bgOpacity: "bg-primary bg-opacity-20",
-        border: "border-primary"
+     colorClasses: {
+        text: "text-accent-amber",
+        bg: "bg-accent-amber",
+        bgOpacity: "bg-accent-amber bg-opacity-20",
+        border: "border-accent-amber"
       }
     }
   ];

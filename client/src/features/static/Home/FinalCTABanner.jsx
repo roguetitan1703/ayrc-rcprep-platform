@@ -7,13 +7,13 @@ export default function FinalCTABanner() {
     <section className="bg-background py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Main CTA Card */}
-        <div className="relative bg-gradient-to-br from-primary via-primary-light to-accent-amber rounded-3xl overflow-hidden">
+        <div className="relative bg-gradient-to-br from-primary/70 via-primary-light to-accent-amber rounded-3xl overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-full h-full">
-              <div className="absolute top-10 left-10 w-20 h-20 border-2 border-white rounded-full"></div>
-              <div className="absolute bottom-10 right-10 w-32 h-32 border-2 border-white rounded-lg transform rotate-12"></div>
-              <div className="absolute top-1/2 right-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
+              <div className="absolute top-10 left-10 w-20 h-20 border-4 border-white rounded-full"></div>
+              <div className="absolute bottom-10 right-10 w-32 h-32 border-4 border-white rounded-lg transform rotate-12"></div>
+              <div className="absolute top-1/2 right-1/4 w-16 h-16 border-4 border-white rounded-full"></div>
             </div>
           </div>
 

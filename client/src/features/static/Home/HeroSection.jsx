@@ -3,6 +3,13 @@ import { ArrowRight, Users, Calendar, Zap, CheckCircle, TrendingUp, BookOpen } f
 import { Link } from 'react-router-dom';
 
 export default function HeroSection() {
+
+  const miniStats = [
+    { label: "Total Attempts", value: 120, icon: <CheckCircle className="w-5 h-5 text-success-green" /> },
+    { label: "Personal Best", value: "85%", icon: <TrendingUp className="w-5 h-5 text-primary" /> },
+    { label: "Coverage", value: "72%", icon: <BookOpen className="w-5 h-5 text-accent-amber" /> },
+  ];
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-card-surface overflow-hidden">
       {/* Subtle Background Pattern */}
@@ -29,7 +36,7 @@ export default function HeroSection() {
             </span>
           </h1>
 
-          {/* Subheadline */}
+          {/* body */}
           <p className="text-lg sm:text-xl text-text-secondary mb-12 max-w-3xl mx-auto leading-relaxed">
             Prepare smarter for competitive exams with expert-curated passages, 
             instant feedback, and daily practice that adapts to your learning pace.
@@ -48,7 +55,8 @@ export default function HeroSection() {
                 Login
               </button>
             </Link>
-          </div>
+          </div>    
+
 
           {/* Trust Indicators - Enhanced */}
           <div className="flex flex-wrap justify-center items-center gap-8 text-text-secondary text-sm sm:text-base mb-20">

@@ -13,8 +13,10 @@ import {
   FileText,
   Award,
   Globe,
+  BookOpen,
+  TrendingUp,
 } from 'lucide-react'
-import { motion } from 'framer-motion' 
+import { motion } from 'framer-motion'
 
 export default function AboutPage() {
   const features = [
@@ -22,41 +24,37 @@ export default function AboutPage() {
       icon: <Calendar className="w-6 h-6" />,
       title: 'Daily Scheduled RCs',
       description: 'Diverse topics delivered consistently to build your reading habit',
-      gradient: 'from-primary to-primary-light',
+      gradient: 'from-info-blue/20 to-success-green/20',
     },
     {
       icon: <Brain className="w-6 h-6" />,
       title: 'Expert Explanations',
       description: "Detailed answers that teach you the 'why' behind every question",
-      gradient: 'from-primary-light to-accent-amber',
+      gradient: 'from-primary-light/20 to-primary/20',
     },
     {
       icon: <BarChart3 className="w-6 h-6" />,
       title: 'Performance Analytics',
       description: 'Track your progress with instant feedback and insights',
-      // replaced raw hex #fb923c with semantic warm-orange
-      gradient: 'from-accent-amber to-warm-orange',
+      gradient: 'from-accent-amber/20 to-warm-orange/20',
     },
     {
       icon: <Users className="w-6 h-6" />,
       title: 'Admin Portal',
       description: 'Robust tools for scheduling and managing quality content',
-      // replaced raw hex #3b82f6 with semantic info-blue
-      gradient: 'from-success-green to-info-blue',
+      gradient: 'from-primary/20 to-accent-amber/20',
     },
     {
       icon: <Target className="w-6 h-6" />,
       title: 'Topic Tagging',
       description: 'Practice specific areas with targeted preparation',
-      // replaced raw hex #3b82f6 with semantic info-blue
-      gradient: 'from-info-blue to-primary',
+      gradient: 'from-primary-dark/20 to-info-blue/20',
     },
     {
       icon: <Shield className="w-6 h-6" />,
       title: 'No Distractions',
       description: 'Zero ads. Zero paywalls. Just focused practice',
-      // replaced raw hex #fb923c with semantic warm-orange
-      gradient: 'from-warm-orange to-success-green',
+      gradient: 'from-info-blue/20 to-success-green/20',
     },
   ]
 
@@ -65,31 +63,29 @@ export default function AboutPage() {
       icon: <Users className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '5000+',
       label: 'Active Users',
-      gradient: 'from-primary to-primary-light',
+      gradient: 'bg-gradient-to-r from-primary to-accent-amber',
     },
     {
       icon: <FileText className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '1000+',
       label: 'RC Passages',
-      gradient: 'from-primary-light to-accent-amber',
+      gradient: 'bg-gradient-to-r from-success-green to-info-blue',
     },
     {
       icon: <Award className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '50+',
       label: 'Topics Covered',
-      // replaced raw hex #fb923c with semantic warm-orange
-      gradient: 'from-accent-amber to-warm-orange',
+      gradient: 'bg-gradient-to-r from-warm-orange to-accent-amber',
     },
     {
       icon: <Globe className="w-6 h-6 sm:w-8 sm:h-8" />,
       number: '100%',
       label: 'Free Forever',
-      // replaced raw hex #3b82f6 with semantic info-blue
-      gradient: 'from-success-green to-info-blue',
+      gradient: 'bg-gradient-to-r from-info-blue to-success-green',
     },
   ]
 
-  return (
+    return (
     <div className="min-h-screen">
       {/* Background decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -119,10 +115,11 @@ export default function AboutPage() {
           {/* Mission Statement */}
           <div className="mb-12 sm:mb-16 lg:mb-20">
             <div className="flex justify-center mb-6 sm:mb-8">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md">
+              <div className="mt-16">
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md"
                 >
                   <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </motion.div>
@@ -326,9 +323,13 @@ export default function AboutPage() {
           <div className="mb-12 sm:mb-16 lg:mb-20 flex justify-center px-4">
             <div className="bg-card-surface bg-opacity-50 backdrop-blur-sm p-6 sm:p-8 lg:p-12 rounded-2xl border border-white border-opacity-10 w-full max-w-3xl">
               <div className="flex justify-center mb-4 sm:mb-6">
-                <div className="p-3 sm:p-4 bg-gradient-warm rounded-full">
+                  <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md"
+                >
                   <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </div>
+                </motion.div>
               </div>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-3 sm:mb-4 text-center">
                 Thank You
@@ -352,7 +353,7 @@ export default function AboutPage() {
                   Join thousands of aspirants improving their reading skills daily
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md mx-auto">
-                  <button className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-accent text-white font-semibold rounded-lg text-base sm:text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                  <button className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-primary text-white font-semibold rounded-lg text-base sm:text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
                     Create Free Account
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                   </button>

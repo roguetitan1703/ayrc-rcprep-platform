@@ -66,7 +66,7 @@ export default function RcCounter() {
   ];
 
   return (
-    <section ref={sectionRef} className="bg-gradient-primary py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section ref={sectionRef} className="bg-background/10 py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl"></div>
@@ -96,8 +96,8 @@ export default function RcCounter() {
             {/* Content */}
             <div className="relative text-center">
               {/* Icon */}
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-accent mb-6">
-                <BookOpen className="w-10 h-10 text-text-primary" />
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
+                <BookOpen className="w-10 h-10 text-primary" />
               </div>
 
               {/* Main Counter */}

@@ -24,8 +24,8 @@ export default function StaticNavbar() {
       <div className="w-full px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-accent-amber">
-          <BookOpen size={20} />
-          <span className="font-semibold">ARC</span>
+          <BookOpen size={24} />
+          <span className="font-bold text-xl">ARC</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -36,7 +36,7 @@ export default function StaticNavbar() {
               to={link.to}
               className={`px-3 py-2 rounded text-sm transition-colors ${
                 isActive(link.to)
-                  ? 'text-text-primary bg-primary/20'
+                  ? 'text-text-primary bg-info-blue/10'
                   : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
               }`}
             >
@@ -55,7 +55,7 @@ export default function StaticNavbar() {
           </Link>
           <Link
             to="/register"
-            className="px-4 py-2 rounded text-sm bg-accent-amber text-black font-medium hover:bg-accent-amber/90 transition-colors"
+            className="px-4 py-2 rounded text-sm bg-primary text-white font-medium hover:bg-primary-dark transition-colors"
           >
             Create Account
           </Link>
@@ -99,7 +99,7 @@ export default function StaticNavbar() {
                     onClick={() => setMobileOpen(false)}
                     className={`px-4 py-3 rounded text-sm transition-colors ${
                       isActive(link.to)
-                        ? 'text-text-primary bg-primary/20'
+                        ? 'text-text-primary bg-info-blue/10'
                         : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
                     }`}
                   >
@@ -120,7 +120,7 @@ export default function StaticNavbar() {
                 <Link
                   to="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="w-full px-4 py-3 rounded text-sm text-center bg-accent-amber text-black font-medium hover:bg-accent-amber/90 transition-colors"
+                  className="w-full px-4 py-3 rounded text-sm text-center bg-primary text-white font-medium hover:bg-primary-dark transition-colors"
                 >
                   Create Account
                 </Link>
