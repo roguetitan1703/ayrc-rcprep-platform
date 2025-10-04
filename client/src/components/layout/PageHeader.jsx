@@ -10,7 +10,7 @@ function titleForPath(pathname, params){
     'archive': 'Archive',
     'feedback': 'Feedback',
     'me': 'Profile',
-    'change-password': 'Change Password',
+    'change-password': 'Change Pass`word',
     'admin': 'Admin',
     'schedule': 'Schedule',
     'rcs': 'RCs',

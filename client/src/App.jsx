@@ -38,19 +38,35 @@ export default function App() {
   const location = useLocation()
   const { user, loading } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Define static routes
+  const staticRoutes = [
+    '/',
+    '/about',
+    '/pricing',
+    '/contact',
+    '/privacy',
+    '/terms',
+    '/refund-policy',
+    '/login',
+    '/register',
+    '/admin/login',
+  ]
+
+  // Check if the current route is a static route
+  const isStaticRoute = staticRoutes.includes(location.pathname)
+
   useEffect(() => {
     const el = document.getElementById('main')
     if (el) {
       el.focus()
     }
-    setMobileOpen(false) // close mobile nav on route change
+    setMobileOpen(false) // Close mobile nav on route change
   }, [location.pathname])
-
-
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-background text-text-primary">
+      <div className="min-h-screen bg-background text-text-primary flex flex-col">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-accent-amber text-black px-3 py-1 rounded"
@@ -58,40 +74,66 @@ export default function App() {
           Skip to content
         </a>
 
-          {/* Conditional Header Rendering */}
-      {!user ? (
-        // Static navbar for public pages (when NOT logged in)
-        <header className="sticky top-0 z-10 border-b border-neutral-grey/40 bg-background/80 backdrop-blur">
-          <StaticNavbar />
-        </header>
-      ) : (
-        // Authenticated header (when logged in)
-        <>
+        {/* Conditional Header Rendering */}
+        {(!user && isStaticRoute) || (loading && isStaticRoute) ? (
+          // Static navbar for public pages
           <header className="sticky top-0 z-10 border-b border-neutral-grey/40 bg-background/80 backdrop-blur">
-            <div className="w-full px-6 h-14 flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2 text-accent-amber">
-                <BookOpen size={20} />
-                <span className="font-semibold">ARC</span>
-              </Link>
-              <Navbar onOpenMobile={() => setMobileOpen(true)} />
-            </div>
+            <StaticNavbar />
           </header>
-          <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
-        </>
-      )}
-
+        ) : (
+          // Authenticated header
+          <>
+            <header className="sticky top-0 z-10 border-b border-neutral-grey/40 bg-background/80 backdrop-blur">
+              <div className="w-full px-6 h-14 flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-2 text-accent-amber">
+                  <BookOpen size={20} />
+                  <span className="font-semibold">ARC</span>
+                </Link>
+                <button
+                  className="md:hidden inline-flex items-center px-3 py-1 rounded border border-white/10 hover:bg-white/5"
+                  onClick={() => setMobileOpen(true)}
+                  aria-label="Open menu"
+                >
+                  Menu
+                </button>
+              </div>
+            </header>
+            <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+          </>
+        )}
 
         <ToastProvider>
-          <main id="main" tabIndex="-1" className="w-full px-6 py-8">
+          <main id="main" tabIndex="-1" className="w-full px-6 py-8 flex-1">
             <Routes>
+              {/* Static routes */}
               <Route path="/" element={<HomePage />} />
-            
-              {/* Auth routes */}
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/refund-policy" element={<Refund />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/forgot" element={<Forgot />} />
-              <Route path="/reset" element={<Reset />} />
-              {/* Shell with sidebar for primary user/admin navigation */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              {/* Authenticated routes */}
+              <Route
+                path="/forgot"
+                element={
+                  <RequireAuth>
+                    <Forgot />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/reset"
+                element={
+                  <RequireAuth>
+                    <Reset />
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="/dashboard"
                 element={
@@ -166,7 +208,6 @@ export default function App() {
                   </RequireAuth>
                 }
               />
-              <Route path="/admin/login" element={<AdminLogin />} />
               <Route
                 path="/admin"
                 element={
@@ -207,18 +248,11 @@ export default function App() {
                   </RequireAdmin>
                 }
               />
-
-              {/* Static routes */}
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/refund-policy" element={<Refund />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-          <Footer />
+          {/* Render Footer only on static routes */}
+          {isStaticRoute && <Footer />}
         </ToastProvider>
       </div>
     </AuthProvider>
@@ -282,57 +316,10 @@ function NotFound() {
   )
 }
 
-function Navbar({ onOpenMobile }) {
-  const { user, loading, logout } = useAuth()
-  const [menuBtnFocus, setMenuBtnFocus] = useState(false)
-  return (
-    <nav className="text-sm text-text-secondary flex items-center gap-3">
-      {/* Mobile menu button */}
-      {!loading && user && (
-        <button
-          className="md:hidden inline-flex items-center px-3 py-1 rounded border border-white/10 hover:bg-white/5"
-          onClick={onOpenMobile}
-          aria-label="Open menu"
-          onFocus={() => setMenuBtnFocus(true)}
-          onBlur={() => setMenuBtnFocus(false)}
-        >
-          Menu
-        </button>
-      )}
-      {!user && (
-        <Link to="/about" className="hover:text-text-primary">
-          About
-        </Link>
-      )}
-      {!loading && !user && (
-        <>
-          <Link to="/login" className="hover:text-text-primary">
-            Sign In
-          </Link>
-          <Link to="/register" className="hover:text-text-primary">
-            Create Account
-          </Link>
-        </>
-      )}
-      {/* When logged in, keep header minimal to avoid duplication with sidebar */}
-      {!loading && user && (
-        <>
-          <Link to="/me" className="hidden md:inline hover:text-text-primary">
-            Profile
-          </Link>
-          <button onClick={logout} className="hover:text-text-primary">
-            Logout
-          </button>
-        </>
-      )}
-    </nav>
-  )
-}
-
 function Shell({ children }) {
   // Sidebar shell for authenticated areas; keeps main content centered with gutter
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 min-h-screen">
       <Sidebar />
       <div className="flex-1 min-w-0">
         <PageHeader />
