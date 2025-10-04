@@ -8,6 +8,7 @@ import { startOfIST, endOfIST } from '../utils/date.js'
 import { RcPassage as RcModel } from '../models/RcPassage.js'
 import { Feedback } from '../models/Feedback.js'
 import { feedbackLockInfo } from '../middleware/policy.js'
+import { AnalyticsEvent } from '../models/AnalyticsEvent.js'
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -52,6 +53,8 @@ export async function login(req, res, next) {
       secure: false,
       maxAge: 7 * 24 * 3600 * 1000,
     })
+    // Log login analytics event (non-blocking)
+    try { AnalyticsEvent.create({ userId: user._id, type: 'login', payload: { at: new Date() } }) } catch (e) { }
     return success(res, { token })
   } catch (e) {
     next(e)
@@ -266,7 +269,35 @@ export async function dashboardBundle(req, res, next) {
     topics.sort((a, b) => a.tag.localeCompare(b.tag))
     const trend = []
     for (let i = 6; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); const key = startOfIST(d).toISOString(); const count = recentAttempts.filter(a => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official').length; trend.push({ date: key.slice(0, 10), attempts: count }) }
-    const analyticsData = { topics, trend }
+    // Compute coverage (untagged wrong answers) and top reason codes
+    let totalWrong = 0
+    let taggedWrong = 0
+    const reasonCounts = new Map()
+    for (const a of recentAttempts) {
+      const p = rcMap.get(a.rcPassageId.toString())
+      if (!p) continue
+      // answers may be shorter; iterate questions
+      p.questions.forEach((q, i) => {
+        const userAns = (a.answers && a.answers[i]) || ''
+        const isCorrect = userAns && userAns === q.correctAnswerId
+        if (!isCorrect) {
+          totalWrong++
+        }
+      })
+      // count analysis feedback reasons if present (server-side stored on attempts)
+      if (a.analysisFeedback && a.analysisFeedback.length) {
+        a.analysisFeedback.forEach((f) => {
+          taggedWrong++
+          reasonCounts.set(f.reason, (reasonCounts.get(f.reason) || 0) + 1)
+        })
+      }
+    }
+    const coverage = totalWrong > 0 ? Number((((totalWrong - taggedWrong) / totalWrong) * 100).toFixed(1)) : 0
+    const topReasons = Array.from(reasonCounts.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count)
+
+    const analyticsData = { topics, trend, coverage, reasons: { top: topReasons }, attempts7d: trend.reduce((s, t) => s + t.attempts, 0) }
 
     // Today RCs (similar to getTodayRcs)
     const start = startOfIST(); const end = endOfIST()

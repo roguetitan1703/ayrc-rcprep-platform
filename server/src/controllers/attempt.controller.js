@@ -1,9 +1,19 @@
 import { Attempt } from '../models/Attempt.js'
 import { RcPassage } from '../models/RcPassage.js'
+import { AnalyticsEvent } from '../models/AnalyticsEvent.js'
 import { success, badRequest, notFoundErr, forbidden } from '../utils/http.js'
 import { User } from '../models/User.js'
 import { z } from 'zod'
 import { startOfIST } from '../utils/date.js'
+
+const qDetailZ = z.object({
+  questionIndex: z.number().int().min(0),
+  timeSpent: z.number().int().min(0),
+  wasReviewed: z.boolean().optional(),
+  isCorrect: z.boolean().optional(),
+  qType: z.string().optional(),
+  qCategory: z.string().optional(),
+})
 
 const submitSchema = z.object({
   rcPassageId: z.string().min(1),
@@ -20,12 +30,15 @@ const submitSchema = z.object({
     )
     .length(4),
   timeTaken: z.number().int().min(0).optional(),
+  durationSeconds: z.number().int().min(0).optional(),
+  deviceType: z.enum(['desktop', 'tablet', 'mobile', 'unknown']).optional(),
+  q_details: z.array(qDetailZ).optional(),
   attemptType: z.enum(['official', 'practice']).optional(),
 })
 
 export async function submitAttempt(req, res, next) {
   try {
-    const { rcPassageId, answers, timeTaken, attemptType } = submitSchema.parse(req.body)
+    const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } = submitSchema.parse(req.body)
     const rc = await RcPassage.findById(rcPassageId)
     if (!rc) throw notFoundErr('RC not found')
     // Prevent official attempts on future-dated content not yet live
@@ -48,9 +61,23 @@ export async function submitAttempt(req, res, next) {
     const type = attemptType || 'official'
     const attempt = await Attempt.findOneAndUpdate(
       { userId: req.user.id, rcPassageId, attemptType: type },
-      { answers: normalized, score, timeTaken: timeTaken || 0, attemptedAt, attemptType: type },
+      {
+        answers: normalized,
+        score,
+        timeTaken: timeTaken || 0,
+        durationSeconds: durationSeconds || timeTaken || 0,
+        deviceType: deviceType || 'unknown',
+        q_details: q_details || [],
+        attemptedAt,
+        attemptType: type,
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     )
+
+    // Log analytics event for admin metrics
+    try {
+      await AnalyticsEvent.create({ userId: req.user.id, type: 'attempt_submission', payload: { rcPassageId, attemptId: attempt._id, durationSeconds: attempt.durationSeconds, deviceType: attempt.deviceType } })
+    } catch (e) { /* non-fatal */ }
 
     if (type === 'official') {
       // Streak logic: completing at least one official RC for the day counts
