@@ -3,14 +3,14 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 
-function titleForPath(pathname, params){
+function titleForPath(pathname, params) {
   // Basic map of static segments to human labels
   const map = {
     'dashboard': 'Dashboard',
     'archive': 'Archive',
     'feedback': 'Feedback',
     'me': 'Profile',
-    'change-password': 'Change Pass`word',
+    'change-password': 'Change Password',
     'admin': 'Admin',
     'schedule': 'Schedule',
     'rcs': 'RCs',
@@ -22,35 +22,39 @@ function titleForPath(pathname, params){
     'login': 'Sign In',
     'register': 'Create Account'
   }
-  const parts = pathname.replace(/^\/+|\/+$/g,'').split('/').filter(Boolean)
-  if(parts.length===0) return 'Home'
+  const parts = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
+  if (parts.length === 0) return 'Home'
   // handle parameterized segments generically
-  return parts.map((seg)=> map[seg] || (seg.match(/^[0-9a-f]{6,}$/i)? 'ID' : seg)).join(' / ')
+  return parts.map((seg) => map[seg] || (seg.match(/^[0-9a-f]{6,}$/i) ? 'ID' : seg)).join(' / ')
 }
 
-export default function PageHeader(){
+export default function PageHeader() {
   const location = useLocation()
   const navigate = useNavigate()
   const params = useParams()
   const { user } = useAuth()
 
-  const title = useMemo(()=> titleForPath(location.pathname, params), [location.pathname])
-  const crumbs = useMemo(()=>{
+  const title = useMemo(() => titleForPath(location.pathname, params), [location.pathname])
+  const crumbs = useMemo(() => {
     const parts = location.pathname.split('/').filter(Boolean)
     let acc = ''
-    return parts.map((p, idx)=>{
+    return parts.map((p, idx) => {
       acc += '/' + p
-      const label = titleForPath('/'+p)
-      return { href: acc, label, last: idx===parts.length-1 }
+      const label = titleForPath('/' + p)
+      return { href: acc, label, last: idx === parts.length - 1 }
     })
   }, [location.pathname])
 
-  function goBack(){
-    if(window.history.length > 1){
-      navigate(-1)
-    } else {
-      navigate(user? '/dashboard':'/')
+  function goBack() {
+    // Prefer traversing the breadcrumb trail rather than the browser history stack.
+    // Find the previous crumb (the one immediately before the current path) and navigate to it.
+    if (crumbs.length > 1) {
+      const prev = crumbs[crumbs.length - 2]
+      navigate(prev.href)
+      return
     }
+    // Fallback to a sensible default
+    navigate(user ? '/dashboard' : '/')
   }
 
   return (
@@ -63,8 +67,8 @@ export default function PageHeader(){
         <div className="min-w-0">
           <div className="text-base font-medium truncate">{title}</div>
           <nav className="text-xs text-text-secondary truncate">
-            <Link to={user? '/dashboard':'/'} className="hover:text-text-primary">Home</Link>
-            {crumbs.map((c,i)=> (
+            <Link to={user ? '/dashboard' : '/'} className="hover:text-text-primary">Home</Link>
+            {crumbs.map((c, i) => (
               <span key={i}>
                 <span className="mx-1">/</span>
                 {c.last ? (
