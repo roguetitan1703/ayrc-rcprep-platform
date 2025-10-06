@@ -6,8 +6,8 @@ import mongoose from "mongoose";
 // Initialize Razorpay instance if keys are present. In dev, keys may be absent.
 let razorpay = null
 try {
-  const keyId = process.env.NODE_ENV === "production" ? process.env.RAZORPAY_KEY_ID_Prod : process.env.RAZORPAY_KEY_ID
-  const keySecret = process.env.NODE_ENV === "production" ? process.env.RAZORPAY_KEY_SECRET_Prod : process.env.RAZORPAY_KEY_SECRET
+  const keyId = process.env.NODE_ENV === "production" ? process.env.RAZORPAY_KEY_ID_PROD : process.env.RAZORPAY_KEY_ID
+  const keySecret = process.env.NODE_ENV === "production" ? process.env.RAZORPAY_KEY_SECRET_PROD : process.env.RAZORPAY_KEY_SECRET
   if (keyId && keySecret) {
     razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
     console.log('Razorpay initialized')
