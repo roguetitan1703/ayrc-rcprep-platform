@@ -47,8 +47,7 @@ export function ScheduleCalendar(){
           <button onClick={next} className="px-2 py-1 rounded bg-white/10">Next</button>
         </div>
       </div>
-      {loading && <div className="text-xs text-text-secondary">Loading...</div>}
-      {error && <div className="text-xs text-error-red">{error}</div>}
+  {loading && <div className="text-xs text-text-secondary">Loading...</div>}
       <div className="grid grid-cols-7 gap-1 text-[10px] mb-1 text-text-secondary">
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=> <div key={d} className="text-center">{d}</div>)}
       </div>

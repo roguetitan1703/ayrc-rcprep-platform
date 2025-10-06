@@ -1,10 +1,10 @@
-import { useState } from 'react'
+                                                                                                         import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
-import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import AuthShell from '../../components/layout/AuthShell'
+import { Mail, CheckCircle } from 'lucide-react'
 
 export default function Forgot(){
   const [email, setEmail] = useState('')
@@ -22,21 +22,47 @@ export default function Forgot(){
   }
 
   return (
-    <AuthShell title="Forgot Password" subtitle="Enter your email to receive reset instructions.">
-      <Card>
-        <CardContent>
-          {sent? <div className="text-success-green text-sm">Check your email for reset steps (mocked).</div> : (
-            <form className="space-y-5" onSubmit={onSubmit}>
-              {error && <div className="text-error-red text-sm mb-2">{error}</div>}
-              <div>
-                <label className="block text-sm mb-1">Email</label>
-                <Input type="email" value={email} onChange={e=>setEmail(e.target.value)} required />
-              </div>
-              <Button size="lg" type="submit" disabled={loading}>{loading? 'Sending...' : 'Send Reset Link'}</Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+    <AuthShell title="Forgot Password?" subtitle="No worries, we'll send you reset instructions" showTerms={false}>
+      <div className="space-y-6">
+        {sent ? (
+          <div className="text-center py-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-green/10 mb-4">
+              <CheckCircle className="w-8 h-8 text-success-green" />
+            </div>
+            <h3 className="text-xl font-semibold text-text-primary mb-2">Check your email</h3>
+            <p className="text-sm text-text-secondary mb-6">
+              We've sent password reset instructions to <span className="font-medium text-text-primary">{email}</span>
+            </p>
+            <Link to="/login" className="inline-flex items-center justify-center h-12 px-6 bg-primary hover:bg-primary-light active:bg-primary-dark text-white font-semibold rounded-xl transition-colors">
+              Back to Sign in
+            </Link>
+          </div>
+        ) : (
+          <form className="space-y-5" onSubmit={onSubmit}>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">Email Address</label>
+              <Input 
+                type="email" 
+                value={email} 
+                onChange={e=>setEmail(e.target.value)} 
+                placeholder="johndoe@gmail.com"
+                icon={Mail}
+                required 
+              />
+            </div>
+            <Button 
+              className="w-full h-12 bg-primary hover:bg-primary-light active:bg-primary-dark text-white font-semibold rounded-xl transition-colors" 
+              type="submit" 
+              disabled={loading}
+            >
+              {loading? 'Sending...' : 'Send Reset Link'}
+            </Button>
+            <div className="text-center">
+              <Link to="/login" className="text-sm text-text-secondary hover:text-text-primary">← Back to Sign in</Link>
+            </div>
+          </form>
+        )}
+      </div>
     </AuthShell>
   )
 }

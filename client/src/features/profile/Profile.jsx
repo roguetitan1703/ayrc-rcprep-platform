@@ -58,7 +58,7 @@ export default function Profile(){
       </div>
       <div className="flex items-center gap-3">
         <Button onClick={save}>Save</Button>
-        <Link to="/me/change-password" className="text-sm underline text-text-secondary">Change password</Link>
+  <Link to="/profile/change-password" className="text-sm underline text-text-secondary">Change password</Link>
       </div>
     </div>
 

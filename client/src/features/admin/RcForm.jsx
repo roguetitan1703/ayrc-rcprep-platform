@@ -122,7 +122,7 @@ export default function RcForm(){
           <h1 className="h4">{isEdit? 'Edit RC' : 'Create RC'}</h1>
         </CardHeader>
         <CardContent>
-          {error && <div className="text-error-red text-sm mb-3">{error}</div>}
+          
           {warning && <div className="text-accent-amber text-sm mb-3">{warning}</div>}
           <form className="space-y-4" onSubmit={onSubmit}>
             <div>

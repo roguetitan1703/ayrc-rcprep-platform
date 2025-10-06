@@ -9,9 +9,11 @@ import { StatsRow } from './StatsRow'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
+import { useAuth } from '../../components/auth/AuthContext'
 
 export default function Dashboard(){
   const nav = useNavigate()
+  const { user } = useAuth()
   const [today, setToday] = useState([])
   const [feedbackRequired, setFeedbackRequired] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -35,10 +37,13 @@ export default function Dashboard(){
   const [analyticsBundle, setAnalyticsBundle] = useState(null)
 
   if(loading) return (
-    <div className="min-h-screen flex flex-col space-y-6 px-6 py-4">
-  <h1 className="h2">Today's Practice</h1>
-  <StatsRow initial={statsBundle} />
-  <AnalyticsPanel initial={analyticsBundle} />
+    <div className="flex flex-col space-y-6">
+      <div>
+        <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
+        <h1 className="h2">Today's Practice</h1>
+      </div>
+      <StatsRow initial={statsBundle} />
+      <AnalyticsPanel initial={analyticsBundle} />
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-3">
         <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader></Card>
@@ -46,11 +51,14 @@ export default function Dashboard(){
       </div>
     </div>
   )
-  if(error) return <div className="min-h-screen flex items-center justify-center p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  if(error) return <div className="flex items-center justify-center p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
 
   return (
-    <div className="min-h-screen flex flex-col space-y-6">
-  <h1 className="h2">Today's Practice</h1>
+    <div className="flex flex-col space-y-6">
+      <div>
+        <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
+        <h1 className="h2">Today's Practice</h1>
+      </div>
       <StatsRow />
       {feedbackRequired && (
         <div className="bg-accent-amber/10 border border-accent-amber/40 text-accent-amber rounded p-3 flex items-center justify-between">

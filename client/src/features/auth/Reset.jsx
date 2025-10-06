@@ -27,7 +27,6 @@ export default function Reset(){
         <CardHeader><h1 className="text-lg font-semibold">Reset Password</h1></CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
-            {error && <div className="text-error-red text-sm mb-2">{error}</div>}
             <div>
               <label className="block text-sm mb-1">Email</label>
               <Input type="email" value={email} onChange={e=>setEmail(e.target.value)} required />

@@ -9,20 +9,26 @@ import { RcPassage as RcModel } from '../models/RcPassage.js'
 import { Feedback } from '../models/Feedback.js'
 import { feedbackLockInfo } from '../middleware/policy.js'
 
-const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phoneNumber: z.string().optional(),
-  password: z.string().min(6),
-})
+const registerSchema = z
+  .object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    phoneNumber: z.string().optional(),
+    password: z.string().min(6),
+    passwordConfirm: z.string().min(6),
+  })
+  .refine((d) => d.password === d.passwordConfirm, {
+    message: 'Passwords do not match',
+    path: ['passwordConfirm'],
+  })
 
 export async function register(req, res, next) {
   try {
     const data = registerSchema.parse(req.body)
     const exists = await User.findOne({ email: data.email })
     if (exists) throw badRequest('Email already in use')
-    const hash = await bcrypt.hash(data.password, 10)
-    const user = await User.create({ ...data, password: hash })
+    // Let the User model pre-save middleware hash the password and remove passwordConfirm
+    const user = await User.create({ ...data })
     return success(res, { id: user._id })
   } catch (e) {
     next(e)
@@ -101,7 +107,9 @@ export async function changePassword(req, res, next) {
 export async function stats(req, res, next) {
   try {
     const userId = req.user.id
-    const attempts = await Attempt.find({ userId, attemptType: 'official' }).select('score attemptedAt')
+    const attempts = await Attempt.find({ userId, attemptType: 'official' }).select(
+      'score attemptedAt'
+    )
     const totalAttempts = attempts.length // official attempts only
     const totalCorrect = attempts.reduce((a, c) => a + (c.score || 0), 0) // each score is #correct
     const accuracy =
@@ -130,12 +138,12 @@ export async function analytics(req, res, next) {
     const userId = req.user.id
     const since = new Date()
     since.setDate(since.getDate() - 30)
-    const attempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select('score answers attemptedAt rcPassageId attemptType')
+    const attempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select(
+      'score answers attemptedAt rcPassageId attemptType'
+    )
     const rcMap = new Map()
     const passageIds = attempts.map((a) => a.rcPassageId)
-    const passages = await RcModel.find({ _id: { $in: passageIds } }).select(
-      'topicTags questions'
-    )
+    const passages = await RcModel.find({ _id: { $in: passageIds } }).select('topicTags questions')
     passages.forEach((p) => rcMap.set(p._id.toString(), p))
     const topicStats = new Map()
     for (const a of attempts) {
@@ -233,52 +241,103 @@ export async function dashboardBundle(req, res, next) {
     const user = await User.findById(userId).select('name role dailyStreak lastActiveDate')
 
     // Stats (official attempts only)
-    const attemptsAll = await Attempt.find({ userId, attemptType: 'official' }).select('score attemptedAt answers rcPassageId attemptType')
+    const attemptsAll = await Attempt.find({ userId, attemptType: 'official' }).select(
+      'score attemptedAt answers rcPassageId attemptType'
+    )
     const totalAttempts = attemptsAll.length
     const totalCorrect = attemptsAll.reduce((a, c) => a + (c.score || 0), 0)
-    const accuracy = totalAttempts > 0 ? Number(((totalCorrect / (totalAttempts * 4)) * 100).toFixed(1)) : 0
+    const accuracy =
+      totalAttempts > 0 ? Number(((totalCorrect / (totalAttempts * 4)) * 100).toFixed(1)) : 0
     const today = startOfIST()
-    const daySet = new Set(attemptsAll.map(a => startOfIST(a.attemptedAt || a.createdAt).toISOString()))
+    const daySet = new Set(
+      attemptsAll.map((a) => startOfIST(a.attemptedAt || a.createdAt).toISOString())
+    )
     let rolling = 0
     for (let i = 0; i < 7; i++) {
-      const d = new Date(today); d.setDate(today.getDate() - i)
-      if (daySet.has(startOfIST(d).toISOString())) rolling++; else break
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      if (daySet.has(startOfIST(d).toISOString())) rolling++
+      else break
     }
     const statsData = { totalAttempts, accuracy, rollingConsistentDays: rolling }
 
     // Analytics (reuse last 30 days) – recompute topics & trend from attemptsAll (already filtered to official; include practice if needed separately)
-    const since = new Date(); since.setDate(since.getDate() - 30)
-    const recentAttempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select('answers attemptedAt rcPassageId attemptType')
+    const since = new Date()
+    since.setDate(since.getDate() - 30)
+    const recentAttempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select(
+      'answers attemptedAt rcPassageId attemptType'
+    )
     const rcMap = new Map()
-    const passageIds = recentAttempts.map(a => a.rcPassageId)
+    const passageIds = recentAttempts.map((a) => a.rcPassageId)
     const passages = await RcModel.find({ _id: { $in: passageIds } }).select('topicTags questions')
-    passages.forEach(p => rcMap.set(p._id.toString(), p))
+    passages.forEach((p) => rcMap.set(p._id.toString(), p))
     const topicStats = new Map()
     for (const a of recentAttempts) {
-      const p = rcMap.get(a.rcPassageId.toString()); if (!p) continue
-      p.topicTags.forEach(tag => { if (!topicStats.has(tag)) topicStats.set(tag, { tag, correct: 0, total: 0 }) })
+      const p = rcMap.get(a.rcPassageId.toString())
+      if (!p) continue
+      p.topicTags.forEach((tag) => {
+        if (!topicStats.has(tag)) topicStats.set(tag, { tag, correct: 0, total: 0 })
+      })
       p.questions.forEach((q, i) => {
         const correct = a.answers[i] && a.answers[i] === q.correctAnswerId
-        p.topicTags.forEach(tag => { const t = topicStats.get(tag); t.total += 1; if (correct) t.correct += 1 })
+        p.topicTags.forEach((tag) => {
+          const t = topicStats.get(tag)
+          t.total += 1
+          if (correct) t.correct += 1
+        })
       })
     }
-    const topics = Array.from(topicStats.values()).map(t => ({ tag: t.tag, accuracy: t.total ? Number(((t.correct / t.total) * 100).toFixed(1)) : 0, totalQuestions: t.total }))
+    const topics = Array.from(topicStats.values()).map((t) => ({
+      tag: t.tag,
+      accuracy: t.total ? Number(((t.correct / t.total) * 100).toFixed(1)) : 0,
+      totalQuestions: t.total,
+    }))
     topics.sort((a, b) => a.tag.localeCompare(b.tag))
     const trend = []
-    for (let i = 6; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); const key = startOfIST(d).toISOString(); const count = recentAttempts.filter(a => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official').length; trend.push({ date: key.slice(0, 10), attempts: count }) }
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const key = startOfIST(d).toISOString()
+      const count = recentAttempts.filter(
+        (a) => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official'
+      ).length
+      trend.push({ date: key.slice(0, 10), attempts: count })
+    }
     const analyticsData = { topics, trend }
 
     // Today RCs (similar to getTodayRcs)
-    const start = startOfIST(); const end = endOfIST()
-    const rcs = await RcModel.find({ status: { $in: ['scheduled', 'live'] }, scheduledDate: { $gte: start, $lt: end } }).select('title topicTags status scheduledDate questions')
-    const attemptsToday = await Attempt.find({ userId, rcPassageId: { $in: rcs.map(r => r._id) } })
-    const attemptMap = new Map(attemptsToday.map(a => [a.rcPassageId.toString(), a]))
-    const todayData = rcs.map(rc => ({ id: rc._id, title: rc.title, topicTags: rc.topicTags, scheduledDate: rc.scheduledDate, status: attemptMap.get(rc._id.toString()) ? 'attempted' : 'pending', score: attemptMap.get(rc._id.toString())?.score ?? null }))
+    const start = startOfIST()
+    const end = endOfIST()
+    const rcs = await RcModel.find({
+      status: { $in: ['scheduled', 'live'] },
+      scheduledDate: { $gte: start, $lt: end },
+    }).select('title topicTags status scheduledDate questions')
+    const attemptsToday = await Attempt.find({
+      userId,
+      rcPassageId: { $in: rcs.map((r) => r._id) },
+    })
+    const attemptMap = new Map(attemptsToday.map((a) => [a.rcPassageId.toString(), a]))
+    const todayData = rcs.map((rc) => ({
+      id: rc._id,
+      title: rc.title,
+      topicTags: rc.topicTags,
+      scheduledDate: rc.scheduledDate,
+      status: attemptMap.get(rc._id.toString()) ? 'attempted' : 'pending',
+      score: attemptMap.get(rc._id.toString())?.score ?? null,
+    }))
 
     // Feedback status + lock info
     const todayFeedback = await Feedback.findOne({ userId, date: start })
     const lockStatus = await feedbackLockInfo(userId)
 
-    return success(res, { user, stats: statsData, analytics: analyticsData, today: todayData, feedback: { submitted: !!todayFeedback, lockStatus } })
-  } catch (e) { next(e) }
+    return success(res, {
+      user,
+      stats: statsData,
+      analytics: analyticsData,
+      today: todayData,
+      feedback: { submitted: !!todayFeedback, lockStatus },
+    })
+  } catch (e) {
+    next(e)
+  }
 }

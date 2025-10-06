@@ -17,28 +17,52 @@ export default {
     },
     extend: {
       colors: {
-        // === Signature Light Theme (Crimson Trust) ===
-        // Keeping original keys so existing component classes keep working.
-        // Palette reference: https://coolors.co/f7f8fc-273043-d33f49-1a2a6c-f6b26b
-        background: '#F7F8FC', // was dark; now light base canvas
-        'card-surface': '#FFFFFF', // elevated surface (new, derived from light theme intent)
-        'text-primary': '#273043', // deep slate foreground
-        'text-secondary': '#5C6784', // softened slate (manually chosen for contrast ~4.6:1 on #F7F8FC)
-        primary: '#D33F49', // crimson primary
-        'primary-light': '#E25C62', // lighter tint for hovers / subtle backgrounds
-        'primary-dark': '#B32F3A', // darker shade for active states
-        'accent-amber': '#F6B26B', // warm accent / warning highlight
-        'success-green': '#23A094', // updated to align with lighter palette (previous emerald felt saturated on light bg)
-        'error-red': '#E4572E', // cohesive error aligning with warm spectrum
-        'neutral-grey': '#A9B2C3', // neutral utility (borders, placeholders)
-        // Additional semantic accent endpoints replacing ad-hoc hex usage in static pages
-        'info-blue': '#3B82F6', // replaces #3b82f6 usage
-        'warm-orange': '#FB923C', // replaces #fb923c usage
-        // Supplemental semantic layer tokens for consistent component styling
-        'surface-muted': '#EEF1FA', // subtle alternate background / section separators
-        'border-soft': '#D8DEE9', // light border on white surfaces (maintains ~2.2:1 on #FFFFFF)
-        'focus-ring': '#1A2A6C', // unified focus outline color (AA on light bg at 2px)
-        'warning-amber': '#F6B26B', // alias for accent-amber when semantic naming preferred
+        // === FINAL Color Palette (Crimson Trust) ===
+        // Reference: https://coolors.co/f7f8fc-273043-d33f49-1a2a6c-f6b26b
+        // #F7F8FC - Background (light canvas)
+        // #273043 - Text Primary (dark slate for headings/emphasis)
+        // #D33F49 - Primary (crimson - main CTAs and key actions)
+        // #1A2A6C - Secondary/Focus Ring (navy blue for focus states)
+        // #F6B26B - Accent (amber - USE SPARINGLY for warnings/highlights only)
+
+        // Base Colors
+        background: '#F7F8FC',
+        'card-surface': '#FFFFFF',
+        'surface-muted': '#EEF1FA',
+
+        // Text Colors
+        'text-primary': '#273043',
+        'text-secondary': '#5C6784',
+
+        // Primary Brand Color (Crimson) - with variants
+        primary: '#D33F49', // Base crimson
+        'primary-light': '#E25C62', // Hover for light backgrounds
+        'primary-dark': '#B32F3A', // Active/pressed state, dark buttons
+        'primary-hover': '#E25C62', // Explicit hover state (same as light)
+
+        // Secondary Color (Navy Blue) - with variants
+        'focus-ring': '#1A2A6C', // Base navy for focus outlines
+        secondary: '#1A2A6C', // Alias for semantic usage
+        'secondary-light': '#2d4087', // Hover state for navy
+        'secondary-dark': '#0f1a3a', // Active state for navy
+        'info-blue': '#3B82F6', // Analytics and informational content
+
+        // Accent Color (Amber) - with variants, USE SPARINGLY
+        'accent-amber': '#F6B26B', // Base amber
+        'accent-amber-light': '#f9c589', // Hover for amber elements
+        'accent-amber-dark': '#d99a52', // Active state for amber
+
+        // Status Colors - with variants
+        'success-green': '#23A094',
+        'success-green-light': '#2db8aa', // Hover
+        'success-green-dark': '#1d8077', // Active
+        'error-red': '#E4572E',
+        'error-red-light': '#e8724f', // Hover
+        'error-red-dark': '#c54824', // Active
+
+        // Utility Colors
+        'neutral-grey': '#A9B2C3',
+        'border-soft': '#D8DEE9',
       },
       fontFamily: {
         sans: ['Poppins', ...defaultTheme.fontFamily.sans],

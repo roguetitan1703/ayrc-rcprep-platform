@@ -22,38 +22,67 @@ Principles:
 
 ## 2. Color Tokens
 
+**Final Palette:** https://coolors.co/f7f8fc-273043-d33f49-1a2a6c-f6b26b
+
 (Defined in `tailwind.config.js` under `theme.extend.colors`)
 
-| Token                        | Hex     | Usage                                                 |
-| ---------------------------- | ------- | ----------------------------------------------------- |
-| background                   | #F7F8FC | App canvas, large neutral sections                    |
-| surface-muted                | #EEF1FA | Section differentiation, timeline strips              |
-| card-surface                 | #FFFFFF | Cards, modals, dropdown panels                        |
-| text-primary                 | #273043 | High-emphasis text, headings                          |
-| text-secondary               | #5C6784 | Body copy, metadata                                   |
-| primary                      | #D33F49 | Primary actions, key highlights                       |
-| primary-light                | #E25C62 | Hover state / light fills / subtle gradients          |
-| primary-dark                 | #B32F3A | Active state, pressed buttons                         |
-| accent-amber / warning-amber | #F6B26B | Warnings, secondary KPI highlight, warm gradient stop |
-| success-green                | #23A094 | Success states, positive trend indicators             |
-| error-red                    | #E4572E | Destructive actions, validation failures              |
-| info-blue                    | #3B82F6 | Informational accent (admin portal, links, charts)    |
-| warm-orange                  | #FB923C | Secondary warm transition stop (replacing raw hex)    |
-| neutral-grey                 | #A9B2C3 | Disabled text, placeholder, icon subtle               |
-| border-soft                  | #D8DEE9 | Card and section dividers (1px)                       |
-| focus-ring                   | #1A2A6C | Focus outlines, interactive a11y affordance           |
+### Core Palette (From Coolors)
 
-Gradients (utility classes configured):
+| Token        | Hex     | Usage                                           |
+| ------------ | ------- | ----------------------------------------------- |
+| background   | #F7F8FC | App canvas, large neutral sections              |
+| text-primary | #273043 | High-emphasis text, headings                    |
+| primary      | #D33F49 | Primary actions (crimson), key highlights, CTAs |
+| focus-ring   | #1A2A6C | Focus outlines, secondary accents (navy blue)   |
+| accent-amber | #F6B26B | Warnings, highlights (USE SPARINGLY)            |
 
-- `bg-gradient-primary`: Crimson depth fill
-- `bg-gradient-accent`: Deep blue analytical accent
-- `bg-gradient-warm`: Amber highlight shimmer
+### Extended Tokens (With Interaction States)
 
-Rules:
+| Token                  | Hex     | Usage                                    |
+| ---------------------- | ------- | ---------------------------------------- |
+| card-surface           | #FFFFFF | Cards, modals, dropdown panels           |
+| surface-muted          | #EEF1FA | Section differentiation, timeline strips |
+| text-secondary         | #5C6784 | Body copy, metadata                      |
+| **Primary Variants**   |         |                                          |
+| primary                | #D33F49 | Base crimson                             |
+| primary-light          | #E25C62 | Hover state for buttons                  |
+| primary-dark           | #B32F3A | Active/pressed state                     |
+| primary-hover          | #E25C62 | Explicit hover (alias of primary-light)  |
+| **Secondary Variants** |         |                                          |
+| secondary/focus-ring   | #1A2A6C | Base navy blue                           |
+| secondary-light        | #2d4087 | Hover state for secondary elements       |
+| secondary-dark         | #0f1a3a | Active state for secondary elements      |
+| info-blue              | #3B82F6 | Analytics, informational content         |
+| **Accent Variants**    |         |                                          |
+| accent-amber           | #F6B26B | Base amber (USE SPARINGLY)               |
+| accent-amber-light     | #f9c589 | Hover state for amber elements           |
+| accent-amber-dark      | #d99a52 | Active state for amber elements          |
+| **Status Variants**    |         |                                          |
+| success-green          | #23A094 | Success states, positive trends          |
+| success-green-light    | #2db8aa | Success hover                            |
+| success-green-dark     | #1d8077 | Success active                           |
+| error-red              | #E4572E | Errors, destructive actions              |
+| error-red-light        | #e8724f | Error hover                              |
+| error-red-dark         | #c54824 | Error active                             |
+| neutral-grey           | #A9B2C3 | Disabled text, placeholder, icons        |
+| border-soft            | #D8DEE9 | Card and section dividers (1px)          |
 
-- Use `border-soft` over semi-transparent white on light backgrounds.
-- Only `primary` or `accent-amber` may be used in call-to-action buttons.
-- Avoid simultaneously combining `primary` and `success-green` in adjacent KPI callouts.
+### Color Usage Rules
+
+- **Primary (Crimson)**: Main CTAs, important actions, brand highlights
+  - Base: `bg-primary`
+  - Hover: `hover:bg-primary-light`
+  - Active: `active:bg-primary-dark`
+- **Secondary/Focus Ring (Navy)**: Focus outlines, accessibility, secondary accents
+  - Base: `bg-secondary` or `ring-focus-ring`
+  - Hover: `hover:bg-secondary-light`
+- **Accent Amber**: USE SPARINGLY - warnings, highlights only. NOT for primary actions.
+  - Base: `bg-accent-amber`
+  - Hover: `hover:bg-accent-amber-light`
+- **Text Primary (#273043)**: All headings, emphasis text, dark buttons
+- Use `border-soft` over semi-transparent colors on light backgrounds
+- Only `primary` may be used in primary call-to-action buttons
+- Avoid combining `primary` and `accent-amber` in adjacent elements
 
 ---
 
