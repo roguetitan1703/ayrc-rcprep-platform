@@ -30,6 +30,7 @@ export async function register(req, res, next) {
     if (exists) throw badRequest('Email already in use')
     // Let the User model pre-save middleware hash the password and remove passwordConfirm
     const user = await User.create({ ...data })
+    await user.updateDailyStreak();
     return success(res, { id: user._id })
   } catch (e) {
     next(e)
@@ -53,6 +54,7 @@ export async function login(req, res, next) {
     if (!ok) throw badRequest('Invalid credentials')
 
     const token = signJwt({ id: user._id, role: user.role, name: user.name })
+    await user.updateDailyStreak();
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'lax',
@@ -62,7 +64,7 @@ export async function login(req, res, next) {
     // Log login analytics event (non-blocking)
     try {
       AnalyticsEvent.create({ userId: user._id, type: 'login', payload: { at: new Date() } })
-    } catch (e) {}
+    } catch (e) { }
     return success(res, { token })
   } catch (e) {
     next(e)
