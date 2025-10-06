@@ -13,12 +13,14 @@ import Test from './features/test/Test'
 import TestToday from './features/test/Today'
 import ResultsPage from './features/results/ResultsPage'
 import Analysis from './features/analysis/Analysis'
+import RcAnalyticsPage from './features/admin/RcAnalyticsPage'
 import Feedback from './features/feedback/Feedback'
 import ChangePassword from './features/profile/ChangePassword'
 import Archive from './features/archive/Archive'
 import Profile from './features/profile/Profile'
 import Performance from './features/insights/Performance'
 import Subscriptions from './features/profile/Subscriptions'
+import AdminSubscriptions from './features/admin/AdminSubscriptions'
 import LeaderboardLocal from './features/community/LeaderboardLocal'
 import Leaderboard from './features/community/Leaderboard'
 import Help from './features/help/Help'
@@ -69,6 +71,7 @@ export const routeConfig = [
   { path: '/admin/rcs/new' },
   { path: '/admin/rcs/:id' },
   { path: '/admin/schedule' },
+  { path: '/admin/subscriptions' },
 ]
 
 export default function AppRoutes() {
@@ -88,34 +91,36 @@ export default function AppRoutes() {
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Authenticated routes */}
-      <Route path="/forgot" element={<RequireAuth><Forgot/></RequireAuth>} />
-      <Route path="/reset" element={<RequireAuth><Reset/></RequireAuth>} />
-      <Route path="/dashboard" element={<RequireAuth><Shell><Dashboard/></Shell></RequireAuth>} />
-      
-      <Route path="/archive" element={<RequireAuth><Shell><Archive/></Shell></RequireAuth>} />
-  <Route path="/test/:id" element={<RequireAuth><Test/></RequireAuth>} />
-  <Route path="/test/today" element={<RequireAuth><Shell><TestToday/></Shell></RequireAuth>} />
-  <Route path="/results" element={<RequireAuth><Shell><ResultsPage/></Shell></RequireAuth>} />
-  <Route path="/results/:id" element={<RequireAuth><Shell><Analysis/></Shell></RequireAuth>} />
-      <Route path="/feedback" element={<RequireAuth><Shell><Feedback/></Shell></RequireAuth>} />
-  <Route path="/leaderboard/global" element={<RequireAuth><Shell><Leaderboard/></Shell></RequireAuth>} />
-  <Route path="/help" element={<RequireAuth><Shell><Help/></Shell></RequireAuth>} />
-    <Route path="/performance" element={<RequireAuth><Shell><Performance/></Shell></RequireAuth>} />
-    <Route path="/leaderboard/local" element={<RequireAuth><Shell><LeaderboardLocal/></Shell></RequireAuth>} />
-    <Route path="/subscriptions" element={<RequireAuth><Shell><Subscriptions/></Shell></RequireAuth>} />
-      <Route path="/profile" element={<RequireAuth><Shell><Profile/></Shell></RequireAuth>} />
-      <Route path="/profile/change-password" element={<RequireAuth><Shell><ChangePassword/></Shell></RequireAuth>} />
+      <Route path="/forgot" element={<RequireAuth><Forgot /></RequireAuth>} />
+      <Route path="/reset" element={<RequireAuth><Reset /></RequireAuth>} />
+      <Route path="/dashboard" element={<RequireAuth><Shell><Dashboard /></Shell></RequireAuth>} />
 
-      
+      <Route path="/archive" element={<RequireAuth><Shell><Archive /></Shell></RequireAuth>} />
+      <Route path="/test/:id" element={<RequireAuth><Test /></RequireAuth>} />
+      <Route path="/test/today" element={<RequireAuth><Shell><TestToday /></Shell></RequireAuth>} />
+      <Route path="/results" element={<RequireAuth><Shell><ResultsPage /></Shell></RequireAuth>} />
+      <Route path="/results/:id" element={<RequireAuth><Shell><Results /></Shell></RequireAuth>} />
+      <Route path="/analysis/:id" element={<RequireAuth><Shell><Analysis /></Shell></RequireAuth>} />
+      <Route path="/feedback" element={<RequireAuth><Shell><Feedback /></Shell></RequireAuth>} />
+      <Route path="/leaderboard/global" element={<RequireAuth><Shell><Leaderboard /></Shell></RequireAuth>} />
+      <Route path="/help" element={<RequireAuth><Shell><Help /></Shell></RequireAuth>} />
+      <Route path="/performance" element={<RequireAuth><Shell><Performance /></Shell></RequireAuth>} />
+      <Route path="/leaderboard/local" element={<RequireAuth><Shell><LeaderboardLocal /></Shell></RequireAuth>} />
+      <Route path="/subscriptions" element={<RequireAuth><Shell><Subscriptions /></Shell></RequireAuth>} />
+      <Route path="/profile" element={<RequireAuth><Shell><Profile /></Shell></RequireAuth>} />
+      <Route path="/profile/change-password" element={<RequireAuth><Shell><ChangePassword /></Shell></RequireAuth>} />
+
+
 
       {/* Admin routes */}
-  <Route path="/admin" element={<RequireAdmin><Shell><AdminDashboard/></Shell></RequireAdmin>} />
-      <Route path="/admin/rcs/new" element={<RequireAdmin><Shell><RcForm/></Shell></RequireAdmin>} />
-  <Route path="/admin/rcs" element={<RequireAdmin><Shell><RcList/></Shell></RequireAdmin>} />
-      <Route path="/admin/rcs/:id" element={<RequireAdmin><Shell><RcForm/></Shell></RequireAdmin>} />
-      <Route path="/admin/schedule" element={<RequireAdmin><Shell><AdminSchedule/></Shell></RequireAdmin>} />
-
-      <Route path="*" element={<NotFound/>} />
+      <Route path="/admin" element={<RequireAdmin><Shell><AdminDashboard /></Shell></RequireAdmin>} />
+      <Route path="/admin/rcs/new" element={<RequireAdmin><Shell><RcForm /></Shell></RequireAdmin>} />
+      <Route path="/admin/rcs" element={<RequireAdmin><Shell><RcList /></Shell></RequireAdmin>} />
+      <Route path="/admin/rcs/:id" element={<RequireAdmin><Shell><RcForm /></Shell></RequireAdmin>} />
+      <Route path="/admin/schedule" element={<RequireAdmin><Shell><AdminSchedule /></Shell></RequireAdmin>} />
+      <Route path="/admin/subscriptions" element={<RequireAuth><Shell><AdminSubscriptions /></Shell></RequireAuth>} />
+      <Route path="/admin/rcs/:id/analytics" element={<RequireAdmin><Shell><RcAnalyticsPage /></Shell></RequireAdmin>} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
