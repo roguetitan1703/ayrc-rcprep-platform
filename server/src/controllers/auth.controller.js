@@ -8,6 +8,7 @@ import { startOfIST, endOfIST } from '../utils/date.js'
 import { RcPassage as RcModel } from '../models/RcPassage.js'
 import { Feedback } from '../models/Feedback.js'
 import { feedbackLockInfo } from '../middleware/policy.js'
+import { AnalyticsEvent } from '../models/AnalyticsEvent.js'
 
 const registerSchema = z
   .object({
@@ -58,6 +59,10 @@ export async function login(req, res, next) {
       secure: false,
       maxAge: 7 * 24 * 3600 * 1000,
     })
+    // Log login analytics event (non-blocking)
+    try {
+      AnalyticsEvent.create({ userId: user._id, type: 'login', payload: { at: new Date() } })
+    } catch (e) {}
     return success(res, { token })
   } catch (e) {
     next(e)
@@ -240,7 +245,141 @@ export async function dashboardBundle(req, res, next) {
     const userId = req.user.id
     const user = await User.findById(userId).select('name role dailyStreak lastActiveDate')
 
-    // Stats (official attempts only)
+    // If admin, return platform-wide analytics
+    if (user && user.role === 'admin') {
+      // Stats (official attempts across platform)
+      const attemptsAll = await Attempt.find({ attemptType: 'official' }).select(
+        'score attemptedAt answers rcPassageId attemptType'
+      )
+      const totalAttempts = attemptsAll.length
+      const totalCorrect = attemptsAll.reduce((a, c) => a + (c.score || 0), 0)
+      const accuracy =
+        totalAttempts > 0 ? Number(((totalCorrect / (totalAttempts * 4)) * 100).toFixed(1)) : 0
+      const today = startOfIST()
+      const daySet = new Set(
+        attemptsAll.map((a) => startOfIST(a.attemptedAt || a.createdAt).toISOString())
+      )
+      let rolling = 0
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today)
+        d.setDate(today.getDate() - i)
+        if (daySet.has(startOfIST(d).toISOString())) rolling++
+        else break
+      }
+      const statsData = { totalAttempts, accuracy, rollingConsistentDays: rolling }
+
+      // Analytics (platform-wide, last 30 days)
+      const since = new Date()
+      since.setDate(since.getDate() - 30)
+      const recentAttempts = await Attempt.find({ attemptedAt: { $gte: since } }).select(
+        'answers attemptedAt rcPassageId attemptType analysisFeedback'
+      )
+      const rcMap = new Map()
+      const passageIds = recentAttempts.map((a) => a.rcPassageId)
+      const passages = await RcModel.find({ _id: { $in: passageIds } }).select(
+        'topicTags questions'
+      )
+      passages.forEach((p) => rcMap.set(p._id.toString(), p))
+      const topicStats = new Map()
+      for (const a of recentAttempts) {
+        const p = rcMap.get(a.rcPassageId.toString())
+        if (!p) continue
+        p.topicTags.forEach((tag) => {
+          if (!topicStats.has(tag)) topicStats.set(tag, { tag, correct: 0, total: 0 })
+        })
+        p.questions.forEach((q, i) => {
+          const correct = a.answers[i] && a.answers[i] === q.correctAnswerId
+          p.topicTags.forEach((tag) => {
+            const t = topicStats.get(tag)
+            t.total += 1
+            if (correct) t.correct += 1
+          })
+        })
+      }
+      const topics = Array.from(topicStats.values()).map((t) => ({
+        tag: t.tag,
+        accuracy: t.total ? Number(((t.correct / t.total) * 100).toFixed(1)) : 0,
+        totalQuestions: t.total,
+      }))
+      topics.sort((a, b) => a.tag.localeCompare(b.tag))
+
+      // trend last 7 days
+      const today2 = startOfIST()
+      const trend = []
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today2)
+        d.setDate(d.getDate() - i)
+        const key = startOfIST(d).toISOString()
+        const count = recentAttempts.filter(
+          (a) => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official'
+        ).length
+        trend.push({ date: key.slice(0, 10), attempts: count })
+      }
+
+      // coverage & reasons
+      let totalWrong = 0
+      let taggedWrong = 0
+      const reasonCounts = new Map()
+      for (const a of recentAttempts) {
+        const p = rcMap.get(a.rcPassageId.toString())
+        if (!p) continue
+        p.questions.forEach((q, i) => {
+          const userAns = (a.answers && a.answers[i]) || ''
+          const isCorrect = userAns && userAns === q.correctAnswerId
+          if (!isCorrect) totalWrong++
+        })
+        if (a.analysisFeedback && a.analysisFeedback.length) {
+          a.analysisFeedback.forEach((f) => {
+            taggedWrong++
+            reasonCounts.set(f.reason, (reasonCounts.get(f.reason) || 0) + 1)
+          })
+        }
+      }
+      const coverage =
+        totalWrong > 0 ? Number((((totalWrong - taggedWrong) / totalWrong) * 100).toFixed(1)) : 0
+      const topReasons = Array.from(reasonCounts.entries())
+        .map(([reason, count]) => ({ reason, count }))
+        .sort((a, b) => b.count - a.count)
+
+      const analyticsData = {
+        topics,
+        trend,
+        coverage,
+        reasons: { top: topReasons },
+        attempts7d: trend.reduce((s, t) => s + t.attempts, 0),
+      }
+
+      // Today RCs (platform view)
+      const start = startOfIST()
+      const end = endOfIST()
+      const rcs = await RcModel.find({
+        status: { $in: ['scheduled', 'live'] },
+        scheduledDate: { $gte: start, $lt: end },
+      }).select('title topicTags status scheduledDate questions')
+      const attemptsToday = await Attempt.find({ rcPassageId: { $in: rcs.map((r) => r._id) } })
+      const attemptMap = new Map(attemptsToday.map((a) => [a.rcPassageId.toString(), a]))
+      const todayData = rcs.map((rc) => ({
+        id: rc._id,
+        title: rc.title,
+        topicTags: rc.topicTags,
+        scheduledDate: rc.scheduledDate,
+        status: attemptMap.get(rc._id.toString()) ? 'attempted' : 'pending',
+        score: attemptMap.get(rc._id.toString())?.score ?? null,
+      }))
+
+      const todayFeedback = await Feedback.findOne({ date: start })
+      const lockStatus = await feedbackLockInfo(userId)
+
+      return success(res, {
+        user,
+        stats: statsData,
+        analytics: analyticsData,
+        today: todayData,
+        feedback: { submitted: !!todayFeedback, lockStatus },
+      })
+    }
+
+    // Non-admin (per-user) behavior — unchanged
     const attemptsAll = await Attempt.find({ userId, attemptType: 'official' }).select(
       'score attemptedAt answers rcPassageId attemptType'
     )
@@ -261,11 +400,10 @@ export async function dashboardBundle(req, res, next) {
     }
     const statsData = { totalAttempts, accuracy, rollingConsistentDays: rolling }
 
-    // Analytics (reuse last 30 days) – recompute topics & trend from attemptsAll (already filtered to official; include practice if needed separately)
     const since = new Date()
     since.setDate(since.getDate() - 30)
     const recentAttempts = await Attempt.find({ userId, attemptedAt: { $gte: since } }).select(
-      'answers attemptedAt rcPassageId attemptType'
+      'answers attemptedAt rcPassageId attemptType analysisFeedback'
     )
     const rcMap = new Map()
     const passageIds = recentAttempts.map((a) => a.rcPassageId)
@@ -303,9 +441,36 @@ export async function dashboardBundle(req, res, next) {
       ).length
       trend.push({ date: key.slice(0, 10), attempts: count })
     }
-    const analyticsData = { topics, trend }
-
-    // Today RCs (similar to getTodayRcs)
+    let totalWrong = 0
+    let taggedWrong = 0
+    const reasonCounts = new Map()
+    for (const a of recentAttempts) {
+      const p = rcMap.get(a.rcPassageId.toString())
+      if (!p) continue
+      p.questions.forEach((q, i) => {
+        const userAns = (a.answers && a.answers[i]) || ''
+        const isCorrect = userAns && userAns === q.correctAnswerId
+        if (!isCorrect) totalWrong++
+      })
+      if (a.analysisFeedback && a.analysisFeedback.length) {
+        a.analysisFeedback.forEach((f) => {
+          taggedWrong++
+          reasonCounts.set(f.reason, (reasonCounts.get(f.reason) || 0) + 1)
+        })
+      }
+    }
+    const coverage =
+      totalWrong > 0 ? Number((((totalWrong - taggedWrong) / totalWrong) * 100).toFixed(1)) : 0
+    const topReasons = Array.from(reasonCounts.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count)
+    const analyticsData = {
+      topics,
+      trend,
+      coverage,
+      reasons: { top: topReasons },
+      attempts7d: trend.reduce((s, t) => s + t.attempts, 0),
+    }
     const start = startOfIST()
     const end = endOfIST()
     const rcs = await RcModel.find({
@@ -325,11 +490,8 @@ export async function dashboardBundle(req, res, next) {
       status: attemptMap.get(rc._id.toString()) ? 'attempted' : 'pending',
       score: attemptMap.get(rc._id.toString())?.score ?? null,
     }))
-
-    // Feedback status + lock info
     const todayFeedback = await Feedback.findOne({ userId, date: start })
     const lockStatus = await feedbackLockInfo(userId)
-
     return success(res, {
       user,
       stats: statsData,

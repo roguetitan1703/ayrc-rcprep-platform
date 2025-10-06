@@ -4,14 +4,14 @@ import { api } from '../../lib/api'
 import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
-import { Skeleton} from '../../components/ui/Skeleton'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { StatsRow } from './StatsRow'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 import { useAuth } from '../../components/auth/AuthContext'
 
-export default function Dashboard(){
+export default function Dashboard() {
   const nav = useNavigate()
   const { user } = useAuth()
   const [today, setToday] = useState([])
@@ -20,18 +20,18 @@ export default function Dashboard(){
   const [error, setError] = useState('')
   const toast = useToast()
 
-  useEffect(()=>{
-    (async()=>{
+  useEffect(() => {
+    (async () => {
       try {
         const { data } = await api.get('/users/me/dashboard')
-        setToday(data.today||[])
+        setToday(data.today || [])
         setStatsBundle(data.stats)
         setAnalyticsBundle(data.analytics)
-        setFeedbackRequired(!data.feedback?.submitted && (data.today||[]).length>0 && (data.today||[]).every(r=> r.status==='attempted'))
-      } catch(e){ const msg = extractErrorMessage(e); setError(msg); toast.show(msg,{ variant:'error'}) }
-      finally{ setLoading(false) }
+        setFeedbackRequired(!data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted'))
+      } catch (e) { const msg = extractErrorMessage(e); setError(msg); toast.show(msg, { variant: 'error' }) }
+      finally { setLoading(false) }
     })()
-  },[])
+  }, [])
 
   const [statsBundle, setStatsBundle] = useState(null)
   const [analyticsBundle, setAnalyticsBundle] = useState(null)
@@ -63,32 +63,32 @@ export default function Dashboard(){
       {feedbackRequired && (
         <div className="bg-accent-amber/10 border border-accent-amber/40 text-accent-amber rounded p-3 flex items-center justify-between">
           <div className="text-sm">Thanks for practicing! Please submit today’s quick feedback to unlock tomorrow.</div>
-          <Button onClick={()=> nav('/feedback')} variant="outline">Give Feedback</Button>
+          <Button onClick={() => nav('/feedback')} variant="outline">Give Feedback</Button>
         </div>
       )}
       <div className="grid gap-3">
-        {today.length===0 && (
+        {today.length === 0 && (
           <div className="text-text-secondary">Today's RCs are being prepared. Please check back shortly!</div>
         )}
-        {today.map(rc=> (
+        {today.map(rc => (
           <Card key={rc.id}>
             <CardHeader className="flex items-center justify-between">
               <div>
                 <div className="font-medium">{rc.title}</div>
                 <div className="text-xs text-text-secondary flex gap-2 flex-wrap">
                   <span>{new Date(rc.scheduledDate).toDateString()}</span>
-                  {rc.topicTags?.slice(0,3).map(t=> <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] uppercase tracking-wide">{t}</span>)}
+                  {rc.topicTags?.slice(0, 3).map(t => <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] uppercase tracking-wide">{t}</span>)}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {rc.status==='attempted' && <Badge color="success">Attempted {rc.score}/4</Badge>}
-                {rc.status==='attempted' ? (
+                {rc.status === 'attempted' && <Badge color="success">Attempted {rc.score}/4</Badge>}
+                {rc.status === 'attempted' ? (
                   <>
-                    <Button variant="outline" onClick={()=> nav(`/results/${rc.id}`)}>View Results</Button>
-                    <Button onClick={()=> nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
+                    <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
+                    <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
                   </>
                 ) : (
-                  <Button disabled={feedbackRequired} onClick={()=> nav(`/test/${rc.id}`)}>Start Test</Button>
+                  <Button disabled={feedbackRequired} onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
                 )}
               </div>
             </CardHeader>

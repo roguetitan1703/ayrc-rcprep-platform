@@ -8,7 +8,7 @@ import { Skeleton, SkeletonText } from '../../components/ui/Skeleton'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 
-export default function Test(){
+export default function Test() {
   const { id } = useParams()
   const { search } = useLocation()
   const params = new URLSearchParams(search)
@@ -16,10 +16,13 @@ export default function Test(){
   const isPractice = mode === 'practice' || params.get('practice') === '1'
   const isPreview = mode === 'preview' || params.get('preview') === '1'
   const [rc, setRc] = useState(null)
-  const [answers, setAnswers] = useState(Array.from({length: QUESTION_COUNT}, ()=>''))
-  const [marked, setMarked] = useState(Array.from({length: QUESTION_COUNT}, ()=>false))
+  const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''))
+  const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
   const [qIndex, setQIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS)
+  const [startedAt, setStartedAt] = useState(null)
+  const [questionTimers, setQuestionTimers] = useState(Array.from({ length: QUESTION_COUNT }, () => 0)) // seconds per question
+  const questionStartRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const nav = useNavigate()
@@ -27,62 +30,111 @@ export default function Test(){
   const intervalRef = useRef(null)
   const autosaveRef = useRef(null)
 
-  useEffect(()=>{
-    (async()=>{
-      try{
-  const { data } = await api.get(`/rcs/${id}${(isPractice)?'?practice=1':''}`)
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await api.get(`/rcs/${id}${(isPractice) ? '?practice=1' : ''}`)
         setRc(data)
         // restore any local progress
-        const key = LOCAL_PROGRESS_KEY(id, isPractice? 'practice' : isPreview? 'preview' : 'test')
+        const key = LOCAL_PROGRESS_KEY(id, isPractice ? 'practice' : isPreview ? 'preview' : 'test')
         const saved = localStorage.getItem(key)
-        if(saved){
-          try{
+        if (saved) {
+          try {
             const parsed = JSON.parse(saved)
-            if(Array.isArray(parsed.answers) && parsed.answers.length===QUESTION_COUNT) setAnswers(parsed.answers)
-            if(Array.isArray(parsed.marked) && parsed.marked.length===QUESTION_COUNT) setMarked(parsed.marked)
-            if(typeof parsed.qIndex==='number') setQIndex(Math.min(QUESTION_COUNT-1, Math.max(0, parsed.qIndex)))
-          }catch{}
+            if (Array.isArray(parsed.answers) && parsed.answers.length === QUESTION_COUNT) setAnswers(parsed.answers)
+            if (Array.isArray(parsed.marked) && parsed.marked.length === QUESTION_COUNT) setMarked(parsed.marked)
+            if (typeof parsed.qIndex === 'number') setQIndex(Math.min(QUESTION_COUNT - 1, Math.max(0, parsed.qIndex)))
+            if (typeof parsed.questionTimers !== 'undefined') setQuestionTimers(parsed.questionTimers)
+          } catch { }
         }
-      }catch(e){ setError(e?.response?.data?.error || e.message) }
-      finally{ setLoading(false) }
+      } catch (e) { setError(e?.response?.data?.error || e.message) }
+      finally { setLoading(false) }
     })()
-  },[id])
+  }, [id])
 
-  useEffect(()=>{
-    if(isPractice || isPreview) return
-    intervalRef.current = setInterval(()=> setTimeLeft(t=> t>0?t-1:0 ), 1000)
-    return ()=> clearInterval(intervalRef.current)
-  },[isPractice, isPreview])
+  useEffect(() => {
+    if (isPractice || isPreview) return
+    intervalRef.current = setInterval(() => setTimeLeft(t => t > 0 ? t - 1 : 0), 1000)
+    return () => clearInterval(intervalRef.current)
+  }, [isPractice, isPreview])
 
-  useEffect(()=>{ if(!(isPractice||isPreview) && timeLeft===0) submit() }, [timeLeft, isPractice, isPreview])
+  useEffect(() => { if (!(isPractice || isPreview) && timeLeft === 0) submit() }, [timeLeft, isPractice, isPreview])
 
   // autosave to localStorage every 30s
-  useEffect(()=>{
-    autosaveRef.current = setInterval(()=>{
-      const key = LOCAL_PROGRESS_KEY(id, isPractice? 'practice' : isPreview? 'preview' : 'test')
-      const payload = { answers, marked, qIndex }
-      try{ localStorage.setItem(key, JSON.stringify(payload)) }catch{}
+  useEffect(() => {
+    autosaveRef.current = setInterval(() => {
+      const key = LOCAL_PROGRESS_KEY(id, isPractice ? 'practice' : isPreview ? 'preview' : 'test')
+      const payload = { answers, marked, qIndex, questionTimers }
+      try { localStorage.setItem(key, JSON.stringify(payload)) } catch { }
     }, 30000)
-    return ()=> clearInterval(autosaveRef.current)
+    return () => clearInterval(autosaveRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, answers, marked, qIndex])
 
-  function selectAnswer(i, val){
-    setAnswers(a=>{ const b=[...a]; b[i]=val; return b })
+  // Initialize start time and per-question timer start when component mounts / rc loaded
+  useEffect(() => {
+    if (loading) return
+    setStartedAt(prev => prev || Date.now())
+    // start timing for current question
+    questionStartRef.current = Date.now()
+    return () => {
+      // on unmount, record the in-progress question time
+      if (questionStartRef.current != null) {
+        const delta = Math.floor((Date.now() - questionStartRef.current) / 1000)
+        setQuestionTimers(t => { const a = [...t]; a[qIndex] = (a[qIndex] || 0) + delta; return a })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
+
+  function selectAnswer(i, val) {
+    setAnswers(a => { const b = [...a]; b[i] = val; return b })
   }
 
-  async function submit(){
-    try{
-      if(isPreview){ nav('/dashboard'); return }
-      if(isPractice){ nav('/dashboard'); return }
-      const payload = { rcPassageId: id, answers, timeTaken: (TEST_DURATION_SECONDS - timeLeft), attemptType: 'official' }
+  const prevIndexRef = useRef(qIndex)
+
+  // record time when moving between questions
+  useEffect(() => {
+    // whenever qIndex changes, close previous timer and start new
+    const now = Date.now()
+    if (questionStartRef.current != null) {
+      const delta = Math.floor((now - questionStartRef.current) / 1000)
+      setQuestionTimers(t => { const a = [...t]; const idx = prevIndexRef.current ?? 0; a[idx] = (a[idx] || 0) + delta; return a })
+    }
+    // start new timer for current
+    questionStartRef.current = now
+    prevIndexRef.current = qIndex
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qIndex])
+
+  async function submit() {
+    try {
+      if (isPreview) { nav('/dashboard'); return }
+      if (isPractice) { nav('/dashboard'); return }
+      // finalize timers (compute synchronously so we can send correct payload)
+      const now = Date.now()
+      const finalTimers = [...questionTimers]
+      if (questionStartRef.current != null) {
+        const delta = Math.floor((now - questionStartRef.current) / 1000)
+        finalTimers[qIndex] = (finalTimers[qIndex] || 0) + delta
+      }
+      setQuestionTimers(finalTimers)
+      const totalDuration = Math.floor((now - (startedAt || now)) / 1000)
+      // derive device type
+      const ua = navigator.userAgent || ''
+      const deviceType = /Mobi|Android|iPhone|iPad/.test(ua) ? (/iPad|Tablet/.test(ua) ? 'tablet' : 'mobile') : 'desktop'
+
+      // Build q_details from finalized timers
+      const q_details = finalTimers.map((sec, idx) => ({ questionIndex: idx, timeSpent: sec || 0, wasReviewed: !!marked[idx] }))
+
+      const payload = { rcPassageId: id, answers, durationSeconds: totalDuration, timeTaken: (TEST_DURATION_SECONDS - timeLeft), deviceType, q_details, attemptType: 'official' }
       const { data } = await api.post('/attempts', payload)
-      try{ localStorage.removeItem(LOCAL_PROGRESS_KEY(id)) }catch{}
+      try { localStorage.removeItem(LOCAL_PROGRESS_KEY(id)) } catch { }
       nav(`/results/${id}?score=${data.score}&time=${TEST_DURATION_SECONDS - timeLeft}`)
-    }catch(e){ const msg = extractErrorMessage(e,'Submit failed'); setError(msg); toast.show(msg,{ variant:'error'}) }
+    } catch (e) { const msg = extractErrorMessage(e, 'Submit failed'); setError(msg); toast.show(msg, { variant: 'error' }) }
   }
 
-  if(loading) return (
+  if (loading) return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <div className="flex-1 grid grid-cols-12 gap-4">
         <div className="col-span-7 bg-card-surface rounded p-4 overflow-hidden">
@@ -98,7 +150,7 @@ export default function Test(){
           </div>
         </div>
         <div className="col-span-1 flex flex-col gap-2 items-stretch">
-          {Array.from({length:QUESTION_COUNT}).map((_,i)=> <div key={i} className="h-10 rounded bg-card-surface" />)}
+          {Array.from({ length: QUESTION_COUNT }).map((_, i) => <div key={i} className="h-10 rounded bg-card-surface" />)}
         </div>
       </div>
       <div className="mt-4 h-16 bg-card-surface rounded flex items-center justify-between px-4 text-sm text-text-secondary">
@@ -107,8 +159,8 @@ export default function Test(){
       </div>
     </div>
   )
-  if(error) return <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
-  if(!rc) return null
+  if (error) return <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  if (!rc) return null
 
   const q = rc.questions[qIndex]
 
@@ -119,9 +171,9 @@ export default function Test(){
         <div className="col-span-7 bg-card-surface rounded flex flex-col">
           <div className="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between">
             <h2 className="text-lg font-semibold truncate pr-4">{rc.title}</h2>
-            {!(isPractice||isPreview) && (
-              <Badge color={timeLeft<=60?'warning':'default'} aria-live={timeLeft<=60?'assertive':'off'} aria-label={`Time remaining ${Math.floor(timeLeft/60)} minutes ${timeLeft%60} seconds`}>
-                {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
+            {!(isPractice || isPreview) && (
+              <Badge color={timeLeft <= 60 ? 'warning' : 'default'} aria-live={timeLeft <= 60 ? 'assertive' : 'off'} aria-label={`Time remaining ${Math.floor(timeLeft / 60)} minutes ${timeLeft % 60} seconds`}>
+                {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
               </Badge>
             )}
           </div>
@@ -132,7 +184,7 @@ export default function Test(){
         {/* Question Column */}
         <div className="col-span-4 bg-card-surface rounded flex flex-col">
           <div className="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between text-sm">
-            <div>Question {qIndex+1} / {QUESTION_COUNT}</div>
+            <div>Question {qIndex + 1} / {QUESTION_COUNT}</div>
             {isPractice && <span className="text-text-secondary">Practice Mode</span>}
             {isPreview && <span className="text-accent-amber">Preview</span>}
           </div>
@@ -140,14 +192,14 @@ export default function Test(){
             <div className="mb-4 text-sm">{q.questionText}</div>
             <fieldset className="space-y-2">
               <legend className="sr-only">Answer choices</legend>
-              {q.options.map(op=> (
+              {q.options.map(op => (
                 <label key={op.id} className="flex items-start gap-2 cursor-pointer text-sm">
-                  <input type="radio" className="mt-0.5" name={`q${qIndex}`} checked={answers[qIndex]===op.id} onChange={()=>selectAnswer(qIndex,op.id)} />
+                  <input type="radio" className="mt-0.5" name={`q${qIndex}`} checked={answers[qIndex] === op.id} onChange={() => selectAnswer(qIndex, op.id)} />
                   <span className="leading-snug">
                     <span className="font-medium mr-1">{op.id}.</span>{op.text}
-                    {isPractice && answers[qIndex]===op.id && (
+                    {isPractice && answers[qIndex] === op.id && (
                       <span className="ml-2 text-xs {answers[qIndex]===rc.questions[qIndex].correctAnswerId? 'text-success-green':'text-error-red'}">
-                        {op.id===rc.questions[qIndex].correctAnswerId? '✓ Correct' : '✕ Incorrect'}
+                        {op.id === rc.questions[qIndex].correctAnswerId ? '✓ Correct' : '✕ Incorrect'}
                       </span>
                     )}
                   </span>
@@ -159,7 +211,7 @@ export default function Test(){
             )}
             <div className="mt-4">
               <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
-                <input type="checkbox" checked={marked[qIndex]} onChange={()=> setMarked(m=>{ const c=[...m]; c[qIndex]=!c[qIndex]; return c })} />
+                <input type="checkbox" checked={marked[qIndex]} onChange={() => setMarked(m => { const c = [...m]; c[qIndex] = !c[qIndex]; return c })} />
                 <span>Mark for review</span>
               </label>
             </div>
@@ -167,19 +219,19 @@ export default function Test(){
         </div>
         {/* Palette Gutter */}
         <div className="col-span-1 flex flex-col items-stretch gap-2" aria-label="Question palette">
-          {Array.from({length:QUESTION_COUNT}).map((_,i)=> {
+          {Array.from({ length: QUESTION_COUNT }).map((_, i) => {
             const answered = !!answers[i]
-            const isCurrent = i===qIndex
+            const isCurrent = i === qIndex
             return (
               <button
                 key={i}
-                onClick={()=> setQIndex(i)}
-                aria-label={`Go to question ${i+1}${marked[i]? ' marked for review':''}${answered? ' answered':''}`}
+                onClick={() => setQIndex(i)}
+                aria-label={`Go to question ${i + 1}${marked[i] ? ' marked for review' : ''}${answered ? ' answered' : ''}`}
                 className={`h-10 rounded text-sm font-medium border transition relative
-                  ${isCurrent?'border-accent-amber':'border-white/10'}
-                  ${answered? 'bg-white/10':''}
-                  ${marked[i]? 'ring-2 ring-accent-amber/60':''}`}
-              >{i+1}</button>
+                  ${isCurrent ? 'border-accent-amber' : 'border-white/10'}
+                  ${answered ? 'bg-white/10' : ''}
+                  ${marked[i] ? 'ring-2 ring-accent-amber/60' : ''}`}
+              >{i + 1}</button>
             )
           })}
         </div>
@@ -188,11 +240,11 @@ export default function Test(){
       <div className="mt-4 h-16 bg-card-surface rounded flex items-center justify-between px-5 text-sm">
         <Link to="/dashboard" className="text-text-secondary hover:text-text-primary">← Dashboard</Link>
         <div className="flex items-center gap-3">
-          {qIndex>0 && <Button variant="outline" onClick={()=> setQIndex(i=> i-1)}>Previous</Button>}
-          {qIndex<QUESTION_COUNT-1 ? (
-            <Button onClick={()=> setQIndex(i=> i+1)}>{(isPractice||isPreview)? 'Next' : 'Save & Next'}</Button>
+          {qIndex > 0 && <Button variant="outline" onClick={() => setQIndex(i => i - 1)}>Previous</Button>}
+          {qIndex < QUESTION_COUNT - 1 ? (
+            <Button onClick={() => setQIndex(i => i + 1)}>{(isPractice || isPreview) ? 'Next' : 'Save & Next'}</Button>
           ) : (
-            <Button onClick={submit}>{(isPractice||isPreview)? 'Done' : 'Submit Test'}</Button>
+            <Button onClick={submit}>{(isPractice || isPreview) ? 'Done' : 'Submit Test'}</Button>
           )}
         </div>
       </div>

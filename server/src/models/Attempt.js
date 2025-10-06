@@ -8,6 +8,18 @@ const analysisFeedbackSchema = new mongoose.Schema(
   { _id: false }
 )
 
+const qDetailSchema = new mongoose.Schema(
+  {
+    questionIndex: { type: Number, required: true },
+    timeSpent: { type: Number, required: true }, // seconds
+    wasReviewed: { type: Boolean, default: false },
+    isCorrect: { type: Boolean },
+    qType: { type: String, default: '' },
+    qCategory: { type: String, default: '' },
+  },
+  { _id: false }
+)
+
 const attemptSchema = new mongoose.Schema(
   {
     userId: {
@@ -25,7 +37,12 @@ const attemptSchema = new mongoose.Schema(
     answers: { type: [String], default: [] },
     progress: { type: [String], default: [] },
     score: { type: Number, default: 0 },
-    timeTaken: { type: Number, default: 0 },
+    timeTaken: { type: Number, default: 0 }, // legacy field (seconds)
+    durationSeconds: { type: Number, default: 0 },
+    isTimed: { type: Boolean, default: true },
+    deviceType: { type: String, enum: ['desktop', 'tablet', 'mobile', 'unknown'], default: 'unknown' },
+    analysisNotes: { type: String, maxlength: 2000, default: '' },
+    q_details: { type: [qDetailSchema], default: [] },
     attemptedAt: { type: Date },
     analysisFeedback: { type: [analysisFeedbackSchema], default: [] },
     attemptType: { type: String, enum: ['official', 'practice'], default: 'official', index: true },

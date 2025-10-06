@@ -3,19 +3,20 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import mongoose from "mongoose";
 
-console.log(process.env.NODE_ENV);
-
-// Initialize Razorpay instance
-const razorpay = new Razorpay({
-  key_id:
-    process.env.NODE_ENV === "prod"
-      ? process.env.RAZORPAY_KEY_ID_Prod
-      : process.env.RAZORPAY_KEY_ID,
-  key_secret:
-    process.env.NODE_ENV === "prod"
-      ? process.env.RAZORPAY_KEY_SECRET_Prod
-      : process.env.RAZORPAY_KEY_SECRET,
-});
+// Initialize Razorpay instance if keys are present. In dev, keys may be absent.
+let razorpay = null
+try {
+  const keyId = process.env.NODE_ENV === "prod" ? process.env.RAZORPAY_KEY_ID_Prod : process.env.RAZORPAY_KEY_ID
+  const keySecret = process.env.NODE_ENV === "prod" ? process.env.RAZORPAY_KEY_SECRET_Prod : process.env.RAZORPAY_KEY_SECRET
+  if (keyId && keySecret) {
+    razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
+  } else {
+    console.warn('Razorpay not configured - skipping initialization')
+  }
+} catch (err) {
+  console.warn('Razorpay initialization failed:', err && err.message)
+  razorpay = null
+}
 
 // Subscription prices
 const SUBSCRIPTION_PRICES = {
@@ -26,6 +27,7 @@ const SUBSCRIPTION_PRICES = {
 // Create Razorpay order
 export const createOrder = async (req, res, next) => {
   try {
+    if (!razorpay) return res.status(501).json({ status: 'fail', message: 'Razorpay not configured on this server' })
     const { subtype } = req.body;
     if (!["Yearly", "Monthly"].includes(subtype)) {
       return res.status(400).json({
