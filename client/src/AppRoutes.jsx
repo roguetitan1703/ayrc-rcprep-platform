@@ -12,6 +12,8 @@ import Dashboard from './features/dashboard/Dashboard'
 import Test from './features/test/Test'
 import TestToday from './features/test/Today'
 import ResultsPage from './features/results/ResultsPage'
+import Results from './features/results/ResultsPage'
+
 import Analysis from './features/analysis/Analysis'
 import RcAnalyticsPage from './features/admin/RcAnalyticsPage'
 import Feedback from './features/feedback/Feedback'

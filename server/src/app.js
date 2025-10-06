@@ -13,6 +13,7 @@ import adminRoutes from './routes/admin.js'
 import attemptRoutes from './routes/attempts.js'
 import feedbackRoutes from './routes/feedback.js'
 import subRoutes from './routes/subs.js'
+import aggregationRoutes from './routes/aggregation.js'
 import { notFound, errorHandler } from './middleware/errors.js'
 
 const app = express()
@@ -71,6 +72,7 @@ app.use('/api/v1/attempts', attemptRoutes)
 app.use('/api/v1/feedback', feedbackRoutes)
 app.use('/api/v1/admin', adminRoutes)
 app.use("/api/v1/sub", subRoutes);
+app.use("/api/v1/all", aggregationRoutes);
 
 // Error handlers
 app.use(notFound)
