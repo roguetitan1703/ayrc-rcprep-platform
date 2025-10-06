@@ -10,6 +10,7 @@ try {
   const keySecret = process.env.NODE_ENV === "production" ? process.env.RAZORPAY_KEY_SECRET_Prod : process.env.RAZORPAY_KEY_SECRET
   if (keyId && keySecret) {
     razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
+    console.log('Razorpay initialized')
   } else {
     console.warn('Razorpay not configured - skipping initialization')
   }
