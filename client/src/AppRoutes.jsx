@@ -11,7 +11,6 @@ import Reset from './features/auth/Reset'
 import Dashboard from './features/dashboard/Dashboard'
 import Test from './features/test/Test'
 import TestToday from './features/test/Today'
-import Results from './features/results/Results'
 import ResultsPage from './features/results/ResultsPage'
 import Analysis from './features/analysis/Analysis'
 import Feedback from './features/feedback/Feedback'
@@ -56,7 +55,6 @@ export const routeConfig = [
   { path: '/test/today' },
   { path: '/results' },
   { path: '/results/:id' },
-  { path: '/analysis/:id' },
   { path: '/feedback' },
   { path: '/leaderboard/global' },
   { path: '/leaderboard/local' },
@@ -98,8 +96,7 @@ export default function AppRoutes() {
   <Route path="/test/:id" element={<RequireAuth><Test/></RequireAuth>} />
   <Route path="/test/today" element={<RequireAuth><Shell><TestToday/></Shell></RequireAuth>} />
   <Route path="/results" element={<RequireAuth><Shell><ResultsPage/></Shell></RequireAuth>} />
-  <Route path="/results/:id" element={<RequireAuth><Results/></RequireAuth>} />
-      <Route path="/analysis/:id" element={<RequireAuth><Analysis/></RequireAuth>} />
+  <Route path="/results/:id" element={<RequireAuth><Shell><Analysis/></Shell></RequireAuth>} />
       <Route path="/feedback" element={<RequireAuth><Shell><Feedback/></Shell></RequireAuth>} />
   <Route path="/leaderboard/global" element={<RequireAuth><Shell><Leaderboard/></Shell></RequireAuth>} />
   <Route path="/help" element={<RequireAuth><Shell><Help/></Shell></RequireAuth>} />

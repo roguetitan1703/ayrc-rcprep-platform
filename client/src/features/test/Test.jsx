@@ -25,6 +25,7 @@ export default function Test() {
   const questionStartRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [revealAnswers, setRevealAnswers] = useState(false)
   const nav = useNavigate()
   const toast = useToast()
   const intervalRef = useRef(null)
@@ -110,7 +111,23 @@ export default function Test() {
   async function submit() {
     try {
       if (isPreview) { nav('/dashboard'); return }
-      if (isPractice) { nav('/dashboard'); return }
+      // For practice mode, compute score locally and show results without POSTing
+      if (isPractice) {
+        // finalize timers
+        const nowP = Date.now()
+        const finalTimersP = [...questionTimers]
+        if (questionStartRef.current != null) {
+          const delta = Math.floor((nowP - questionStartRef.current) / 1000)
+          finalTimersP[qIndex] = (finalTimersP[qIndex] || 0) + delta
+        }
+        const normalizedP = answers.map(a => (a === null ? '' : a))
+        let scoreP = 0
+        rc.questions.forEach((q, i) => { if (normalizedP[i] && normalizedP[i] === q.correctAnswerId) scoreP += 1 })
+        const totalDurationP = Math.floor((nowP - (startedAt || nowP)) / 1000)
+        try { localStorage.removeItem(LOCAL_PROGRESS_KEY(id)) } catch {}
+        nav(`/results/${id}?practice=1&score=${scoreP}&time=${totalDurationP}`)
+        return
+      }
       // finalize timers (compute synchronously so we can send correct payload)
       const now = Date.now()
       const finalTimers = [...questionTimers]
@@ -185,8 +202,19 @@ export default function Test() {
         <div className="col-span-4 bg-card-surface rounded flex flex-col">
           <div className="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between text-sm">
             <div>Question {qIndex + 1} / {QUESTION_COUNT}</div>
-            {isPractice && <span className="text-text-secondary">Practice Mode</span>}
-            {isPreview && <span className="text-accent-amber">Preview</span>}
+            <div className="flex items-center gap-3">
+              {isPractice && (
+                <>
+                  <span className="text-text-secondary">Practice Mode</span>
+                  <button
+                    type="button"
+                    onClick={() => setRevealAnswers(r => !r)}
+                    className="text-xs px-2 py-1 rounded border bg-background hover:bg-background/95"
+                  >{revealAnswers ? 'Hide Answers' : 'Reveal Answers'}</button>
+                </>
+              )}
+              {isPreview && <span className="text-accent-amber">Preview</span>}
+            </div>
           </div>
           <div className="p-5 flex-1 overflow-auto">
             <div className="mb-4 text-sm">{q.questionText}</div>
@@ -197,8 +225,8 @@ export default function Test() {
                   <input type="radio" className="mt-0.5" name={`q${qIndex}`} checked={answers[qIndex] === op.id} onChange={() => selectAnswer(qIndex, op.id)} />
                   <span className="leading-snug">
                     <span className="font-medium mr-1">{op.id}.</span>{op.text}
-                    {isPractice && answers[qIndex] === op.id && (
-                      <span className="ml-2 text-xs {answers[qIndex]===rc.questions[qIndex].correctAnswerId? 'text-success-green':'text-error-red'}">
+                    {isPractice && revealAnswers && answers[qIndex] === op.id && (
+                      <span className={`ml-2 text-xs ${answers[qIndex]===rc.questions[qIndex].correctAnswerId? 'text-success-green':'text-error-red'}`}>
                         {op.id === rc.questions[qIndex].correctAnswerId ? '✓ Correct' : '✕ Incorrect'}
                       </span>
                     )}
@@ -206,7 +234,7 @@ export default function Test() {
                 </label>
               ))}
             </fieldset>
-            {isPractice && (
+            {isPractice && revealAnswers && (
               <div className="mt-4 text-sm text-text-secondary">Explanation: {rc.questions[qIndex].explanation}</div>
             )}
             <div className="mt-4">

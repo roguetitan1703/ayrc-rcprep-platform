@@ -59,6 +59,7 @@ export default function App() {
   const isAuthRoute = authRoutes.includes(location.pathname)
   const isStaticRoute = staticRoutes.includes(location.pathname)
   const isAuthenticatedRoute = authenticatedPrefixes.some(prefix => location.pathname.startsWith(prefix))
+  const isTestRoute = location.pathname.startsWith('/test')
 
   // Use the routeConfig patterns to determine if current path matches any defined route.
   const matched = matchRoutes(routeConfig.map(r=>({ path: r.path })), location.pathname)
@@ -93,11 +94,15 @@ export default function App() {
           ) : isAuthenticatedRoute && (
             // Authenticated header -> MobileNavProvider wraps the app. On small screens the header is full width; on md+ it offsets by the sidebar width.
             <MobileNavProvider>
-              <header className="fixed top-0 right-0 z-30 border-b border-neutral-grey/40 bg-background/95 backdrop-blur left-0 md:left-[var(--arc-sidebar-width,16rem)] transition-all">
+              <header className={`fixed top-0 right-0 z-30 border-b border-neutral-grey/40 bg-background/95 backdrop-blur left-0 ${!isTestRoute ? 'md:left-[var(--arc-sidebar-width,16rem)]' : ''} transition-all`}>
                 <TopBar />
               </header>
-              <MobileSidebar />
-              <Sidebar />
+              {!isTestRoute && (
+                <>
+                  <MobileSidebar />
+                  <Sidebar />
+                </>
+              )}
             </MobileNavProvider>
           )
         )}

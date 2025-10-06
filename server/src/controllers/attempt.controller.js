@@ -5,6 +5,7 @@ import { success, badRequest, notFoundErr, forbidden } from '../utils/http.js'
 import { User } from '../models/User.js'
 import { z } from 'zod'
 import { startOfIST } from '../utils/date.js'
+import { REASON_CODES } from '../utils/reasonCodes.js'
 
 const qDetailZ = z.object({
   questionIndex: z.number().int().min(0),
@@ -38,7 +39,8 @@ const submitSchema = z.object({
 
 export async function submitAttempt(req, res, next) {
   try {
-    const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } = submitSchema.parse(req.body)
+    const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } =
+      submitSchema.parse(req.body)
     const rc = await RcPassage.findById(rcPassageId)
     if (!rc) throw notFoundErr('RC not found')
     // Prevent official attempts on future-dated content not yet live
@@ -59,7 +61,7 @@ export async function submitAttempt(req, res, next) {
 
     const attemptedAt = new Date()
     const type = attemptType || 'official'
-    const attempt = await Attempt.findOneAndUpdate(
+    let attempt = await Attempt.findOneAndUpdate(
       { userId: req.user.id, rcPassageId, attemptType: type },
       {
         answers: normalized,
@@ -76,8 +78,19 @@ export async function submitAttempt(req, res, next) {
 
     // Log analytics event for admin metrics
     try {
-      await AnalyticsEvent.create({ userId: req.user.id, type: 'attempt_submission', payload: { rcPassageId, attemptId: attempt._id, durationSeconds: attempt.durationSeconds, deviceType: attempt.deviceType } })
-    } catch (e) { /* non-fatal */ }
+      await AnalyticsEvent.create({
+        userId: req.user.id,
+        type: 'attempt_submission',
+        payload: {
+          rcPassageId,
+          attemptId: attempt._id,
+          durationSeconds: attempt.durationSeconds,
+          deviceType: attempt.deviceType,
+        },
+      })
+    } catch (e) {
+      /* non-fatal */
+    }
 
     if (type === 'official') {
       // Streak logic: completing at least one official RC for the day counts
@@ -95,7 +108,42 @@ export async function submitAttempt(req, res, next) {
       }
     }
 
-    return success(res, { id: attempt._id, score, attemptType: attempt.attemptType })
+    // Personal best recalculation (official attempts only)
+    if (type === 'official') {
+      try {
+        const top = await Attempt.find({ userId: req.user.id, attemptType: 'official' })
+          .select('score')
+          .sort({ score: -1 })
+          .limit(1)
+          .lean()
+        const topScore = top?.[0]?.score ?? score
+        // Reset previous PB flags if lower than top
+        await Attempt.updateMany(
+          {
+            userId: req.user.id,
+            attemptType: 'official',
+            isPersonalBest: true,
+            score: { $lt: topScore },
+          },
+          { $set: { isPersonalBest: false } }
+        )
+        // Mark all attempts that match topScore as personal best (handles ties)
+        await Attempt.updateMany(
+          { userId: req.user.id, attemptType: 'official', score: topScore },
+          { $set: { isPersonalBest: true } }
+        )
+        attempt = await Attempt.findById(attempt._id).lean()
+      } catch (e) {
+        /* non-fatal */
+      }
+    }
+
+    return success(res, {
+      id: attempt._id,
+      score,
+      attemptType: attempt.attemptType,
+      isPersonalBest: attempt.isPersonalBest,
+    })
   } catch (e) {
     next(e)
   }
@@ -118,27 +166,105 @@ export async function saveProgress(req, res, next) {
 
 export async function getAnalysis(req, res, next) {
   try {
-    const { rcId } = req.params
-    const attempt = await Attempt.findOne({
-      userId: req.user.id,
-      rcPassageId: rcId,
+    const { rcId: identifier } = req.params
+
+    // Try to interpret identifier as attempt id first
+    let attempt = await Attempt.findById(identifier)
+    if (attempt && attempt.userId.toString() !== req.user.id) attempt = null // not user's attempt
+
+    // If not an attempt, treat as rcPassage id and find attempt for this user
+    if (!attempt) {
+      attempt = await Attempt.findOne({ userId: req.user.id, rcPassageId: identifier })
+    }
+    if (!attempt) throw notFoundErr('Analysis unavailable')
+
+    const rc = await RcPassage.findById(attempt.rcPassageId)
+    if (!rc) throw notFoundErr('Analysis unavailable')
+
+    // Aggregate answer distributions for each question across all attempts of this RC
+    const allAttempts = await Attempt.find({ rcPassageId: rc._id }).select('answers')
+    const questionCount = rc.questions.length
+    const baseCounts = Array.from({ length: questionCount }, () => ({ A: 0, B: 0, C: 0, D: 0 }))
+    allAttempts.forEach((a) => {
+      ;(a.answers || []).forEach((ans, idx) => {
+        if (baseCounts[idx] && ['A', 'B', 'C', 'D'].includes(ans)) baseCounts[idx][ans] += 1
+      })
     })
-    const rc = await RcPassage.findById(rcId)
-    if (!attempt || !rc) throw notFoundErr('Analysis unavailable')
-    const questions = rc.questions.map((q, i) => ({
-      questionText: q.questionText,
-      options: q.options,
-      correctAnswerId: q.correctAnswerId,
-      explanation: q.explanation,
-      userAnswer: attempt.answers[i] || null,
-      isCorrect: (attempt.answers[i] || null) === q.correctAnswerId,
+    const totalAnswerers = allAttempts.length || 1
+
+    const questions = rc.questions.map((q, i) => {
+      const userAnswer = attempt.answers[i] || null
+      const distributions = q.options.map((opt) => {
+        const count = baseCounts[i][opt.id] || 0
+        const percent = Math.round((count / totalAnswerers) * 100)
+        return { id: opt.id, text: opt.text, count, percent }
+      })
+      // include question category (hardness) if available
+      const qDetail = (attempt.q_details || []).find((qd) => qd.questionIndex === i) || {}
+      return {
+        index: i,
+        questionText: q.questionText,
+        options: distributions,
+        correctAnswerId: q.correctAnswerId,
+        explanation: q.explanation,
+        userAnswer,
+        isCorrect: userAnswer === q.correctAnswerId,
+        category: qDetail.qCategory || null,
+      }
+    })
+
+    // Coverage metrics (reason tagging)
+    const incorrectCount = questions.filter((q) => !q.isCorrect).length
+    const taggedCount = (attempt.wrongReasons || []).length
+    const coverage = incorrectCount > 0 ? taggedCount / incorrectCount : 0
+
+    // Category stats derived from q_details
+    let categoryStats = []
+    if (Array.isArray(attempt.q_details) && attempt.q_details.length) {
+      const map = {}
+      attempt.q_details.forEach((qd, idx) => {
+        const cat = qd.qCategory || 'Uncategorized'
+        if (!map[cat]) map[cat] = { category: cat, attempts: 0, correct: 0 }
+        map[cat].attempts += 1
+        if (questions[idx]?.isCorrect) map[cat].correct += 1
+      })
+      categoryStats = Object.values(map).map((c) => ({
+        ...c,
+        accuracy: c.attempts > 0 ? c.correct / c.attempts : 0,
+      }))
+    }
+
+    // Additional computed stats
+    const totalQuestions = questions.length || 1
+    const accuracyPercent = Math.round((attempt.score / totalQuestions) * 100)
+    const avgTimePerQuestion =
+      totalQuestions > 0
+        ? Math.round((attempt.durationSeconds || attempt.timeTaken || 0) / totalQuestions)
+        : 0
+    const speedTier =
+      avgTimePerQuestion <= 40 ? 'Fast' : avgTimePerQuestion <= 65 ? 'On Pace' : 'Slow'
+    const questionTiming = (attempt.q_details || []).map((qd) => ({
+      index: qd.questionIndex,
+      timeSpent: qd.timeSpent || 0,
     }))
+
     return success(res, {
       attemptId: attempt._id,
-      rc: { id: rc._id, title: rc.title, topicTags: rc.topicTags },
+      rc: { id: rc._id, title: rc.title, topicTags: rc.topicTags, passageText: rc.passageText },
       score: attempt.score,
       timeTaken: attempt.timeTaken,
+      durationSeconds: attempt.durationSeconds,
+      attemptedAt: attempt.attemptedAt,
       questions,
+      wrongReasons: attempt.wrongReasons || [],
+      coverage: { coverage, taggedCount, incorrectCount },
+      categoryStats,
+      stats: {
+        accuracyPercent,
+        avgTimePerQuestion,
+        speedTier,
+        questionTiming,
+      },
     })
   } catch (e) {
     next(e)
@@ -155,6 +281,115 @@ export async function saveAnalysisFeedback(req, res, next) {
     if (attempt.userId.toString() !== req.user.id) throw forbidden('Not allowed')
     await Attempt.findByIdAndUpdate(id, { analysisFeedback: feedback })
     return success(res, { ok: true })
+  } catch (e) {
+    next(e)
+  }
+}
+
+export async function listUserAttempts(req, res, next) {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1)
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10))
+    const skip = (page - 1) * limit
+
+    const totalAttempts = await Attempt.countDocuments({ userId: req.user.id })
+    const attempts = await Attempt.find({ userId: req.user.id })
+      .populate('rcPassageId', 'title')
+      .sort({ attemptedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+
+    const formatted = attempts.map((a) => {
+      const totalQuestions = a.answers?.length || 4
+      const wrongCount = totalQuestions - a.score
+      const tagged = (a.wrongReasons || []).length
+      return {
+        _id: a._id,
+        rcPassage: {
+          _id: a.rcPassageId?._id,
+          title: a.rcPassageId?.title || 'Untitled',
+        },
+        score: a.score,
+        correctCount: a.score,
+        totalQuestions,
+        durationSeconds: a.durationSeconds || a.timeTaken || 0,
+        avgTimePerQuestion:
+          totalQuestions > 0
+            ? Math.round((a.durationSeconds || a.timeTaken || 0) / totalQuestions)
+            : 0,
+        wrongCount,
+        taggedWrong: tagged,
+        attemptedAt: a.attemptedAt || a.createdAt,
+        isPersonalBest: a.isPersonalBest || false,
+        attemptType: a.attemptType || 'official',
+      }
+    })
+
+    return success(res, {
+      attempts: formatted,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalAttempts / limit),
+        totalAttempts,
+      },
+    })
+  } catch (e) {
+    next(e)
+  }
+}
+
+export async function captureReason(req, res, next) {
+  try {
+    const { id } = req.params // attempt id
+    const { questionIndex, code } = req.body
+
+    if (typeof questionIndex !== 'number' || questionIndex < 0) {
+      throw badRequest('Invalid question index')
+    }
+    if (!code || !REASON_CODES[code]) {
+      throw badRequest('Invalid reason code')
+    }
+
+    const attempt = await Attempt.findById(id)
+    if (!attempt) throw notFoundErr('Attempt not found')
+    if (attempt.userId.toString() !== req.user.id) throw forbidden('Not allowed')
+
+    // Validate questionIndex is within range
+    const totalQuestions = attempt.answers?.length || 4
+    if (questionIndex >= totalQuestions) {
+      throw badRequest('Question index out of range')
+    }
+
+    // Idempotent: remove existing reason for this questionIndex if present
+    const wrongReasons = (attempt.wrongReasons || []).filter(
+      (r) => r.questionIndex !== questionIndex
+    )
+    wrongReasons.push({ questionIndex, code, createdAt: new Date() })
+
+    await Attempt.findByIdAndUpdate(id, { wrongReasons })
+
+    return success(res, { wrongReasons })
+  } catch (e) {
+    next(e)
+  }
+}
+
+export async function saveAnalysisNotes(req, res, next) {
+  try {
+    const { id } = req.params // attempt id
+    const { analysisNotes } = req.body
+
+    if (typeof analysisNotes !== 'string') throw badRequest('Invalid notes')
+    if (analysisNotes.length > 2000) throw badRequest('Notes too long (max 2000 characters)')
+
+    const attempt = await Attempt.findById(id)
+    if (!attempt) throw notFoundErr('Attempt not found')
+    if (attempt.userId.toString() !== req.user.id) throw forbidden('Not allowed')
+
+    await Attempt.findByIdAndUpdate(id, { analysisNotes })
+
+    return success(res, { analysisNotes })
   } catch (e) {
     next(e)
   }

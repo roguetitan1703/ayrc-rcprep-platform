@@ -317,10 +317,21 @@ export async function dashboardBundle(req, res, next) {
       }
 
       // coverage & reasons
+      // Only consider the initial attempt per RC passage for coverage calculation
+      const initialAttemptsMap = new Map()
+      // Pick the earliest attempt per passage
+      for (const a of recentAttempts) {
+        const rid = a.rcPassageId.toString()
+        const prev = initialAttemptsMap.get(rid)
+        if (!prev || a.attemptedAt < prev.attemptedAt) {
+          initialAttemptsMap.set(rid, a)
+        }
+      }
+      const initialAttempts = Array.from(initialAttemptsMap.values())
       let totalWrong = 0
       let taggedWrong = 0
       const reasonCounts = new Map()
-      for (const a of recentAttempts) {
+      for (const a of initialAttempts) {
         const p = rcMap.get(a.rcPassageId.toString())
         if (!p) continue
         p.questions.forEach((q, i) => {
@@ -441,10 +452,21 @@ export async function dashboardBundle(req, res, next) {
       ).length
       trend.push({ date: key.slice(0, 10), attempts: count })
     }
+    // Only consider the initial attempt per RC passage for coverage calculation
+    const initialAttemptsMap = new Map()
+    // Pick the earliest attempt per passage
+    for (const a of recentAttempts) {
+      const rid = a.rcPassageId.toString()
+      const prev = initialAttemptsMap.get(rid)
+      if (!prev || a.attemptedAt < prev.attemptedAt) {
+        initialAttemptsMap.set(rid, a)
+      }
+    }
+    const initialAttempts = Array.from(initialAttemptsMap.values())
     let totalWrong = 0
     let taggedWrong = 0
     const reasonCounts = new Map()
-    for (const a of recentAttempts) {
+    for (const a of initialAttempts) {
       const p = rcMap.get(a.rcPassageId.toString())
       if (!p) continue
       p.questions.forEach((q, i) => {

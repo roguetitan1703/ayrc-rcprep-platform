@@ -17,7 +17,6 @@ const TITLE_MAP = {
   today: "Today's RC",
   results: 'Results',
   performance: 'Performance Studio',
-  analysis: 'Analysis',
   about: 'About',
   login: 'Sign In',
   register: 'Create Account',
@@ -48,6 +47,7 @@ export function useBreadcrumbs() {
 
   const crumbs = useMemo(() => {
     const parts = location.pathname.split('/').filter(Boolean)
+    // No special-case now: /results/:id will show 'Details'
     let acc = ''
     const breadcrumbs = parts.map((p, idx) => {
       acc += '/' + p

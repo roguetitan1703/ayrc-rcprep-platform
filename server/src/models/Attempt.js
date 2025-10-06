@@ -1,9 +1,26 @@
 import mongoose from 'mongoose'
+import { REASON_CODES } from '../utils/reasonCodes.js'
 
 const analysisFeedbackSchema = new mongoose.Schema(
   {
     questionIndex: { type: Number, required: true },
     reason: { type: String, required: true },
+  },
+  { _id: false }
+)
+
+const wrongReasonSchema = new mongoose.Schema(
+  {
+    questionIndex: { type: Number, required: true },
+    code: {
+      type: String,
+      enum: Object.keys(REASON_CODES),
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { _id: false }
 )
@@ -40,12 +57,18 @@ const attemptSchema = new mongoose.Schema(
     timeTaken: { type: Number, default: 0 }, // legacy field (seconds)
     durationSeconds: { type: Number, default: 0 },
     isTimed: { type: Boolean, default: true },
-    deviceType: { type: String, enum: ['desktop', 'tablet', 'mobile', 'unknown'], default: 'unknown' },
+    deviceType: {
+      type: String,
+      enum: ['desktop', 'tablet', 'mobile', 'unknown'],
+      default: 'unknown',
+    },
     analysisNotes: { type: String, maxlength: 2000, default: '' },
     q_details: { type: [qDetailSchema], default: [] },
     attemptedAt: { type: Date },
     analysisFeedback: { type: [analysisFeedbackSchema], default: [] },
+    wrongReasons: { type: [wrongReasonSchema], default: [] },
     attemptType: { type: String, enum: ['official', 'practice'], default: 'official', index: true },
+    isPersonalBest: { type: Boolean, default: false },
   },
   { timestamps: true }
 )
