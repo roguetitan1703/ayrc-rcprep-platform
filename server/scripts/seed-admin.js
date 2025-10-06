@@ -8,17 +8,16 @@ async function main() {
   const email = process.argv[2] || "admin@arc.local";
   const name = process.argv[3] || "Admin";
   const password = process.argv[4] || "admin123";
-  const hash = await bcrypt.hash(password, 10);
   const existing = await User.findOne({ email });
   if (existing) {
     existing.name = name;
     existing.role = "admin";
-    existing.password = hash;
-    existing.passwordConfirm = hash;
+    existing.password = password;
+    existing.passwordConfirm = password;
     await existing.save();
     console.log("Updated admin:", email);
   } else {
-    await User.create({ name, email, password: hash, passwordConfirm: hash, role: "admin" });
+    await User.create({ name, email, password: password, passwordConfirm: password, role: "admin" });
     console.log("Created admin:", email);
   }
   process.exit(0);

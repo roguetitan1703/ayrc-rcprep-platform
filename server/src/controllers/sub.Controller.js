@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import mongoose from "mongoose";
-
+import { success, badRequest } from '../utils/http.js'
 // Initialize Razorpay instance if keys are present. In dev, keys may be absent.
 let razorpay = null
 try {
@@ -205,3 +205,60 @@ export const verifyPayment = async (req, res, next) => {
     next(error);
   }
 };
+
+
+// Get all users' subscription data (admin only)
+export async function getAllSubscriptions(req, res, next) {
+  try {
+    const users = await User.find({}, 'name email subscription subon subexp issubexp role')
+    return success(res, users)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Revoke a user's subscription
+export async function revokeSubscription(req, res, next) {
+  try {
+    const userId = req.params.id
+    const user = await User.findById(userId)
+    if (!user) return badRequest('User not found')
+
+    user.subscription = 'none'
+    user.subon = null
+    user.subexp = null
+    user.issubexp = true
+
+    await user.save()
+    return success(res, { message: 'Subscription revoked', user })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// Extend a user's subscription
+export async function extendSubscription(req, res, next) {
+  try {
+    const { id } = req.params
+    const { days, type } = req.body  // type optional, e.g., "Monthly"
+    console.log(id, days, type);
+
+    const user = await User.findById(id)
+    if (!user) throw badRequest('User not found')
+
+    const now = new Date()
+    const start = (!user.subexp || user.issubexp) ? now : new Date(user.subexp)
+    const newExp = new Date(start)
+    newExp.setDate(newExp.getDate() + days)
+
+    user.subexp = newExp
+    user.subon = (!user.subon || user.issubexp) ? now : user.subon
+    user.subscription = (!user.subscription || user.issubexp) ? type || 'Monthly' : user.subscription
+    user.issubexp = false
+
+    await user.save()
+    return success(res, { ok: true, user })
+  } catch (e) {
+    next(e)
+  }
+}

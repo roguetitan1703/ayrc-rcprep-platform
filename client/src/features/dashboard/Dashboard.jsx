@@ -10,7 +10,7 @@ import { AnalyticsPanel } from './AnalyticsPanel'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 import { useAuth } from '../../components/auth/AuthContext'
-
+import SubFeedbackBlocker from '../../components/ui/SubFeedbackWall'
 export default function Dashboard() {
   const nav = useNavigate()
   const { user } = useAuth()
@@ -18,6 +18,8 @@ export default function Dashboard() {
   const [feedbackRequired, setFeedbackRequired] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [statsBundle, setStatsBundle] = useState(null)
+  const [analyticsBundle, setAnalyticsBundle] = useState(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -27,16 +29,22 @@ export default function Dashboard() {
         setToday(data.today || [])
         setStatsBundle(data.stats)
         setAnalyticsBundle(data.analytics)
-        setFeedbackRequired(!data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted'))
-      } catch (e) { const msg = extractErrorMessage(e); setError(msg); toast.show(msg, { variant: 'error' }) }
-      finally { setLoading(false) }
+
+        const hasSub = user?.subscription && user.subscription !== 'none'
+        const feedbackPending = !data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted')
+
+        setFeedbackRequired(!hasSub && feedbackPending)
+      } catch (e) {
+        const msg = extractErrorMessage(e)
+        setError(msg)
+        toast.show(msg, { variant: 'error' })
+      } finally {
+        setLoading(false)
+      }
     })()
-  }, [])
+  }, [user])
 
-  const [statsBundle, setStatsBundle] = useState(null)
-  const [analyticsBundle, setAnalyticsBundle] = useState(null)
-
-  if(loading) return (
+  if (loading) return (
     <div className="flex flex-col space-y-6">
       <div>
         <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
@@ -51,7 +59,10 @@ export default function Dashboard() {
       </div>
     </div>
   )
-  if(error) return <div className="flex items-center justify-center p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+
+  if (error) return (
+    <div className="flex items-center justify-center p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">{error}</div>
+  )
 
   return (
     <div className="flex flex-col space-y-6">
@@ -59,42 +70,52 @@ export default function Dashboard() {
         <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
         <h1 className="h2">Today's Practice</h1>
       </div>
-      <StatsRow />
-      {feedbackRequired && (
-        <div className="bg-accent-amber/10 border border-accent-amber/40 text-accent-amber rounded p-3 flex items-center justify-between">
-          <div className="text-sm">Thanks for practicing! Please submit today’s quick feedback to unlock tomorrow.</div>
-          <Button onClick={() => nav('/feedback')} variant="outline">Give Feedback</Button>
-        </div>
-      )}
+
+      <StatsRow initial={statsBundle} />
+
+      <SubFeedbackBlocker user={user} feedbackStatus={{ submitted: feedbackRequired }} />
+
       <div className="grid gap-3">
         {today.length === 0 && (
           <div className="text-text-secondary">Today's RCs are being prepared. Please check back shortly!</div>
         )}
-        {today.map(rc => (
-          <Card key={rc.id}>
-            <CardHeader className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">{rc.title}</div>
-                <div className="text-xs text-text-secondary flex gap-2 flex-wrap">
-                  <span>{new Date(rc.scheduledDate).toDateString()}</span>
-                  {rc.topicTags?.slice(0, 3).map(t => <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] uppercase tracking-wide">{t}</span>)}
+
+        {today.map(rc => {
+          const blocked = feedbackRequired && (!user?.subscription || user.subscription === 'none')
+
+          return (
+            <Card key={rc.id} className={blocked ? 'opacity-60 pointer-events-none' : ''}>
+              <CardHeader className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium">{rc.title}</div>
+                  <div className="text-xs text-text-secondary flex gap-2 flex-wrap">
+                    <span>{new Date(rc.scheduledDate).toDateString()}</span>
+                    {rc.topicTags?.slice(0, 3).map(t => (
+                      <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] uppercase tracking-wide">{t}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {rc.status === 'attempted' && <Badge color="success">Attempted {rc.score}/4</Badge>}
-                {rc.status === 'attempted' ? (
-                  <>
-                    <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
-                    <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
-                  </>
-                ) : (
-                  <Button disabled={feedbackRequired} onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
-                )}
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
+                <div className="flex items-center gap-2">
+                  {rc.status === 'attempted' && <Badge color="success">Attempted {rc.score}/4</Badge>}
+                  {!blocked ? (
+                    rc.status === 'attempted' ? (
+                      <>
+                        <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
+                        <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
+                      </>
+                    ) : (
+                      <Button onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
+                    )
+                  ) : (
+                    <div className="text-sm text-text-secondary italic">Unlock by submitting feedback or subscribing</div>
+                  )}
+                </div>
+              </CardHeader>
+            </Card>
+          )
+        })}
       </div>
+      <AnalyticsPanel initial={analyticsBundle} />
     </div>
   )
 }
