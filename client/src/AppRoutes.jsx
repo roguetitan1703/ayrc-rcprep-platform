@@ -22,6 +22,7 @@ import Archive from './features/archive/Archive'
 import Profile from './features/profile/Profile'
 import Performance from './features/insights/Performance'
 import Subscriptions from './features/profile/Subscriptions'
+import AdminFeedback from './features/admin/AdminFeedback'
 import AdminSubscriptions from './features/admin/AdminSubscriptions'
 import LeaderboardLocal from './features/community/LeaderboardLocal'
 import Leaderboard from './features/community/Leaderboard'
@@ -74,6 +75,7 @@ export const routeConfig = [
   { path: '/admin/rcs/:id' },
   { path: '/admin/schedule' },
   { path: '/admin/subscriptions' },
+  { path: '/admin/feedback' },
 ]
 
 export default function AppRoutes() {
@@ -121,6 +123,7 @@ export default function AppRoutes() {
       <Route path="/admin/rcs/:id" element={<RequireAdmin><Shell><RcForm /></Shell></RequireAdmin>} />
       <Route path="/admin/schedule" element={<RequireAdmin><Shell><AdminSchedule /></Shell></RequireAdmin>} />
       <Route path="/admin/subscriptions" element={<RequireAuth><Shell><AdminSubscriptions /></Shell></RequireAuth>} />
+      <Route path="/admin/feedback" element={<RequireAuth><Shell><AdminFeedback /></Shell></RequireAuth>} />
       <Route path="/admin/rcs/:id/analytics" element={<RequireAdmin><Shell><RcAnalyticsPage /></Shell></RequireAdmin>} />
       <Route path="*" element={<NotFound />} />
     </Routes>

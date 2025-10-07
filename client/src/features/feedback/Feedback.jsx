@@ -4,42 +4,87 @@ import { api } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
+import { getTodaysFeedback, submitFeedback, getTodaysQuestions } from '../../lib/feedback'
+const RATINGS = [1, 2, 3, 4, 5]
+
 
 export default function Feedback() {
   const nav = useNavigate()
-  const [difficulty, setDifficulty] = useState(null)
-  const [clarity, setClarity] = useState(null)
-  const [comment, setComment] = useState('')
+  const toast = useToast()
+  const [answers, setAnswers] = useState({})
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submittedToday, setSubmittedToday] = useState(false)
   const [success, setSuccess] = useState(false)
-  const toast = useToast()
-
-  const valid = difficulty !== null && clarity !== null
-
+  const [currentStep, setCurrentStep] = useState(0)
+  const [nextDisabled, setNextDisabled] = useState(false)
+  const [nextCountdown, setNextCountdown] = useState(0)
+  const [dailyQuestions, setDailyQuestions] = useState([])
   useEffect(() => {
-    (async () => {
+    ; (async () => {
       try {
-        const { data } = await api.get('/feedback/today')
-        setSubmittedToday(!!data?.submitted)
+        const questions = await getTodaysQuestions()
+        setDailyQuestions(questions)
+
+        const status = await getTodaysFeedback()
+        setSubmittedToday(!!status?.submitted)
       } catch (e) {
-        const msg = extractErrorMessage(e, 'Could not check submission status')
-        setError(msg)
-        toast.show(msg, { variant: 'error' })
+        console.error('Could not load daily questions or feedback status', e)
       }
     })()
   }, [])
 
-  async function submit() {
-    try {
-      if (!valid || submittedToday) return
-      setSubmitting(true)
-      await api.post('/feedback', {
-        difficultyRating: difficulty,
-        explanationClarityRating: clarity,
-        comment,
+  const handleAnswer = (id, value) => {
+    setAnswers((prev) => ({ ...prev, [id]: value }))
+  }
+
+
+  const startNextBlockTimer = (seconds = 3) => {
+    setNextDisabled(true)
+    setNextCountdown(seconds)
+    const interval = setInterval(() => {
+      setNextCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval)
+          setNextDisabled(false)
+          return 0
+        }
+        return prev - 1
       })
+    }, 1000)
+  }
+
+
+  const validateStep = () => {
+    const q = dailyQuestions[currentStep]
+    const ans = answers[q.id]
+    if (q.type === 'rating') return ans != null
+    if (q.type === 'multi') return ans?.length > 0
+    if (q.type === 'open' || q.type === 'redirect') return ans?.split(' ').length >= (q.minWords || 0)
+    return true
+  }
+
+  const handleNext = () => {
+    if (!validateStep()) return
+    if (currentStep < dailyQuestions.length - 1) {
+      setCurrentStep((prev) => prev + 1)
+      const nextQuestion = dailyQuestions[currentStep + 1]
+
+      startNextBlockTimer(nextQuestion.time)
+
+    } else {
+      submit()
+    }
+  }
+
+  const handlePrev = () => {
+    if (currentStep > 0) setCurrentStep((prev) => prev - 1)
+  }
+
+  const submit = async () => {
+    setSubmitting(true)
+    try {
+      await submitFeedback(answers)
       setSuccess(true)
       setSubmittedToday(true)
     } catch (e) {
@@ -50,15 +95,22 @@ export default function Feedback() {
       setSubmitting(false)
     }
   }
+  if (!dailyQuestions.length) {
+    return (
+      <div className="flex items-center justify-center px-4">
+        Loading questions...
+      </div>
+    )
+  }
 
-  const ratings = [1, 2, 3, 4, 5]
+  const q = dailyQuestions[currentStep]
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="flex items-center justify-center px-4 ">
       <div className="max-w-xl w-full bg-card-surface rounded p-6 space-y-4">
         <h1 className="h3">Daily Feedback</h1>
         <p className="body-muted">
-          Help us tune difficulty and explanations. This takes 10 seconds.
+          Help us improve your experience. Completing this unlocks today’s premium content.
         </p>
 
         {error && (
@@ -77,89 +129,94 @@ export default function Feedback() {
           </div>
         )}
 
-        {/* Ratings */}
         <div className="space-y-4">
-          {/* Difficulty */}
-          <div>
-            <label className="block text-sm mb-1 font-medium">Overall difficulty</label>
+          <label className="block text-sm mb-1 font-medium">{q.label}</label>
+
+          {q.type === 'rating' && (
             <div className="flex gap-2">
-              {ratings.map((n) => (
+              {RATINGS.map((n) => (
                 <button
                   key={n}
                   type="button"
-                  onClick={() => setDifficulty(n)}
+                  onClick={() => handleAnswer(q.id, n)}
                   className={`w-10 h-10 rounded-full border flex items-center justify-center font-semibold
-                    ${
-                      difficulty === n
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-background border-white/20'
-                    }
+                    ${answers[q.id] === n ? 'bg-primary text-white border-primary' : 'bg-background border-white/20'}
                   `}
                 >
                   {n}
                 </button>
               ))}
             </div>
-          </div>
+          )}
 
-          {/* Clarity */}
-          <div>
-            <label className="block text-sm mb-1 font-medium">Explanation clarity</label>
-            <div className="flex gap-2">
-              {ratings.map((n) => (
+          {q.type === 'multi' && (
+            <div className="flex gap-2 flex-wrap">
+              {q.options.map((opt) => (
                 <button
-                  key={n}
+                  key={opt}
                   type="button"
-                  onClick={() => setClarity(n)}
-                  className={`w-10 h-10 rounded-full border flex items-center justify-center font-semibold
-                    ${
-                      clarity === n
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-background border-white/20'
-                    }
-                  `}
+                  onClick={() =>
+                    handleAnswer(
+                      q.id,
+                      answers[q.id]?.includes(opt)
+                        ? answers[q.id].filter((o) => o !== opt)
+                        : [...(answers[q.id] || []), opt]
+                    )
+                  }
+                  className={`px-3 py-1 border rounded ${answers[q.id]?.includes(opt)
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-background border-white/20'
+                    }`}
                 >
-                  {n}
+                  {opt}
                 </button>
               ))}
             </div>
-          </div>
+          )}
 
-          {/* Comment */}
-          <div>
-            <label className="block text-sm mb-1">Comments (optional)</label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              className="w-full bg-background border border-white/10 rounded p-2"
-              placeholder="What felt off or great?"
-            />
-          </div>
+          {(q.type === 'open' || q.type === 'redirect') && (
+            <>
+              {q.type === 'redirect' && (
+                <Button onClick={() => window.open(q.url, '_blank')} className="mt-2">
+                  {q.buttonText || 'Visit Feature'}
+                </Button>
+              )}
+              <textarea
+                value={answers[q.id] || ''}
+                onChange={(e) => handleAnswer(q.id, e.target.value)}
+                rows={3}
+                className="w-full bg-background border border-white/10 rounded p-2"
+                placeholder={`Write at least ${q.minWords || 10} words`}
+              />
+            </>
+          )}
         </div>
 
-        {/* Submit */}
-        <div className="pt-2">
-          <Button
-            disabled={submitting || !valid || submittedToday}
-            onClick={submit}
-            className="w-full"
-          >
-            {submittedToday
-              ? 'Already submitted today'
-              : submitting
-              ? 'Submitting...'
-              : 'Submit & Unlock'}
+        <div className="flex justify-between pt-2">
+          <Button onClick={handlePrev} disabled={currentStep === 0}>
+            Previous
+          </Button>
+          <Button onClick={handleNext} disabled={nextDisabled || submitting}>
+            {nextDisabled
+              ? `Next (${nextCountdown}s)`
+              : currentStep === dailyQuestions.length - 1
+                ? 'Submit & Unlock'
+                : 'Next'}
           </Button>
 
-          <div className="mt-2 text-center">
-            <button
-              onClick={() => nav('/dashboard')}
-              className="text-xs text-text-secondary hover:text-text-primary"
-            >
-              Back to Dashboard
-            </button>
-          </div>
+        </div>
+
+        <div className="mt-2 text-center">
+          <button
+            onClick={() => nav('/dashboard')}
+            className="text-xs text-text-secondary hover:text-text-primary"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+
+        <div className="text-xs text-text-secondary text-center mt-2">
+          Step {currentStep + 1} of {dailyQuestions.length}
         </div>
       </div>
     </div>
