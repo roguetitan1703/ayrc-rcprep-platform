@@ -40,15 +40,13 @@ export default function AdminDashboard() {
       try {
         const { data } = await api.get('/admin/rcs')
         setRcs(data)
-        // fetch analytics too
-        try {
-          const { data: a } = await api.get('/admin/rcs-analytics')
-          setRcAnalytics(a)
-        } catch (e) { /* non-fatal */ }
         // fetch platform analytics (admin gets platform bundle from /users/me/dashboard)
+        // This includes platform-wide analytics in data.analytics
         try {
           const { data: p } = await api.get('/users/me/dashboard')
           setPlatformAnalytics(p)
+          // Use platform analytics from dashboard response
+          // p.analytics already contains platform-wide coverage, topics, trends
         } catch (e) { /* non-fatal */ }
       } catch (e) { setError(e?.response?.data?.error || e.message) }
       finally { setLoading(false) }

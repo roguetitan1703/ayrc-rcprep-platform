@@ -1,28 +1,7 @@
-import { useEffect, useState } from 'react'
-import { api } from '../../lib/api'
 import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
-import { useToast } from '../../components/ui/Toast'
-import { extractErrorMessage } from '../../lib/utils'
 
-export function AnalyticsPanel({ initial }) {
-  const [data, setData] = useState(initial || null)
-  const [loading, setLoading] = useState(!initial)
-  const toast = useToast()
-  useEffect(() => {
-    if (initial) return
-    ;(async () => {
-      try {
-        const { data } = await api.get('/users/me/analytics')
-        setData(data)
-      } catch (e) {
-        toast.show(extractErrorMessage(e), 'error')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [initial])
-
+export function AnalyticsPanel({ analytics, loading }) {
   if (loading)
     return (
       <Card>
@@ -36,7 +15,8 @@ export function AnalyticsPanel({ initial }) {
         </CardContent>
       </Card>
     )
-  if (!data) return null
+  if (!analytics) return null
+  const data = analytics
   return (
     <Card>
       <CardHeader>

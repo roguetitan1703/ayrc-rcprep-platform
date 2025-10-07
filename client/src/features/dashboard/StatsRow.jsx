@@ -1,22 +1,7 @@
-import { useEffect, useState } from 'react'
-import { api } from '../../lib/api'
 import { Card, CardContent } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
 
-export function StatsRow({ initial, analytics }) {
-  const [stats, setStats] = useState(initial || null)
-  const [loading, setLoading] = useState(!initial)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (initial) return
-    (async () => {
-      try { const { data } = await api.get('/users/me/stats'); setStats(data) }
-      catch (e) { setError(e?.response?.data?.error || e.message) }
-      finally { setLoading(false) }
-    })()
-  }, [initial])
-
+export function StatsRow({ stats, analytics, loading }) {
   if (loading) return (
     <div className="grid sm:grid-cols-3 gap-3">
       <Card><CardContent><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/5" /></CardContent></Card>
@@ -24,7 +9,6 @@ export function StatsRow({ initial, analytics }) {
       <Card className="hidden sm:block"><CardContent><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/5" /></CardContent></Card>
     </div>
   )
-  if (error) return <div className="text-error-red text-sm">{error}</div>
   if (!stats && !analytics) return null
   const attempts7d = stats?.attempts7d ?? analytics?.attempts7d ?? '-'
   const coverage = stats?.coverage ?? analytics?.coverage ?? '-'

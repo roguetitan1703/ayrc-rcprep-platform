@@ -1,7 +1,15 @@
 import { Router } from 'express'
 import { authRequired, requireRole } from '../middleware/auth.js'
-import { listRcs, createRc, updateRc, archiveRc, analyticsRcs, analyticsRcDetail, analyticsUser } from '../controllers/admin.controller.js'
-import { getMonthlySchedule } from '../controllers/rc.controller.js'
+import {
+  listRcs,
+  createRc,
+  updateRc,
+  archiveRc,
+  analyticsRcs,
+  analyticsRcDetail,
+  analyticsUser,
+  getMonthlySchedule,
+} from '../controllers/admin.controller.js'
 
 const router = Router()
 router.use(authRequired, requireRole('admin'))

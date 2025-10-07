@@ -114,35 +114,3 @@ export async function getRcById(req, res, next) {
     next(e)
   }
 }
-
-// Monthly schedule summary: counts per IST day within month, and whether underfilled/overfilled
-export async function getMonthlySchedule(req, res, next) {
-  try {
-    const year = parseInt(req.query.year, 10)
-    const month = parseInt(req.query.month, 10) // 0-11
-    if (isNaN(year) || isNaN(month))
-      return res.status(400).json({ error: 'year and month required' })
-    const monthStart = new Date(Date.UTC(year, month, 1, 0, 0, 0))
-    const nextMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0))
-    const rcs = await RcPassage.find({
-      scheduledDate: { $gte: monthStart, $lt: nextMonth },
-    }).select('scheduledDate status')
-    const map = {}
-    for (const rc of rcs) {
-      const d = startOfIST(rc.scheduledDate)
-      const key = d.toISOString().slice(0, 10)
-      map[key] = (map[key] || 0) + 1
-    }
-    const days = []
-    let cursor = new Date(monthStart)
-    while (cursor < nextMonth) {
-      const key = cursor.toISOString().slice(0, 10)
-      const count = map[key] || 0
-      days.push({ date: key, count, status: count === 2 ? 'ideal' : count < 2 ? 'under' : 'over' })
-      cursor.setUTCDate(cursor.getUTCDate() + 1)
-    }
-    return success(res, days)
-  } catch (e) {
-    next(e)
-  }
-}

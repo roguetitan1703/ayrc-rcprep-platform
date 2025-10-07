@@ -66,6 +66,8 @@ const attemptSchema = new mongoose.Schema(
     q_details: { type: [qDetailSchema], default: [] },
     attemptedAt: { type: Date },
     analysisFeedback: { type: [analysisFeedbackSchema], default: [] },
+    // @deprecated - Use analysisFeedback instead. This field is kept for backward compatibility only.
+    // TODO: Remove after data migration is complete
     wrongReasons: { type: [wrongReasonSchema], default: [] },
     attemptType: { type: String, enum: ['official', 'practice'], default: 'official', index: true },
     isPersonalBest: { type: Boolean, default: false },

@@ -18,8 +18,8 @@ export default function Dashboard() {
   const [feedbackRequired, setFeedbackRequired] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [statsBundle, setStatsBundle] = useState(null)
-  const [analyticsBundle, setAnalyticsBundle] = useState(null)
+  const [stats, setStats] = useState(null)
+  const [analytics, setAnalytics] = useState(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function Dashboard() {
       try {
         const { data } = await api.get('/users/me/dashboard')
         setToday(data.today || [])
-        setStatsBundle(data.stats)
-        setAnalyticsBundle(data.analytics)
+        setStats(data.stats)
+        setAnalytics(data.analytics)
 
         const hasSub = user?.subscription && user.subscription !== 'none'
         const feedbackPending = !data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted')
@@ -50,8 +50,8 @@ export default function Dashboard() {
         <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
         <h1 className="h2">Today's Practice</h1>
       </div>
-      <StatsRow initial={statsBundle} />
-      <AnalyticsPanel initial={analyticsBundle} />
+      <StatsRow stats={stats} analytics={analytics} loading={true} />
+      <AnalyticsPanel analytics={analytics} loading={true} />
       <Skeleton className="h-12 w-full" />
       <div className="grid gap-3">
         <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader></Card>
@@ -71,7 +71,7 @@ export default function Dashboard() {
         <h1 className="h2">Today's Practice</h1>
       </div>
 
-      <StatsRow initial={statsBundle} />
+      <StatsRow stats={stats} analytics={analytics} loading={false} />
 
       <SubFeedbackBlocker user={user} feedbackStatus={{ submitted: feedbackRequired }} />
 
@@ -115,7 +115,7 @@ export default function Dashboard() {
           )
         })}
       </div>
-      <AnalyticsPanel initial={analyticsBundle} />
+      <AnalyticsPanel analytics={analytics} loading={false} />
     </div>
   )
 }

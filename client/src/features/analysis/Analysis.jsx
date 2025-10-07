@@ -27,7 +27,7 @@ export default function Analysis() {
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [wrongReasons, setWrongReasons] = useState([])
+  const [analysisFeedback, setAnalysisFeedback] = useState([])
   const [activeQuestion, setActiveQuestion] = useState(0)
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function Analysis() {
         setLoading(true)
         const { data } = await api.get(`/attempts/analysis/${id}`)
         setAnalysis(data)
-        setWrongReasons(data.wrongReasons || [])
+        setAnalysisFeedback(data.analysisFeedback || [])
       } catch (e) {
         setError(e?.response?.data?.error || e.message)
       } finally {
@@ -47,9 +47,9 @@ export default function Analysis() {
   }, [id])
 
   function handleReasonSelected(questionIndex, code) {
-    setWrongReasons(prev => {
+    setAnalysisFeedback(prev => {
       const filtered = prev.filter(r => r.questionIndex !== questionIndex)
-      return [...filtered, { questionIndex, code, createdAt: new Date().toISOString() }]
+      return [...filtered, { questionIndex, reason: code }]
     })
   }
 
@@ -146,7 +146,7 @@ export default function Analysis() {
           {(() => {
             const q = questions[activeQuestion]
             const i = activeQuestion
-            const current = wrongReasons.find(r => r.questionIndex === i)?.code
+            const current = analysisFeedback.find(r => r.questionIndex === i)?.reason
             // mock question type
             const types = ['Detail','Inference','Vocabulary','Main Idea']
             const qType = types[i % types.length]
@@ -155,24 +155,38 @@ export default function Analysis() {
                 <CardHeader className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-lg font-semibold text-text-primary">Question {i+1}</span>
-                    {/* Difficulty Pill */}
-                    {/* {q.category && <Badge color="warning" className="uppercase text-[10px] px-2 py-0.5">{q.category}</Badge>} */}
-                    {/* Place holder */}
-                    <Badge color="warning" className="uppercase text-[10px] px-2 py-0.5">Medium</Badge>
-                    {/* Type Pill */}
-                    {qType && <Badge className="uppercase text-[10px] px-2 py-0.5">{qType}</Badge>}
                     <Badge color={q.isCorrect ? 'success' : 'error'} className="uppercase text-[10px] px-2 py-0.5">{q.isCorrect ? 'Correct' : 'Incorrect'}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Question metadata with labels */}
+                  <div className="flex items-center gap-3 text-xs text-text-secondary border-b border-soft pb-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">Difficulty:</span>
+                      <Badge color="warning" className="uppercase text-[10px] px-2 py-0.5">Medium</Badge>
+                    </div>
+                    <div className="w-px h-4 bg-soft"></div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">Type:</span>
+                      <Badge className="uppercase text-[10px] px-2 py-0.5">{qType}</Badge>
+                    </div>
+                  </div>
+                  
                   <div className="text-sm text-text-primary leading-relaxed">{q.questionText}</div>
                   <div className="space-y-3">{q.options.map(opt=>{
                     const isC=opt.id===q.correctAnswerId, isU=opt.id===q.userAnswer
-                    return <div key={opt.id} className={`rounded-lg border px-3 py-2 text-sm relative overflow-hidden ${isC?'border-success-green bg-success-green/5':isU?'border-accent-amber bg-accent-amber/10':'border-soft bg-surface-muted/40'}`}>
-                      <div className="flex items-center justify-between gap-4"><span className="font-medium">{opt.id}. {opt.text}</span><span className="text-xs text-text-secondary tabular-nums">{opt.percent}%</span></div>
-                      <div className="h-1 mt-2 bg-surface-muted rounded-full"><div className={`h-full rounded-full ${isC?'bg-success-green':isU?'bg-accent-amber':'bg-primary/40'}`} style={{width:`${opt.percent}%`}}/></div>
-                      {isC&&<span className="absolute top-1 right-2 text-[10px] tracking-wide text-success-green font-semibold">ANSWER</span>}
-                      {isU&&!isC&&<span className="absolute top-1 right-2 text-[10px] tracking-wide text-accent-amber font-semibold">YOURS</span>}
+                    return <div key={opt.id} className={`rounded-lg border px-3 py-3 text-sm relative overflow-hidden ${isC?'border-success-green bg-success-green/5':isU?'border-accent-amber bg-accent-amber/10':'border-soft bg-surface-muted/40'}`}>
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <span className="font-medium flex-1">{opt.id}. {opt.text}</span>
+                        {isC&&<span className="text-[10px] tracking-wide text-success-green font-semibold whitespace-nowrap">ANSWER</span>}
+                        {isU&&!isC&&<span className="text-[10px] tracking-wide text-accent-amber font-semibold whitespace-nowrap">YOUR CHOICE</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-surface-muted rounded-full">
+                          <div className={`h-full rounded-full ${isC?'bg-success-green':isU?'bg-accent-amber':'bg-primary/40'}`} style={{width:`${opt.percent}%`}}/>
+                        </div>
+                        <span className="text-xs text-text-secondary tabular-nums whitespace-nowrap w-10 text-right">{opt.percent}%</span>
+                      </div>
                     </div>
                   })}</div>
                   <div className="bg-surface-muted p-3 rounded-lg text-sm leading-relaxed"><strong className="text-text-primary">Explanation:</strong> {q.explanation}</div>

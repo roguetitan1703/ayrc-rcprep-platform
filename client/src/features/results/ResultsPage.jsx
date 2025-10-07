@@ -22,41 +22,14 @@ export default function ResultsPage() {
       setLoading(true)
       setError(null)
 
-      // Fetch attempts list
+      // Fetch attempts list (now includes stats on page 1)
       const attemptsRes = await api.get(`/attempts?page=${page}&limit=10`)
       setAttempts(attemptsRes.data?.attempts || [])
       setTotalPages(attemptsRes.data?.pagination?.totalPages || 1)
 
-      // Fetch stats from dashboard bundle (reuse existing endpoint)
-      if (page === 1) {
-        try {
-          const dashboardRes = await api.get('/users/me/dashboard')
-          const dashData = dashboardRes.data
-
-          // Map dashboard analytics to StatsPanel format
-          const a = dashData.analytics || {}
-          const s = dashData.stats || {}
-          const attempts7d = a.attempts7d || 0
-          // dashboard.stats.accuracy is percent, convert to fraction
-          const accuracy7d = (s.accuracy || 0) / 100
-          const avgDuration = s.avgDuration || 0
-          // analytics.coverage is percent, convert to fraction
-          const coverageVal = (a.coverage || 0) / 100
-          // sum of reason counts for taggedWrong
-          const taggedWrongVal = (a.reasons?.top || []).reduce((sum, r) => sum + r.count, 0)
-          // derive totalWrong from coverage = taggedWrong / totalWrong
-          const totalWrongVal = coverageVal > 0 ? Math.round(taggedWrongVal / coverageVal) : 0
-          setStats({
-            attempts7d,
-            accuracy7d,
-            avgDuration,
-            coverage: coverageVal,
-            taggedWrong: taggedWrongVal,
-            totalWrong: totalWrongVal,
-          })
-        } catch (err) {
-          console.error('Failed to fetch stats:', err)
-        }
+      // Stats are included in the response for page 1
+      if (page === 1 && attemptsRes.data?.stats) {
+        setStats(attemptsRes.data.stats)
       }
     } catch (err) {
       setError('Failed to load attempts')
@@ -67,7 +40,8 @@ export default function ResultsPage() {
   }
 
   const handleAttemptClick = (attemptId) => {
-    navigate(`/results/${attemptId}`)
+    // Navigate to analysis details for the selected attempt
+    navigate(`/analysis/${attemptId}`)
   }
 
   const handlePageChange = (newPage) => {

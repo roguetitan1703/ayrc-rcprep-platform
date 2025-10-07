@@ -215,7 +215,7 @@ export async function getAnalysis(req, res, next) {
 
     // Coverage metrics (reason tagging)
     const incorrectCount = questions.filter((q) => !q.isCorrect).length
-    const taggedCount = (attempt.wrongReasons || []).length
+    const taggedCount = (attempt.analysisFeedback || []).length
     const coverage = incorrectCount > 0 ? taggedCount / incorrectCount : 0
 
     // Category stats derived from q_details
@@ -256,6 +256,8 @@ export async function getAnalysis(req, res, next) {
       durationSeconds: attempt.durationSeconds,
       attemptedAt: attempt.attemptedAt,
       questions,
+      analysisFeedback: attempt.analysisFeedback || [],
+      // @deprecated - wrongReasons is a legacy field kept for API backward compatibility
       wrongReasons: attempt.wrongReasons || [],
       coverage: { coverage, taggedCount, incorrectCount },
       categoryStats,
@@ -271,6 +273,11 @@ export async function getAnalysis(req, res, next) {
   }
 }
 
+/**
+ * @deprecated This endpoint is deprecated. Use captureReason() instead.
+ * This function is kept for backward compatibility only.
+ * The /analysis-feedback route has been removed from routes/attempts.js
+ */
 export async function saveAnalysisFeedback(req, res, next) {
   try {
     const { id } = req.params // attempt id
@@ -303,7 +310,7 @@ export async function listUserAttempts(req, res, next) {
     const formatted = attempts.map((a) => {
       const totalQuestions = a.answers?.length || 4
       const wrongCount = totalQuestions - a.score
-      const tagged = (a.wrongReasons || []).length
+      const tagged = (a.analysisFeedback || []).length
       return {
         _id: a._id,
         rcPassage: {
@@ -326,8 +333,90 @@ export async function listUserAttempts(req, res, next) {
       }
     })
 
+    // Calculate lightweight stats for Results page (last 7 days)
+    let stats = null
+    if (page === 1) {
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+      const recentAttempts = await Attempt.find({
+        userId: req.user.id,
+        attemptType: 'official',
+        attemptedAt: { $gte: sevenDaysAgo },
+      })
+        .select('score durationSeconds answers analysisFeedback')
+        .lean()
+
+      const attempts7d = recentAttempts.length
+      const totalCorrect = recentAttempts.reduce((sum, a) => sum + (a.score || 0), 0)
+      const totalQuestions = recentAttempts.length * 4
+      const accuracy7d = totalQuestions > 0 ? totalCorrect / totalQuestions : 0
+
+      const totalDuration = recentAttempts.reduce(
+        (sum, a) => sum + (a.durationSeconds || a.timeTaken || 0),
+        0
+      )
+      const avgDuration = attempts7d > 0 ? Math.round(totalDuration / attempts7d) : 0
+
+      // Calculate coverage from ALL attempts (not time-limited)
+      // Need to fetch RC passages to determine which questions are incorrect
+      const allOfficialAttempts = await Attempt.find({
+        userId: req.user.id,
+        attemptType: 'official',
+      })
+        .select('answers analysisFeedback rcPassageId score')
+        .lean()
+
+      // Fetch RC passages to check correct answers
+      const attemptRcIds = [...new Set(allOfficialAttempts.map((a) => a.rcPassageId.toString()))]
+      const rcPassages = await RcPassage.find({ _id: { $in: attemptRcIds } })
+        .select('questions')
+        .lean()
+      const rcMap = new Map(rcPassages.map((rc) => [rc._id.toString(), rc]))
+
+      let totalWrong = 0
+      let taggedWrong = 0
+
+      allOfficialAttempts.forEach((a) => {
+        const rc = rcMap.get(a.rcPassageId.toString())
+        if (!rc) return // Skip if RC not found
+
+        // First, identify which questions are incorrect
+        const incorrectQuestions = new Set()
+        rc.questions.forEach((q, i) => {
+          const userAns = (a.answers && a.answers[i]) || ''
+          const isCorrect = userAns && userAns === q.correctAnswerId
+          if (!isCorrect) {
+            totalWrong++
+            incorrectQuestions.add(i)
+          }
+        })
+
+        // Only count tags for incorrect questions
+        if (a.analysisFeedback && a.analysisFeedback.length) {
+          a.analysisFeedback.forEach((f) => {
+            if (incorrectQuestions.has(f.questionIndex)) {
+              taggedWrong++
+            }
+          })
+        }
+      })
+
+      const coverage = totalWrong > 0 ? taggedWrong / totalWrong : 0
+
+      stats = {
+        attempts7d,
+        accuracy7d,
+        avgDuration,
+        coverage,
+        taggedWrong,
+        totalWrong,
+      }
+    }
+
     return success(res, {
       attempts: formatted,
+      stats, // null if not page 1
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalAttempts / limit),
@@ -361,15 +450,16 @@ export async function captureReason(req, res, next) {
       throw badRequest('Question index out of range')
     }
 
-    // Idempotent: remove existing reason for this questionIndex if present
-    const wrongReasons = (attempt.wrongReasons || []).filter(
+    // Store in analysisFeedback field (used by dashboard)
+    // Remove existing reason for this questionIndex if present (idempotent)
+    const analysisFeedback = (attempt.analysisFeedback || []).filter(
       (r) => r.questionIndex !== questionIndex
     )
-    wrongReasons.push({ questionIndex, code, createdAt: new Date() })
+    analysisFeedback.push({ questionIndex, reason: code })
 
-    await Attempt.findByIdAndUpdate(id, { wrongReasons })
+    await Attempt.findByIdAndUpdate(id, { analysisFeedback })
 
-    return success(res, { wrongReasons })
+    return success(res, { analysisFeedback })
   } catch (e) {
     next(e)
   }

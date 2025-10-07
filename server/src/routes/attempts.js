@@ -4,7 +4,7 @@ import {
   submitAttempt,
   saveProgress,
   getAnalysis,
-  saveAnalysisFeedback,
+  // saveAnalysisFeedback, // Removed - duplicate functionality with captureReason
   listUserAttempts,
   captureReason,
   saveAnalysisNotes,
@@ -19,7 +19,7 @@ router.get('/', authRequired, listUserAttempts)
 router.post('/', authRequired, enforceFeedbackLock, limiter, submitAttempt)
 router.patch('/:id/progress', authRequired, saveProgress)
 router.get('/analysis/:rcId', authRequired, getAnalysis)
-router.patch('/:id/analysis-feedback', authRequired, saveAnalysisFeedback)
+// Removed: /analysis-feedback (duplicate of /reasons endpoint)
 router.patch('/:id/reasons', authRequired, captureReason)
 router.patch('/:id/analysis-notes', authRequired, saveAnalysisNotes)
 
