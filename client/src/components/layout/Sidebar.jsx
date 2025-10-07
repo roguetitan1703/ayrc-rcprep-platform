@@ -107,11 +107,16 @@ function SidebarContent({ expanded, onLogout, onLock, onUnlock, user, isAdmin, i
         <Heading label="Account" expanded={expanded} compact={compact} />
         <Item to="/profile" icon={User} expanded={expanded} end compact={compact} mobile={mobile}>{'Profile'}</Item>
         {user && (isAdmin ? (
-          <Item to="/admin/subscriptions" icon={Grid} expanded={expanded} compact={compact} mobile={mobile}>{'Subscriptions'}</Item>
+          <>
+            <Item to="/admin/subscriptions" icon={Grid} expanded={expanded} compact={compact} mobile={mobile}>{'Subscriptions'}</Item>
+            <Item to="/admin/feedback" icon={BarChart2} expanded={expanded} compact={compact} mobile={mobile}>{'Feedback'}</Item>
+          </>
         ) : (
-          <Item to="/subscriptions" icon={Grid} expanded={expanded} compact={compact} mobile={mobile}>{'Subscriptions'}</Item>
+          <>
+            <Item to="/subscriptions" icon={Grid} expanded={expanded} compact={compact} mobile={mobile}>{'Subscriptions'}</Item>
+            <Item to="/feedback" icon={BarChart2} expanded={expanded} compact={compact} mobile={mobile}>{'Feedback'}</Item>
+          </>
         ))}
-        <Item to="/feedback" icon={BarChart2} expanded={expanded} compact={compact} mobile={mobile}>{'Feedback'}</Item>
         <Item to="/help" icon={Archive} expanded={expanded} compact={compact} mobile={mobile}>{'Help'}</Item>
 
       </div>

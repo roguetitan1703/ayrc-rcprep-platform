@@ -22,6 +22,7 @@ import Archive from './features/archive/Archive'
 import Profile from './features/profile/Profile'
 import Performance from './features/insights/Performance'
 import Subscriptions from './features/profile/Subscriptions'
+import AdminFeedback from './features/admin/AdminFeedback'
 import AdminSubscriptions from './features/admin/AdminSubscriptions'
 import LeaderboardLocal from './features/community/LeaderboardLocal'
 import Leaderboard from './features/community/Leaderboard'
@@ -76,6 +77,7 @@ export const routeConfig = [
   { path: '/admin/rcs/:id/analytics' },
   { path: '/admin/schedule' },
   { path: '/admin/subscriptions' },
+  { path: '/admin/feedback' },
 ]
 
 export default function AppRoutes() {
