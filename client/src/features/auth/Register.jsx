@@ -138,7 +138,7 @@ export default function Register(){
           </div>
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
-              Location <span className="text-xs text-text-secondary">(optional - for local leaderboards)</span>
+              Location
             </label>
             <Input 
               value={location} 
