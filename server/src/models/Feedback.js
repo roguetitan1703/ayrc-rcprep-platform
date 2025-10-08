@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const answerSchema = new mongoose.Schema({
-  questionId: { type: Number, required: true },
+  questionId: { type: String, required: true },
   type: {
     type: String,
     enum: ["rating", "multi", "open", "redirect"],
