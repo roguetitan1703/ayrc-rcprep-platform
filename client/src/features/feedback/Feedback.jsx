@@ -7,7 +7,6 @@ import { extractErrorMessage } from '../../lib/utils'
 import { getTodaysFeedback, submitFeedback, getTodaysQuestions } from '../../lib/feedback'
 const RATINGS = [1, 2, 3, 4, 5]
 
-
 export default function Feedback() {
   const nav = useNavigate()
   const toast = useToast()
@@ -22,7 +21,7 @@ export default function Feedback() {
   const [dailyQuestions, setDailyQuestions] = useState([])
 
   useEffect(() => {
-    ; (async () => {
+    ;(async () => {
       try {
         const questions = await getTodaysQuestions()
         setDailyQuestions(questions)
@@ -73,7 +72,8 @@ export default function Feedback() {
     const ans = answers[q.id]
     if (q.type === 'rating') return ans != null
     if (q.type === 'multi') return ans?.length > 0
-    if (q.type === 'open' || q.type === 'redirect') return ans?.split(' ').length >= (q.minWords || 0)
+    if (q.type === 'open' || q.type === 'redirect')
+      return ans?.split(' ').length >= (q.minWords || 0)
     return true
   }
 
@@ -84,7 +84,6 @@ export default function Feedback() {
       const nextQuestion = dailyQuestions[currentStep + 1]
 
       startNextBlockTimer(nextQuestion.time)
-
     } else {
       submit()
     }
@@ -119,11 +118,7 @@ export default function Feedback() {
   }
 
   if (!dailyQuestions.length) {
-    return (
-      <div className="flex items-center justify-center px-4">
-        Loading questions...
-      </div>
-    )
+    return <div className="flex items-center justify-center px-4">Loading questions...</div>
   }
 
   const q = dailyQuestions[currentStep]
@@ -153,7 +148,11 @@ export default function Feedback() {
                   type="button"
                   onClick={() => handleAnswer(q.id, n)}
                   className={`w-10 h-10 rounded-full border flex items-center justify-center font-semibold
-                    ${answers[q.id] === n ? 'bg-primary text-white border-primary' : 'bg-background border-white/20'}
+                    ${
+                      answers[q.id] === n
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-background border-white/20'
+                    }
                   `}
                 >
                   {n}
@@ -176,10 +175,11 @@ export default function Feedback() {
                         : [...(answers[q.id] || []), opt]
                     )
                   }
-                  className={`px-3 py-1 border rounded ${answers[q.id]?.includes(opt)
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-background border-white/20'
-                    }`}
+                  className={`px-3 py-1 border rounded ${
+                    answers[q.id]?.includes(opt)
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-background border-white/20'
+                  }`}
                 >
                   {opt}
                 </button>
@@ -213,10 +213,9 @@ export default function Feedback() {
             {nextDisabled
               ? `Next (${nextCountdown}s)`
               : currentStep === dailyQuestions.length - 1
-                ? 'Submit & Unlock'
-                : 'Next'}
+              ? 'Submit & Unlock'
+              : 'Next'}
           </Button>
-
         </div>
 
         <div className="mt-2 text-center">

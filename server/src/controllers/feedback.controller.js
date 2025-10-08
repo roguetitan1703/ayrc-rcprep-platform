@@ -8,6 +8,7 @@ import { z } from 'zod'
 const answerSchema = z.array(
   z.object({
     questionId: z.string(),
+    questionId: z.string(),
     type: z.enum(['rating', 'multi', 'open', 'redirect']),
     value: z.any(),
     expectedTime: z.number().int().min(0).optional(),
@@ -61,7 +62,7 @@ export async function getTodaysQuestions(req, res, next) {
     const formatted = questions
       .filter((q) => q.date?.toISOString().slice(0, 10) === todayStr || !q.date) // include global questions with null date
       .map((q) => ({
-        id: q._id,
+        id: q._id?.toString(),
         date: q.date,
         type: q.type,
         label: q.label,
