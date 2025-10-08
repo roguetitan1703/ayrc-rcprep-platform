@@ -1,33 +1,70 @@
 import { Card, CardContent } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
+import { Activity, Target, Tag } from 'lucide-react'
 
 export function StatsRow({ stats, analytics, loading }) {
-  if (loading) return (
-    <div className="grid sm:grid-cols-3 gap-3">
-      <Card><CardContent><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/5" /></CardContent></Card>
-      <Card className="hidden sm:block"><CardContent><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/5" /></CardContent></Card>
-      <Card className="hidden sm:block"><CardContent><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/5" /></CardContent></Card>
-    </div>
-  )
-  if (!stats && !analytics) return null
-  const attempts7d = stats?.attempts7d ?? analytics?.attempts7d ?? '-'
-  const coverage = stats?.coverage ?? analytics?.coverage ?? '-'
-  return (
-    <div className="grid sm:grid-cols-3 gap-3" aria-label="Key performance metrics">
-      <Metric title="Total Attempts" value={stats?.totalAttempts ?? '-'} />
-      <Metric title="Accuracy" value={stats?.accuracy ? stats.accuracy + '%' : '-'} />
-      <Metric title="Attempts (7d) / Coverage" value={`${attempts7d} / ${coverage}%`} />
-    </div>
-  )
-}
+  if (loading) {
+    return (
+      <div className="grid sm:grid-cols-3 gap-4">
+        {[1, 2, 3].map(i => (
+          <Card key={i} className="bg-white border border-[#D8DEE9]">
+            <CardContent className="p-6">
+              <Skeleton className="h-4 w-20 mb-2" />
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
-function Metric({ title, value }) {
+  if (!stats && !analytics) return null
+
+  const tiles = [
+    {
+      label: 'Attempts (7 days)',
+      value: stats?.attempts7d ?? analytics?.attempts7d ?? '0',
+      icon: Activity,
+      color: 'text-[#3B82F6]',
+      bgColor: 'bg-[#3B82F6]/10'
+    },
+    {
+      label: 'Accuracy (7 days)',
+      value: stats?.accuracy ? `${stats.accuracy}%` : '0%',
+      icon: Target,
+      color: 'text-[#23A094]',
+      bgColor: 'bg-[#23A094]/10'
+    },
+    {
+      label: 'Reason Coverage',
+      value: `${stats?.coverage ?? analytics?.coverage ?? '0'}%`,
+      subtext: '70% target',
+      icon: Tag,
+      color: 'text-[#D33F49]',
+      bgColor: 'bg-[#D33F49]/10'
+    }
+  ]
+
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="text-xs uppercase tracking-wide text-text-secondary mb-1">{title}</div>
-        <div className="text-lg font-semibold">{value}</div>
-      </CardContent>
-    </Card>
+    <div className="grid sm:grid-cols-3 gap-4" aria-label="Key performance metrics">
+      {tiles.map(({ label, value, subtext, icon: Icon, color, bgColor }) => (
+        <Card key={label} className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs uppercase tracking-wider font-semibold text-[#5C6784]">
+                {label}
+              </div>
+              <div className={`${bgColor} p-2 rounded-lg`}>
+                <Icon className={`h-4 w-4 ${color}`} />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-[#273043]">{value}</div>
+            {subtext && (
+              <div className="text-xs text-[#5C6784] mt-2">{subtext}</div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   )
 }

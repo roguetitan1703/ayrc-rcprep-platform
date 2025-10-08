@@ -1,62 +1,66 @@
 import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
+import { TrendingUp, Activity } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ContributionGraph } from './components/ContributionGraph'
+import { TopicRingChart } from './components/TopicRingChart'
 
-export function AnalyticsPanel({ analytics, loading }) {
-  if (loading)
+export function AnalyticsPanel({ analytics, loading, attempts }) {
+  if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="h4">Analytics</div>
+      <Card className="bg-white border border-[#D8DEE9]">
+        <CardHeader className="p-6 border-b border-[#D8DEE9]">
+          <h3 className="text-lg font-semibold">Analytics Snapshot</h3>
         </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-1/3 mb-2" />
-          <Skeleton className="h-4 w-2/5 mb-2" />
-          <Skeleton className="h-4 w-1/4" />
+        <CardContent className="p-6 space-y-4">
+          <Skeleton className="h-4 w-32 mb-2" />
+          <Skeleton className="h-20 w-full" />
         </CardContent>
       </Card>
     )
+  }
+
   if (!analytics) return null
+
   const data = analytics
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="h4">Analytics</div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="min-h-screen flex flex-col">
-          <div className="text-xs text-text-secondary mb-1">Topic Accuracy (last 30 days)</div>
-          <div className="flex flex-wrap gap-2">
-            {data.topics.length === 0 && (
-              <div className="text-xs text-text-secondary">No attempts yet.</div>
-            )}
-            {data.topics.map((t) => (
-              <div
-                key={t.tag}
-                className="px-2 py-1 rounded bg-white/5 text-xs flex items-center gap-2"
-              >
-                <span className="font-medium uppercase tracking-wide text-[10px]">{t.tag}</span>
-                <span className="text-text-secondary">{t.accuracy}%</span>
-              </div>
-            ))}
+    <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="p-6 border-b border-[#D8DEE9]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-[#273043]">Analytics Snapshot</h3>
+          <div className="bg-[#3B82F6]/10 p-2 rounded-lg">
+            <TrendingUp className="h-5 w-5 text-[#3B82F6]" />
           </div>
         </div>
+      </CardHeader>
+      <CardContent className="p-6 space-y-8">
+        {/* Topic Accuracy Ring Chart */}
         <div>
-          <div className="text-xs text-text-secondary mb-1">Attempt Trend (7 days)</div>
-          <div className="flex items-end gap-1 h-20">
-            {data.trend.map((d) => {
-              const h = d.attempts === 0 ? 4 : d.attempts >= 2 ? 32 : 20
-              return (
-                <div
-                  key={d.date}
-                  title={`${d.date}: ${d.attempts} attempts`}
-                  className="flex flex-col items-center justify-end"
-                >
-                  <div style={{ height: h }} className="w-4 rounded bg-accent-amber/60"></div>
-                  <div className="text-[9px] mt-1 text-text-secondary">{d.date.slice(5, 10)}</div>
-                </div>
-              )
-            })}
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm font-semibold text-[#273043]">
+              Topic Distribution (last 30 days)
+            </div>
+            <div className="text-xs text-[#5C6784] font-medium">
+              {data.topics.length} topics attempted
+            </div>
           </div>
+          <TopicRingChart topics={data.topics} />
+        </div>
+
+        {/* Contribution Graph */}
+        <div className="pt-6 border-t border-[#D8DEE9]">
+          <ContributionGraph attempts={attempts || []} />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-[#D8DEE9]">
+          <Link
+            to="/performance"
+            className="text-sm font-semibold text-[#3B82F6] hover:text-[#D33F49] transition-colors flex items-center gap-1"
+          >
+            View detailed analytics →
+          </Link>
         </div>
       </CardContent>
     </Card>

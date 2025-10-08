@@ -20,6 +20,7 @@ export default function Feedback() {
   const [nextDisabled, setNextDisabled] = useState(false)
   const [nextCountdown, setNextCountdown] = useState(0)
   const [dailyQuestions, setDailyQuestions] = useState([])
+
   useEffect(() => {
     ; (async () => {
       try {
@@ -34,10 +35,23 @@ export default function Feedback() {
     })()
   }, [])
 
+  // Show toast when already submitted
+  useEffect(() => {
+    if (submittedToday && !success) {
+      toast.show("Thanks! You've already submitted feedback for today.", { variant: 'success' })
+    }
+  }, [submittedToday, success, toast])
+
+  // Show toast on successful submission
+  useEffect(() => {
+    if (success) {
+      toast.show('Feedback saved. See you tomorrow!', { variant: 'success' })
+    }
+  }, [success, toast])
+
   const handleAnswer = (id, value) => {
     setAnswers((prev) => ({ ...prev, [id]: value }))
   }
-
 
   const startNextBlockTimer = (seconds = 3) => {
     setNextDisabled(true)
@@ -53,7 +67,6 @@ export default function Feedback() {
       })
     }, 1000)
   }
-
 
   const validateStep = () => {
     const q = dailyQuestions[currentStep]
@@ -84,7 +97,16 @@ export default function Feedback() {
   const submit = async () => {
     setSubmitting(true)
     try {
-      await submitFeedback(answers)
+      console.log(dailyQuestions)
+      // Convert answers object to array for backend
+      const answersArray = dailyQuestions.map(q => ({
+        questionId: q.id,
+        type: q.type,
+        value: answers[q.id],
+        expectedTime: q.time || 0,
+        timeSpent: 0 // You can update this if you track time per question
+      }))
+      await submitFeedback(answersArray)
       setSuccess(true)
       setSubmittedToday(true)
     } catch (e) {
@@ -95,6 +117,7 @@ export default function Feedback() {
       setSubmitting(false)
     }
   }
+
   if (!dailyQuestions.length) {
     return (
       <div className="flex items-center justify-center px-4">
@@ -106,26 +129,16 @@ export default function Feedback() {
   const q = dailyQuestions[currentStep]
 
   return (
-    <div className="flex items-center justify-center px-4 ">
+    <div className="flex items-center justify-center px-4">
       <div className="max-w-xl w-full bg-card-surface rounded p-6 space-y-4">
         <h1 className="h3">Daily Feedback</h1>
         <p className="body-muted">
-          Help us improve your experience. Completing this unlocks today’s premium content.
+          Help us improve your experience. Completing this unlocks today's premium content.
         </p>
 
         {error && (
           <div className="bg-error-red/10 border border-error-red/40 text-error-red text-sm rounded p-2">
             {error}
-          </div>
-        )}
-        {submittedToday && !success && (
-          <div className="bg-green-500/10 border border-green-500/40 text-green-300 text-sm rounded p-2">
-            Thanks! You’ve already submitted feedback for today.
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-500/10 border border-green-500/40 text-green-300 text-sm rounded p-2">
-            Feedback saved. See you tomorrow!
           </div>
         )}
 

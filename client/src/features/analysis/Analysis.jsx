@@ -130,12 +130,14 @@ export default function Analysis() {
           <div className="flex flex-wrap gap-2 mb-4">
             {questions.map((_, idx) => {
               const correct = questions[idx].isCorrect
+              const isActive = activeQuestion === idx
               return (
                 <button
                   key={idx}
                   onClick={() => setActiveQuestion(idx)}
-                  className={`px-3 py-1 rounded border font-semibold text-sm
-                    ${activeQuestion === idx ? 'bg-primary/10 border-primary text-primary' : correct ? 'bg-success-green/10 border-success-green text-success-green' : 'bg-error-red/10 border-error-red text-error-red'}
+                  className={`px-3 py-1 rounded border font-semibold text-sm transition-all
+                    ${correct ? 'bg-success-green/10 border-success-green text-success-green' : 'bg-error-red/10 border-error-red text-error-red'}
+                    ${isActive ? 'ring-4 ring-[#D33F49]/40 scale-110' : ''}
                   `}
                 >{idx+1}</button>
               )
@@ -147,9 +149,9 @@ export default function Analysis() {
             const q = questions[activeQuestion]
             const i = activeQuestion
             const current = analysisFeedback.find(r => r.questionIndex === i)?.reason
-            // mock question type
-            const types = ['Detail','Inference','Vocabulary','Main Idea']
-            const qType = types[i % types.length]
+            // Get real question type from backend data
+            const qType = q.questionType || 'Unknown'
+            const qDifficulty = q.difficulty || 'medium'
             return (
               <Card key={i} className={q.isCorrect ? 'border-success-green/40' : 'border-error-red/40'}>
                 <CardHeader className="flex items-center justify-between flex-wrap gap-2">
@@ -163,12 +165,19 @@ export default function Analysis() {
                   <div className="flex items-center gap-3 text-xs text-text-secondary border-b border-soft pb-3">
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium">Difficulty:</span>
-                      <Badge color="warning" className="uppercase text-[10px] px-2 py-0.5">Medium</Badge>
+                      <Badge 
+                        color={qDifficulty === 'hard' ? 'error' : qDifficulty === 'easy' ? 'success' : 'warning'} 
+                        className="uppercase text-[10px] px-2 py-0.5"
+                      >
+                        {qDifficulty}
+                      </Badge>
                     </div>
                     <div className="w-px h-4 bg-soft"></div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium">Type:</span>
-                      <Badge className="uppercase text-[10px] px-2 py-0.5">{qType}</Badge>
+                      <Badge className="uppercase text-[10px] px-2 py-0.5 capitalize">
+                        {qType.replace('-', ' ')}
+                      </Badge>
                     </div>
                   </div>
                   

@@ -7,13 +7,14 @@ import { Input, PasswordInput } from '../../components/ui/Input'
 import AuthShell from '../../components/layout/AuthShell'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
-import { Mail, User, Phone } from 'lucide-react'
+import { Mail, User, Phone, MapPin } from 'lucide-react'
 
 export default function Register(){
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [countryCode, setCountryCode] = useState('+91')
   const [phoneNumber, setPhone] = useState('')
+  const [location, setLocation] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -29,7 +30,14 @@ export default function Register(){
     try{
       // Combine country code and local number before sending
       const phone = `${countryCode}${phoneNumber}`
-      const payload = { name, email, phoneNumber: phone, password, passwordConfirm: password }
+      const payload = { 
+        name, 
+        email, 
+        phoneNumber: phone,
+        location: location || null, // Optional field
+        password, 
+        passwordConfirm: password 
+      }
       // debug: ensure payload contains passwordConfirm
       console.log('Register payload ->', payload)
       // include passwordConfirm to satisfy server-side validation
@@ -127,6 +135,17 @@ export default function Register(){
                 className="flex-1 bg-transparent outline-none border-0 text-base py-3 px-4 placeholder:text-neutral-grey focus:outline-none focus:ring-0 focus-visible:outline-none" 
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Location <span className="text-xs text-text-secondary">(optional - for local leaderboards)</span>
+            </label>
+            <Input 
+              value={location} 
+              onChange={e=>setLocation(e.target.value)} 
+              placeholder="City, State or Country"
+              icon={MapPin}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">Password</label>

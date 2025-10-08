@@ -8,11 +8,12 @@ export function Button({
   className,
   ...props
 }){
-  const base = 'inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:bg-neutral-grey disabled:text-text-secondary disabled:cursor-not-allowed'
+  const base = 'inline-flex items-center justify-center rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A2A6C] disabled:opacity-50 disabled:cursor-not-allowed'
   const variants = {
-    primary: 'bg-accent-amber text-black hover:brightness-110 focus:ring-accent-amber',
-    outline: 'border border-accent-amber text-accent-amber hover:bg-accent-amber/10 focus:ring-accent-amber',
-    ghost: 'text-text-primary hover:bg-white/5',
+    primary: 'bg-[#D33F49] text-white hover:bg-[#E25C62] active:bg-[#B32F3A] shadow-sm',
+    outline: 'border-2 border-[#D33F49] text-[#D33F49] hover:bg-[#D33F49]/10',
+    ghost: 'text-[#5C6784] hover:bg-[#EEF1FA] hover:text-[#273043]',
+    secondary: 'bg-[#EEF1FA] text-[#273043] hover:bg-[#D8DEE9] border border-[#D8DEE9]',
   }
   const sizes = {
     sm: 'text-xs px-2.5 py-1.5',

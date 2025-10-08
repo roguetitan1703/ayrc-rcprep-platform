@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { StatsRow } from './StatsRow'
 import { AnalyticsPanel } from './AnalyticsPanel'
+import { DashboardGreeting } from './DashboardGreeting'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 import { useAuth } from '../../components/auth/AuthContext'
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [stats, setStats] = useState(null)
   const [analytics, setAnalytics] = useState(null)
+  const [attempts, setAttempts] = useState([])
   const toast = useToast()
 
   useEffect(() => {
@@ -29,6 +31,14 @@ export default function Dashboard() {
         setToday(data.today || [])
         setStats(data.stats)
         setAnalytics(data.analytics)
+        
+        // Fetch attempts for contribution graph
+        try {
+          const { data: attemptsData } = await api.get('/attempts/me?limit=100')
+          setAttempts(attemptsData.attempts || [])
+        } catch (err) {
+          console.warn('Could not load attempts for activity graph:', err)
+        }
 
         const hasSub = user?.subscription && user.subscription !== 'none'
         const feedbackPending = !data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted')
@@ -46,14 +56,11 @@ export default function Dashboard() {
 
   if (loading) return (
     <div className="flex flex-col space-y-6">
-      <div>
-        <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
-        <h1 className="h2">Today's Practice</h1>
-      </div>
+      <DashboardGreeting streak={user?.dailyStreak || 0} />
       <StatsRow stats={stats} analytics={analytics} loading={true} />
-      <AnalyticsPanel analytics={analytics} loading={true} />
+      <AnalyticsPanel analytics={analytics} attempts={attempts} loading={true} />
       <Skeleton className="h-12 w-full" />
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader></Card>
         <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader></Card>
       </div>
@@ -66,16 +73,15 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col space-y-6">
-      <div>
-        <p className="text-text-secondary text-sm mb-1">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</p>
-        <h1 className="h2">Today's Practice</h1>
-      </div>
+      <DashboardGreeting streak={user?.dailyStreak || 0} />
 
       <StatsRow stats={stats} analytics={analytics} loading={false} />
+      
+      <AnalyticsPanel analytics={analytics} attempts={attempts} loading={false} />
 
       <SubFeedbackBlocker user={user} feedbackStatus={{ submitted: feedbackRequired }} />
 
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {today.length === 0 && (
           <div className="text-text-secondary">Today's RCs are being prepared. Please check back shortly!</div>
         )}
@@ -115,7 +121,6 @@ export default function Dashboard() {
           )
         })}
       </div>
-      <AnalyticsPanel analytics={analytics} loading={false} />
     </div>
   )
 }

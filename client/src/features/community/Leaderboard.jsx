@@ -1,26 +1,36 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getleaderboard } from '../../lib/aggregation'; // Fetches all data now
-import { Clock, TrendingUp, Tag, ChevronDown, Loader2 } from 'lucide-react';
+import { getleaderboard } from '../../lib/aggregation';
+import { Clock, TrendingUp, Tag, ChevronDown, Loader2, Trophy, Medal, Award } from 'lucide-react';
 
-// --- MOCK DATA & HELPERS ---
+// --- HELPERS ---
 
-// Reusable Card Component (Simulated based on §12.3)
-const Card = ({ title, subtitle, children, className = '' }) => (
-  <div className={`bg-card-surface border border-soft rounded-xl shadow-card p-6 ${className}`}>
-    <div className="mb-4">
-      <h3 className="text-xl font-semibold text-text-primary">{title}</h3>
-      <p className="text-sm text-text-secondary mt-1">{subtitle}</p>
-    </div>
-    {children}
-  </div>
-);
-
-// Skeleton Loader
+// Skeleton Loader for Table
 const TableSkeleton = () => (
-  <div className="space-y-3 p-2">
-    {[...Array(8)].map((_, i) => (
-      <div key={i} className="h-5 w-full bg-surface-muted animate-pulse rounded" />
-    ))}
+  <div className="bg-card-surface border border-border-soft rounded-xl overflow-hidden">
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-surface-muted border-b border-border-soft">
+          <tr>
+            {['Rank', 'Name', 'Accuracy', 'Time', 'Attempts'].map((header) => (
+              <th key={header} className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(8)].map((_, i) => (
+            <tr key={i} className="border-b border-border-soft/50 animate-pulse">
+              <td className="px-6 py-4"><div className="h-4 bg-surface-muted rounded w-8" /></td>
+              <td className="px-6 py-4"><div className="h-4 bg-surface-muted rounded w-32" /></td>
+              <td className="px-6 py-4"><div className="h-4 bg-surface-muted rounded w-16" /></td>
+              <td className="px-6 py-4"><div className="h-4 bg-surface-muted rounded w-16" /></td>
+              <td className="px-6 py-4"><div className="h-4 bg-surface-muted rounded w-12" /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </div>
 );
 
@@ -31,55 +41,94 @@ const formatTime = (seconds) => {
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 };
 
-// --- Leaderboard Table Component (Unchanged) ---
+// --- Leaderboard Table Component ---
 
-const LeaderboardTable = ({ title, data, timeUnit, timeKey, accuracyKey, countKey }) => {
-  const timeLabel = timeUnit || 'Total Time';
-  const accuracyLabel = 'Avg. Accuracy';
+const LeaderboardTable = ({ data, timeKey, accuracyKey, countKey }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-card-surface border border-border-soft rounded-xl p-12 text-center">
+        <p className="text-text-secondary">No leaderboard data available yet.</p>
+      </div>
+    )
+  }
+
+  const getRankIcon = (rank) => {
+    if (rank === 0) return <Trophy className="h-5 w-5" style={{ color: '#FFD700' }} />
+    if (rank === 1) return <Medal className="h-5 w-5" style={{ color: '#C0C0C0' }} />
+    if (rank === 2) return <Medal className="h-5 w-5" style={{ color: '#CD7F32' }} />
+    return null
+  }
+
+  const getRankBg = (rank) => {
+    if (rank === 0) return 'bg-[#FFD700]/10'
+    if (rank === 1) return 'bg-[#C0C0C0]/10'
+    if (rank === 2) return 'bg-[#CD7F32]/10'
+    return ''
+  }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-border-soft">
-        <thead>
-          <tr>
-            <th className="px-4 py-3 text-left text-text-secondary uppercase text-xs tracking-wide bg-surface-muted rounded-tl-lg">#</th>
-            <th className="px-4 py-3 text-left text-text-secondary uppercase text-xs tracking-wide bg-surface-muted">Name</th>
-            <th className="px-4 py-3 text-left text-text-secondary uppercase text-xs tracking-wide bg-surface-muted flex items-center gap-1">
-              <TrendingUp size={14} /> {accuracyLabel}
-            </th>
-            <th className="px-4 py-3 text-left text-text-secondary uppercase text-xs tracking-wide bg-surface-muted flex items-center gap-1">
-              <Clock size={14} /> {timeLabel}
-            </th>
-            {countKey && (
-              <th className="px-4 py-3 text-left text-text-secondary uppercase text-xs tracking-wide bg-surface-muted rounded-tr-lg">
-                Attempts
+    <div className="bg-card-surface border border-border-soft rounded-xl overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-surface-muted border-b border-border-soft">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-20">Rank</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Name</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Accuracy
+                </div>
               </th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border-soft">
-          {data.map((user, index) => (
-            <tr key={user.name} className="hover:bg-surface-muted transition-colors">
-              <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary font-medium">{index + 1}</td>
-              <td className="px-4 py-3 whitespace-nowrap text-sm text-text-primary font-medium">{user.name}</td>
-              <td className={`px-4 py-3 whitespace-nowrap text-sm font-semibold ${user[accuracyKey] >= 80 ? 'text-success-green' : 'text-text-primary'}`}>
-                {user[accuracyKey].toFixed(2)}%
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap text-sm text-text-primary">
-                {formatTime(user[timeKey])}
-              </td>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Time
+                </div>
+              </th>
               {countKey && (
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                  {user[countKey]}
-                </td>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Attempts</th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((user, index) => (
+              <tr 
+                key={user.name + index} 
+                className={`border-b border-border-soft/50 hover:bg-surface-muted/30 transition-colors ${getRankBg(index)}`}
+              >
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2">
+                    {getRankIcon(index)}
+                    <span className="text-sm font-semibold text-text-primary">#{index + 1}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-text-primary">{user.name}</div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className={`text-sm font-semibold ${user[accuracyKey] >= 80 ? 'text-success-green' : 'text-text-primary'}`}>
+                    {user[accuracyKey].toFixed(1)}%
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-text-primary">
+                    {formatTime(user[timeKey])}
+                  </div>
+                </td>
+                {countKey && (
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-text-primary">{user[countKey]}</div>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  );
-};
+  )
+}
 
 
 // --- Main Leaderboard Component ---
@@ -145,36 +194,40 @@ export default function Leaderboard() {
 
   const renderActiveTabContent = () => {
     if (loading || !fullData) {
-      return (
-        <Card title="Loading..." subtitle="Fetching top users..." className="w-full">
-          <TableSkeleton />
-        </Card>
-      );
+      return <TableSkeleton />;
     }
 
     switch (activeTab) {
       case 'today':
         return (
-          <LeaderboardTable
-            title="Today's Top Performers"
-            data={fullData.today || []}
-            timeUnit="Total Time (Today)"
-            timeKey="timeTakenSeconds"
-            accuracyKey="accuracy"
-            countKey="rcsAttempted"
-          />
+          <div>
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-text-primary">Today's Top Performers</h3>
+              <p className="text-sm text-text-secondary mt-1">Based on today's RC attempts</p>
+            </div>
+            <LeaderboardTable
+              data={fullData.today || []}
+              timeKey="timeTakenSeconds"
+              accuracyKey="accuracy"
+              countKey="rcsAttempted"
+            />
+          </div>
         );
 
       case 'monthly':
         return (
-          <LeaderboardTable
-            title="Monthly Champions"
-            data={fullData.monthly || []}
-            timeUnit="Total Time (Month)"
-            timeKey="totalTimeSeconds"
-            accuracyKey="averageAccuracy"
-            countKey="attemptsCount"
-          />
+          <div>
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-text-primary">Monthly Champions</h3>
+              <p className="text-sm text-text-secondary mt-1">Top performers this month</p>
+            </div>
+            <LeaderboardTable
+              data={fullData.monthly || []}
+              timeKey="totalTimeSeconds"
+              accuracyKey="averageAccuracy"
+              countKey="attemptsCount"
+            />
+          </div>
         );
 
       case 'tag':
@@ -186,14 +239,13 @@ export default function Leaderboard() {
             {/* Tag Selector Control */}
             <div className="flex items-center gap-3 mb-6">
               <Tag size={20} className="text-text-secondary" />
-              <label htmlFor="tag-selector" className="text-text-primary font-medium sr-only">Select Topic:</label>
+              <label htmlFor="tag-selector" className="text-text-primary font-medium">Topic:</label>
               <div className="relative">
                 <select
                   id="tag-selector"
                   value={selectedTag || ''}
                   onChange={(e) => setSelectedTag(e.target.value)}
-                  // Input styling based on §12.6
-                  className="appearance-none pr-8 py-2 pl-3 rounded-lg border border-soft bg-card-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-focus-ring focus:border-focus-ring transition disabled:opacity-50"
+                  className="appearance-none pr-10 py-2 pl-4 rounded-lg border border-border-soft bg-card-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition disabled:opacity-50 font-medium"
                 >
                   {availableTags.map(tag => (
                     <option key={tag} value={tag}>{tag}</option>
@@ -201,24 +253,26 @@ export default function Leaderboard() {
                   {availableTags.length === 0 && <option value="" disabled>No Tags Available</option>}
                 </select>
                 {/* Chevron icon for dropdown appearance */}
-                <ChevronDown size={18} className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-neutral-grey pointer-events-none" />
+                <ChevronDown size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary pointer-events-none" />
               </div>
             </div>
 
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-text-primary">Top Performers in: {selectedTag || '...'}</h3>
+              <p className="text-sm text-text-secondary mt-1">Ranking based on cumulative performance in this topic</p>
+            </div>
+
             {/* Tag-Wise Leaderboard Display */}
-            <Card title={`Top Performers in: ${selectedTag || '...'}`} subtitle="Ranking based on cumulative performance in this topic.">
-              {availableTags.length === 0 ? (
-                <p className="text-text-secondary text-center py-4">No topics found for leaderboards.</p>
-              ) : (
-                <LeaderboardTable
-                  data={currentTagData}
-                  timeUnit="Total Time (Tag)"
-                  timeKey="totalTimeSeconds"
-                  accuracyKey="averageAccuracy"
-                  countKey="attemptsCount"
-                />
-              )}
-            </Card>
+            {availableTags.length === 0 ? (
+              <p className="text-text-secondary text-center py-12">No topics found for leaderboards.</p>
+            ) : (
+              <LeaderboardTable
+                data={currentTagData}
+                timeKey="totalTimeSeconds"
+                accuracyKey="averageAccuracy"
+                countKey="attemptsCount"
+              />
+            )}
           </>
         );
 
@@ -228,15 +282,17 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="p-6 md:py-8 max-w-7xl mx-auto">
-      <h2 className="text-2xl font-semibold text-text-primary">Global Leaderboards</h2>
-      <p className="text-text-secondary mt-2 mb-8">
-        See how you stack up against the competition across different timeframes and topics.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-text-primary">Global Leaderboards</h2>
+        <p className="text-text-secondary mt-2">
+          See how you stack up against the competition across different timeframes and topics.
+        </p>
+      </div>
 
       {/* Tabs Navigation */}
-      <div className="border-b border-border-soft mb-8">
-        <nav className="flex space-x-4" role="tablist">
+      <div className="border-b border-border-soft">
+        <nav className="flex space-x-6" role="tablist">
           <TabButton id="today" label="Today's RC" />
           <TabButton id="monthly" label="Monthly" />
           <TabButton id="tag" label="Tag-Wise" />
@@ -244,10 +300,8 @@ export default function Leaderboard() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex justify-center lg:justify-start">
-        <div className="w-full lg:max-w-4xl" role="tabpanel" id={`${activeTab}-panel`}>
-          {renderActiveTabContent()}
-        </div>
+      <div role="tabpanel" id={`${activeTab}-panel`}>
+        {renderActiveTabContent()}
       </div>
     </div>
   );

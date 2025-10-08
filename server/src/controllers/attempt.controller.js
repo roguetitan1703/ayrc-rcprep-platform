@@ -59,6 +59,30 @@ export async function submitAttempt(req, res, next) {
       if (normalized[i] && normalized[i] === q.correctAnswerId) score += 1
     })
 
+    // Auto-populate q_details with question metadata
+    const enrichedQDetails = (q_details || []).map((detail, idx) => {
+      const question = rc.questions[idx]
+      return {
+        ...detail,
+        isCorrect: normalized[idx] === (question?.correctAnswerId || ''),
+        qType: question?.questionType || 'inference',
+        qCategory: rc.topicTags?.[0] || 'general', // Use first topic tag as category
+      }
+    })
+
+    // If frontend didn't send q_details at all, create basic entries
+    const finalQDetails =
+      enrichedQDetails.length > 0
+        ? enrichedQDetails
+        : rc.questions.map((q, idx) => ({
+            questionIndex: idx,
+            timeSpent: 0,
+            wasReviewed: false,
+            isCorrect: normalized[idx] === q.correctAnswerId,
+            qType: q.questionType || 'inference',
+            qCategory: rc.topicTags?.[0] || 'general',
+          }))
+
     const attemptedAt = new Date()
     const type = attemptType || 'official'
     let attempt = await Attempt.findOneAndUpdate(
@@ -69,7 +93,7 @@ export async function submitAttempt(req, res, next) {
         timeTaken: timeTaken || 0,
         durationSeconds: durationSeconds || timeTaken || 0,
         deviceType: deviceType || 'unknown',
-        q_details: q_details || [],
+        q_details: finalQDetails,
         attemptedAt,
         attemptType: type,
       },

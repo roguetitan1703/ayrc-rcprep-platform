@@ -50,7 +50,7 @@ console.log('StatsPanel stats:', stats)
 
 function StatTile({ label, value, icon: Icon }) {
   return (
-    <div className="bg-card-surface/60 backdrop-blur-sm rounded-lg p-5 border border-soft/60 shadow-sm flex flex-col gap-2">
+    <div className="bg-card-surface/60 backdrop-blur-sm rounded-lg p-6 border border-soft/60 shadow-sm flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase tracking-wide text-text-secondary">{label}</div>
         {Icon && <Icon className="h-4 w-4 text-text-secondary" />}

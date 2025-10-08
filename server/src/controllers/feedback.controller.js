@@ -7,7 +7,7 @@ import { z } from 'zod'
 // Schema for dynamic answers
 const answerSchema = z.array(
   z.object({
-    questionId: z.number().int(),
+    questionId: z.string(),
     type: z.enum(['rating', 'multi', 'open', 'redirect']),
     value: z.any(),
     expectedTime: z.number().int().min(0).optional(),
@@ -17,7 +17,10 @@ const answerSchema = z.array(
 
 export async function submitFeedback(req, res, next) {
   try {
-    const answers = answerSchema.parse(req.body.answers)
+    // Handle both formats: direct array or { answers: array }
+    const answersPayload = Array.isArray(req.body) ? req.body : req.body.answers
+    const answers = answerSchema.parse(answersPayload)
+
     if (!answers || answers.length === 0) return badRequest(res, 'No answers provided')
 
     const today = startOfIST()
@@ -48,18 +51,16 @@ export async function getTodayFeedbackStatus(req, res, next) {
   }
 }
 
-
-
 export async function getTodaysQuestions(req, res, next) {
   try {
-    const today = startOfIST();
-    const todayStr = today.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const today = startOfIST()
+    const todayStr = today.toISOString().slice(0, 10) // 'YYYY-MM-DD'
 
-    const questions = await FeedbackQuestion.find().sort({ _id: 1 });
+    const questions = await FeedbackQuestion.find().sort({ _id: 1 })
 
     const formatted = questions
-      .filter(q => q.date?.toISOString().slice(0, 10) === todayStr || !q.date) // include global questions with null date
-      .map(q => ({
+      .filter((q) => q.date?.toISOString().slice(0, 10) === todayStr || !q.date) // include global questions with null date
+      .map((q) => ({
         id: q._id,
         date: q.date,
         type: q.type,
@@ -69,24 +70,24 @@ export async function getTodaysQuestions(req, res, next) {
         buttonText: q.buttonText || '',
         minWords: q.minWords || 0,
         time: q.time || 0,
-      }));
+      }))
 
-    return success(res, formatted);
+    return success(res, formatted)
   } catch (e) {
-    next(e);
+    next(e)
   }
 }
 
 export async function getTodayAndFutureQuestions(req, res, next) {
   try {
-    const today = startOfIST();
-    const todayStr = today.toISOString().slice(0, 10);
+    const today = startOfIST()
+    const todayStr = today.toISOString().slice(0, 10)
 
-    const questions = await FeedbackQuestion.find().sort({ _id: 1 });
+    const questions = await FeedbackQuestion.find().sort({ _id: 1 })
 
     const formatted = questions
-      .filter(q => !q.date || q.date.toISOString().slice(0, 10) >= todayStr) // today + future + global
-      .map(q => ({
+      .filter((q) => !q.date || q.date.toISOString().slice(0, 10) >= todayStr) // today + future + global
+      .map((q) => ({
         id: q._id,
         date: q.date,
         type: q.type,
@@ -96,11 +97,11 @@ export async function getTodayAndFutureQuestions(req, res, next) {
         buttonText: q.buttonText || '',
         minWords: q.minWords || 0,
         time: q.time || 0,
-      }));
+      }))
 
-    return success(res, formatted);
+    return success(res, formatted)
   } catch (e) {
-    next(e);
+    next(e)
   }
 }
 // -----------------------------
@@ -123,7 +124,7 @@ const questionSchema = z.object({
 export async function createFeedbackQuestion(req, res, next) {
   try {
     const data = questionSchema.parse(req.body)
-    console.log(data);
+    console.log(data)
 
     const question = new FeedbackQuestion({
       ...data,
