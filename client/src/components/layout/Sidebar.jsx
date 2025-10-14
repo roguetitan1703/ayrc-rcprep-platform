@@ -354,7 +354,7 @@ export default function Sidebar({ bare = false, mobile = false, compact = false 
     localStorage.setItem('arc_sidebar_mode', 'locked')
   }
   function closeSidebar() {
-    // When transitioning from locked -> collapsed via unlock button, show a
+    // When transitioning from locked -> collapsed via unlock button, show axc
     // sliding overlay so the rail appears immediately and the expanded panel
     // slides away, preventing mid-shrink wrapping.
     setMode('collapsed')
