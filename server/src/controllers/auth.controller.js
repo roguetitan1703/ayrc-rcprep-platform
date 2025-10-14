@@ -40,12 +40,16 @@ const loginSchema = z.object({
 
 export async function login(req, res, next) {
   try {
-    const { email, password } = loginSchema.parse(req.body)
+    const parseResult = loginSchema.safeParse(req.body)
+    if (!parseResult.success) {
+      return res.status(400).json({ message: "Invalid credentials" })
+    }
+
+    const { email, password } = parseResult.data
 
     const user = await User.findOne({ email }).select('+password')
-    if (!user) throw badRequest('Invalid credentials')
-    if (!user.password) throw badRequest('Invalid credentials')
-
+    if (!user || !user.password) throw badRequest('Invalid credentials')
+    
     const ok = await user.correctPassword(password, user.password)
     if (!ok) throw badRequest('Invalid credentials')
 

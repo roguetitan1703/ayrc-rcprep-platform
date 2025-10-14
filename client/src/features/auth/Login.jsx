@@ -39,7 +39,7 @@ export default function Login() {
         nav('/dashboard')
       }
     } catch (err) {
-      const msg = extractErrorMessage(err, 'Login failed')
+      const msg =  err?.response?.status === 400 ? 'Invalid Email Format' : 'Login failed'
       setError(msg)
       toast.show(msg, { variant: 'error' })
     } finally {

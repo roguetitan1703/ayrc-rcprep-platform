@@ -41,7 +41,14 @@ export default function Dashboard() {
         }
 
         const hasSub = user?.subscription && user.subscription !== 'none'
-        const feedbackPending = !data.feedback?.submitted && (data.today || []).length > 0 && (data.today || []).every(r => r.status === 'attempted')
+        const feedbackPending = !data.feedback?.submitted
+
+        console.log({
+        hasSub, 
+        feedbackPending,
+        feedbackRequired: !hasSub && feedbackPending,
+        feedbackData: data.feedback
+      })
 
         setFeedbackRequired(!hasSub && feedbackPending)
       } catch (e) {
@@ -79,7 +86,7 @@ export default function Dashboard() {
       
       <AnalyticsPanel analytics={analytics} attempts={attempts} loading={false} />
 
-      <SubFeedbackBlocker user={user} feedbackStatus={{ submitted: feedbackRequired }} />
+      <SubFeedbackBlocker user={user} feedbackStatus={{ submitted: !feedbackRequired}} />
 
       <div className="grid gap-4">
         {today.length === 0 && (
