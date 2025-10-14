@@ -128,6 +128,7 @@ export default function AppRoutes() {
         <Route path="/admin/rcs/:id" element={<RcForm />} />
         <Route path="/admin/rcs/:id/analytics" element={<RcAnalyticsPage />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
+        <Route path="/admin/feedback" element={<AdminFeedback />} />
         <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
       </Route>
 

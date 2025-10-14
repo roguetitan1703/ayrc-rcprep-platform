@@ -172,6 +172,7 @@ export async function updateFeedbackQuestion(req, res, next) {
 export async function deleteFeedbackQuestion(req, res, next) {
   try {
     const id = req.params.id
+    console.log(id)
     const question = await FeedbackQuestion.findByIdAndDelete(id)
 
     if (!question) return badRequest(res, 'Question not found')

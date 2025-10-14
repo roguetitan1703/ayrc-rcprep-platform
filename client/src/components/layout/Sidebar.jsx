@@ -94,18 +94,18 @@ function SidebarContent({ expanded, onLogout, onLock, onUnlock, user, isAdmin, i
         {user && isAdmin && (
           <>
             <Heading label="Admin" top expanded={expanded} />
-            <Item to="/admin" icon={BarChart2} expanded={expanded} mobile={mobile}>{'Admin Dashboard'}</Item>
+            <Item to="/admin" icon={BarChart2} expanded={expanded} mobile={mobile} end={true}>{'Admin Dashboard'}</Item>
 
             <Heading label="RC Management" expanded={expanded} compact={compact} />
-            <Item to="/admin/rcs" icon={Tag} expanded={expanded} compact={compact} mobile={mobile}>{'RC Inventory'}</Item>
-            <Item to="/admin/rcs/new" icon={PlusCircle} expanded={expanded} compact={compact} mobile={mobile}>{'Create RC'}</Item>
+            <Item to="/admin/rcs" icon={Tag} expanded={expanded} compact={compact} mobile={mobile} end={true}>{'RC Inventory'}</Item>
+            <Item to="/admin/rcs/new" icon={PlusCircle} expanded={expanded} compact={compact} mobile={mobile} end={true}>{'Create RC'}</Item>
             <Item to="/admin/rcs/drafts" icon={Archive} expanded={expanded} compact={compact} mobile={mobile}>{'Drafts'}</Item>
           </>
         )}
 
         {/* Unified structure for all groups */}
         <Heading label="Account" expanded={expanded} compact={compact} />
-        <Item to="/profile" icon={User} expanded={expanded} end compact={compact} mobile={mobile}>{'Profile'}</Item>
+        <Item to="/profile" icon={User} expanded={expanded} end={true} compact={compact} mobile={mobile} >{'Profile'}</Item>
         {user && (isAdmin ? (
           <>
             <Item to="/admin/subscriptions" icon={Grid} expanded={expanded} compact={compact} mobile={mobile}>{'Subscriptions'}</Item>
