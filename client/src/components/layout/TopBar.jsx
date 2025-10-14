@@ -83,16 +83,7 @@ export default function TopBar() {
           {/* Desktop actions - only for regular users */}
           {!isAdmin && (
             <div className="hidden md:flex items-center gap-2">
-              {/* Streak indicator */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-muted rounded-lg">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
-                  <path d="M12 2s-4 3.5-4 7a4 4 0 008 0c0-3.5-4-7-4-7z" fill="currentColor" />
-                  <path d="M8 13.5C8 15.985 9.79 18 12 18s4-2.015 4-4.5c0-2-2-2.5-4-6-2 3.5-4 4-4 6z" fill="currentColor" opacity="0.9" />
-                </svg>
-                <span className="text-xs font-medium text-text-primary">3d</span>
-              </div>
-              
-              {/* Attempt RC button */}
+            {/* Attempt RC button */}
               <Link 
                 to="/test/today" 
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-text-primary bg-surface-muted hover:bg-surface-hover transition-colors"
