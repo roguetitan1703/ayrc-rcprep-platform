@@ -73,7 +73,7 @@ export default function ResultsPage() {
       </div>
 
       <StatsPanel stats={stats} loading={loading && page === 1} />
-      
+
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-[#D8DEE9] bg-[#F7F8FC]">
           <div className="flex items-center justify-between">
@@ -128,14 +128,17 @@ export default function ResultsPage() {
                 <tbody className="bg-white divide-y divide-[#D8DEE9]">
                   {attempts.map((attempt) => {
                     const percentage = ((attempt.score / 4) * 100).toFixed(0)
-                    const scoreColor = 
-                      attempt.score === 4 ? 'text-[#23A094]' :
-                      attempt.score >= 3 ? 'text-[#3B82F6]' :
-                      attempt.score >= 2 ? 'text-[#F6B26B]' :
-                      'text-[#E4572E]'
-                    
+                    const scoreColor =
+                      attempt.score === 4
+                        ? 'text-[#23A094]'
+                        : attempt.score >= 3
+                        ? 'text-[#3B82F6]'
+                        : attempt.score >= 2
+                        ? 'text-[#F6B26B]'
+                        : 'text-[#E4572E]'
+
                     return (
-                      <tr 
+                      <tr
                         key={attempt._id}
                         className="hover:bg-[#EEF1FA]/30 transition-colors cursor-pointer"
                         onClick={() => handleAttemptClick(attempt._id)}
@@ -149,12 +152,14 @@ export default function ResultsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#5C6784]">
-                          {new Date(attempt.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </td>
+                          {attempt.attemptedAt && !isNaN(new Date(attempt.attemptedAt).getTime())
+                            ? new Date(attempt.attemptedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })
+                            : 'N/A'}
+                        </td> 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`text-lg font-bold ${scoreColor}`}>
                             {attempt.score}/4
@@ -163,12 +168,15 @@ export default function ResultsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div className="flex-1 bg-[#EEF1FA] rounded-full h-2 w-16">
-                              <div 
+                              <div
                                 className={`h-2 rounded-full transition-all ${
-                                  attempt.score === 4 ? 'bg-[#23A094]' :
-                                  attempt.score >= 3 ? 'bg-[#3B82F6]' :
-                                  attempt.score >= 2 ? 'bg-[#F6B26B]' :
-                                  'bg-[#E4572E]'
+                                  attempt.score === 4
+                                    ? 'bg-[#23A094]'
+                                    : attempt.score >= 3
+                                    ? 'bg-[#3B82F6]'
+                                    : attempt.score >= 2
+                                    ? 'bg-[#F6B26B]'
+                                    : 'bg-[#E4572E]'
                                 }`}
                                 style={{ width: `${percentage}%` }}
                               />
@@ -193,8 +201,8 @@ export default function ResultsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
@@ -213,9 +221,12 @@ export default function ResultsPage() {
 
             <div className="flex items-center justify-between px-6 py-4 border-t border-[#D8DEE9] bg-[#F7F8FC]">
               <div className="text-sm text-[#5C6784]">
-                Showing <span className="font-semibold text-[#273043]">{((page - 1) * limit) + 1}</span> to{' '}
-                <span className="font-semibold text-[#273043]">{Math.min(page * limit, totalCount)}</span> of{' '}
-                <span className="font-semibold text-[#273043]">{totalCount}</span> results
+                Showing{' '}
+                <span className="font-semibold text-[#273043]">{(page - 1) * limit + 1}</span> to{' '}
+                <span className="font-semibold text-[#273043]">
+                  {Math.min(page * limit, totalCount)}
+                </span>{' '}
+                of <span className="font-semibold text-[#273043]">{totalCount}</span> results
               </div>
               <div className="flex items-center gap-2">
                 <Button

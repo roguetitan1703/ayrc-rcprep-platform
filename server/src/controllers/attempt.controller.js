@@ -278,7 +278,7 @@ export async function getAnalysis(req, res, next) {
       score: attempt.score,
       timeTaken: attempt.timeTaken,
       durationSeconds: attempt.durationSeconds,
-      attemptedAt: attempt.attemptedAt,
+      attemptedAt: attempt.attemptedAt || attempt.createdAt,
       questions,
       analysisFeedback: attempt.analysisFeedback || [],
       // @deprecated - wrongReasons is a legacy field kept for API backward compatibility
@@ -351,7 +351,7 @@ export async function listUserAttempts(req, res, next) {
             : 0,
         wrongCount,
         taggedWrong: tagged,
-        attemptedAt: a.attemptedAt || a.createdAt,
+        attemptedAt: a.attemptedAt ? new Date(a.attemptedAt) : (a.createdAt ? new Date(a.createdAt) : null),
         isPersonalBest: a.isPersonalBest || false,
         attemptType: a.attemptType || 'official',
       }
