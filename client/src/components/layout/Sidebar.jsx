@@ -165,7 +165,7 @@ function SidebarContent({
             >
               {'Global'}
             </Item>
-            <Item
+            {/* <Item
               to="/leaderboard/local"
               icon={Trophy}
               expanded={expanded}
@@ -173,7 +173,7 @@ function SidebarContent({
               mobile={mobile}
             >
               {'Cohort'}
-            </Item>
+            </Item> */}
           </>
         )}
         {user && isAdmin && (
@@ -300,7 +300,7 @@ function SidebarContent({
 
         {/* User card pinned at bottom */}
         <div className={`flex items-center gap-3 px-3 ${expanded ? '' : 'justify-center'}`}>
-          <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-medium uppercase">
+          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-medium uppercase">
             {user?.name
               ? user.name
                   .split(' ')

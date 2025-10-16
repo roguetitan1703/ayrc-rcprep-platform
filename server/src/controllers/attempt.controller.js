@@ -325,21 +325,26 @@ export async function listUserAttempts(req, res, next) {
 
     const totalAttempts = await Attempt.countDocuments({ userId: req.user.id })
     const attempts = await Attempt.find({ userId: req.user.id })
-      .populate('rcPassageId', 'title')
+       .populate({
+    path: 'rcPassageId',
+    select: 'title topicTags',
+  })
       .sort({ attemptedAt: -1 })
       .skip(skip)
-      .limit(limit)
+      .limit(limit) 
       .lean()
 
     const formatted = attempts.map((a) => {
       const totalQuestions = a.answers?.length || 4
       const wrongCount = totalQuestions - a.score
       const tagged = (a.analysisFeedback || []).length
+      const rc = a.rcPassageId || {}
       return {
         _id: a._id,
         rcPassage: {
-          _id: a.rcPassageId?._id,
-          title: a.rcPassageId?.title || 'Untitled',
+          _id: rc._id,
+          title: rc.title || 'Untitled',
+          topicTags: rc.topicTags || [],
         },
         score: a.score,
         correctCount: a.score,

@@ -8,35 +8,38 @@ export function OverviewMetrics({ metrics }) {
       value: `${metrics.dailyStreak} days`,
       icon: TrendingUp,
       color: 'text-[#23A094]',
-      bgColor: 'bg-[#23A094]/10'
+      bgColor: 'bg-[#23A094]/10',
     },
     {
       label: 'Personal Best',
       value: `${metrics.personalBest}/4`,
       icon: Award,
       color: 'text-[#D33F49]',
-      bgColor: 'bg-[#D33F49]/10'
+      bgColor: 'bg-[#D33F49]/10',
     },
     {
       label: 'Total Attempts',
       value: metrics.totalAttempts,
       icon: Activity,
       color: 'text-[#3B82F6]',
-      bgColor: 'bg-[#3B82F6]/10'
+      bgColor: 'bg-[#3B82F6]/10',
     },
     {
       label: 'Average Score',
-      value: `${metrics.avgScore.toFixed(1)}/4`,
+      value: `${(metrics?.avgScore ?? 0).toFixed(1)}/4`,
       icon: Target,
       color: 'text-[#F6B26B]',
-      bgColor: 'bg-[#F6B26B]/10'
-    }
+      bgColor: 'bg-[#F6B26B]/10',
+    },
   ]
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {tiles.map(({ label, value, icon: Icon, color, bgColor }) => (
-        <Card key={label} className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
+        <Card
+          key={label}
+          className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200"
+        >
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs uppercase tracking-wider font-semibold text-[#5C6784]">

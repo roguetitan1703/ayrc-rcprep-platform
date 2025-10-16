@@ -108,7 +108,8 @@ export default function Feedback() {
       await submitFeedback(answersArray)
       setSuccess(true)
       setSubmittedToday(true)
-    } catch (e) {
+      toast.show('Feedback saved. See you tomorrow!', { variant: 'success' })
+      } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
       setError(msg)
       toast.show(msg, { variant: 'error' })
@@ -117,6 +118,24 @@ export default function Feedback() {
     }
   }
 
+    // If feedback is already submitted today → show info container
+  if (submittedToday && !success) {
+    return (
+      <div className="flex items-center justify-center px-4">
+        <div className="max-w-xl w-full bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 rounded-lg p-6 border border-neutral-gray shadow-sm text-center space-y-4">
+          <h2 className="text-lg font-semibold text-text-primary">Feedback Submitted!</h2>
+          <p className="text-text-secondary">
+            Great job! You've already submitted your feedback for today. Keep practicing your RCs and come back tomorrow for more insights!
+          </p>
+          <Button onClick={() => nav('/dashboard')} variant="primary">
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+// Normal feedback form
   if (!dailyQuestions.length) {
     return <div className="flex items-center justify-center px-4">Loading questions...</div>
   }

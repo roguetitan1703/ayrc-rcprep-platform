@@ -6,10 +6,11 @@ import {
   resetPassword,
 } from "../controllers/auth.controller.js";
 import { devSeedAdmin } from "../controllers/auth.controller.js";
+import { verifyPincode } from "../middleware/pincode.js";
 
 const router = Router();
 
-router.post("/register", register);
+router.post("/register", verifyPincode, register);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
