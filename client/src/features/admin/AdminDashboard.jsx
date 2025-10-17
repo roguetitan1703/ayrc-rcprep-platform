@@ -163,7 +163,7 @@ export default function AdminDashboard() {
       </div>
 
       {view === 'analytics' ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* Platform analytics summary cards */}
           <Card>
             <CardHeader>Completion Rate</CardHeader>
@@ -234,50 +234,116 @@ export default function AdminDashboard() {
           </Card>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/5 bg-card-surface/50">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Reading Comprehension Items</h2>
+              <span className="text-xs text-text-secondary">
+                {filtered.length} item{filtered.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+
           {filtered.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <div className="text-lg font-medium mb-2">No RCs found</div>
-                <div className="text-sm text-text-secondary mb-4">Try adjusting your filters or upload a new RC.</div>
-                <div className="flex items-center justify-center gap-2">
-                  <Button onClick={() => setStatusFilter('all')} variant="outline">Reset Filters</Button>
-                  <Button onClick={() => nav('/admin/rcs/new')}>Upload New RC</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="p-12 text-center">
+              <div className="text-lg font-medium mb-2">No RCs found</div>
+              <div className="text-sm text-text-secondary mb-4">Try adjusting your filters or upload a new RC.</div>
+              <div className="flex items-center justify-center gap-2">
+                <Button onClick={() => setStatusFilter('all')} variant="outline">Reset Filters</Button>
+                <Button onClick={() => nav('/admin/rcs/new')}>Upload New RC</Button>
+              </div>
+            </div>
           ) : (
-            filtered.map(rc => (
-              <Card key={rc._id}>
-                <CardHeader className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{rc.title}</div>
-                    <div className="text-xs text-text-secondary truncate">{rc._id} · {rc.scheduledDate ? new Date(rc.scheduledDate).toDateString() : 'Unscheduled'}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge color={rc.status === 'live' ? 'success' : rc.status === 'scheduled' ? 'warning' : 'default'}>{rc.status}</Badge>
-                    <Button as="a" variant="outline" href={`/test/${rc._id}?preview=1`}>Preview</Button>
-                    <Button variant="outline" onClick={() => nav(`/admin/rcs/${rc._id}`)}>Edit</Button>
-                    <Button variant="ghost" onClick={async () => {
-                      setModalRc(rc)
-                      setModalOpen(true)
-                      setModalRcAnalytics(null)
-                      try {
-                        const { data } = await api.get(`/admin/rcs/${rc._id}/analytics`)
-                        // attach trend from rcAnalytics (fetched earlier) when available
-                        const trendItem = rcAnalytics.find(x => String(x.id) === String(rc._id))
-                        if (trendItem && trendItem.trend) data.trend = trendItem.trend
-                        setModalRcAnalytics(data)
-                      } catch (e) {
-                        setModalRcAnalytics({ error: e?.response?.data?.error || e.message })
-                      }
-                    }}>View Analytics</Button>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-white/5">
+                <thead className="bg-card-surface/30">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      Title & ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      Scheduled Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-background divide-y divide-white/5">
+                  {filtered.map(rc => (
+                    <tr key={rc._id} className="hover:bg-card-surface/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium">{rc.title}</div>
+                        <div className="text-xs text-text-secondary mt-1">{rc._id}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                        {rc.scheduledDate ? new Date(rc.scheduledDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        }) : (
+                          <span className="text-text-secondary/60">Unscheduled</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge color={rc.status === 'live' ? 'success' : rc.status === 'scheduled' ? 'warning' : 'default'}>
+                          {rc.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              window.open(`/test/${rc._id}?preview=1`, '_blank')
+                            }}
+                          >
+                            Preview
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              nav(`/admin/rcs/${rc._id}`)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              setModalRc(rc)
+                              setModalOpen(true)
+                              setModalRcAnalytics(null)
+                              try {
+                                const { data } = await api.get(`/admin/rcs/${rc._id}/analytics`)
+                                const trendItem = rcAnalytics.find(x => String(x.id) === String(rc._id))
+                                if (trendItem && trendItem.trend) data.trend = trendItem.trend
+                                setModalRcAnalytics(data)
+                              } catch (e) {
+                                setModalRcAnalytics({ error: e?.response?.data?.error || e.message })
+                              }
+                            }}
+                          >
+                            View Analytics
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* RC Analytics modal */}

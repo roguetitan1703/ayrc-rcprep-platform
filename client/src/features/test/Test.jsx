@@ -7,6 +7,10 @@ import { Badge } from '../../components/ui/Badge'
 import { Skeleton, SkeletonText } from '../../components/ui/Skeleton'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
+import { UserProfileCard } from './components/UserProfileCard'
+import { QuestionStatusLegend } from './components/QuestionStatusLegend'
+import { SectionInfo } from './components/SectionInfo'
+import { QuestionPalette } from './components/QuestionPalette'
 
 export default function Test() {
   const { id } = useParams()
@@ -18,6 +22,7 @@ export default function Test() {
   const [rc, setRc] = useState(null)
   const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''))
   const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
+  const [visited, setVisited] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
   const [qIndex, setQIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS)
   const [startedAt, setStartedAt] = useState(null)
@@ -44,14 +49,21 @@ export default function Test() {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed.answers) && parsed.answers.length === QUESTION_COUNT) setAnswers(parsed.answers)
             if (Array.isArray(parsed.marked) && parsed.marked.length === QUESTION_COUNT) setMarked(parsed.marked)
+            if (Array.isArray(parsed.visited) && parsed.visited.length === QUESTION_COUNT) setVisited(parsed.visited)
             if (typeof parsed.qIndex === 'number') setQIndex(Math.min(QUESTION_COUNT - 1, Math.max(0, parsed.qIndex)))
             if (typeof parsed.questionTimers !== 'undefined') setQuestionTimers(parsed.questionTimers)
+            // Restore time-related state
+            if (typeof parsed.timeLeft === 'number' && !isPractice && !isPreview) setTimeLeft(parsed.timeLeft)
+            if (typeof parsed.startedAt === 'number') setStartedAt(parsed.startedAt)
           } catch { }
+        } else {
+          // Only mark first question as visited if no saved state
+          setVisited(v => { const b = [...v]; b[0] = true; return b })
         }
       } catch (e) { setError(e?.response?.data?.error || e.message) }
       finally { setLoading(false) }
     })()
-  }, [id])
+  }, [id, isPractice, isPreview])
 
   useEffect(() => {
     if (isPractice || isPreview) return
@@ -61,16 +73,45 @@ export default function Test() {
 
   useEffect(() => { if (!(isPractice || isPreview) && timeLeft === 0) submit() }, [timeLeft, isPractice, isPreview])
 
+  // Helper function to save progress
+  const saveProgress = () => {
+    const key = LOCAL_PROGRESS_KEY(id, isPractice ? 'practice' : isPreview ? 'preview' : 'test')
+    const payload = { 
+      answers, 
+      marked, 
+      visited, 
+      qIndex, 
+      questionTimers,
+      timeLeft, // Save timer state
+      startedAt // Save start time
+    }
+    try { localStorage.setItem(key, JSON.stringify(payload)) } catch { }
+  }
+
   // autosave to localStorage every 30s
   useEffect(() => {
-    autosaveRef.current = setInterval(() => {
-      const key = LOCAL_PROGRESS_KEY(id, isPractice ? 'practice' : isPreview ? 'preview' : 'test')
-      const payload = { answers, marked, qIndex, questionTimers }
-      try { localStorage.setItem(key, JSON.stringify(payload)) } catch { }
-    }, 30000)
+    autosaveRef.current = setInterval(saveProgress, 30000)
     return () => clearInterval(autosaveRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, answers, marked, qIndex])
+  }, [id, answers, marked, visited, qIndex, questionTimers, timeLeft, startedAt])
+
+  // Save immediately when answers, marked, or visited changes
+  useEffect(() => {
+    if (!loading && rc) {
+      saveProgress()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, marked, visited])
+
+  // Save on page unload/close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveProgress()
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, answers, marked, visited, qIndex, questionTimers, timeLeft, startedAt])
 
   // Initialize start time and per-question timer start when component mounts / rc loaded
   useEffect(() => {
@@ -90,6 +131,12 @@ export default function Test() {
 
   function selectAnswer(i, val) {
     setAnswers(a => { const b = [...a]; b[i] = val; return b })
+  }
+
+  function goToQuestion(newIndex) {
+    setQIndex(newIndex)
+    // Mark as visited when navigating to a question
+    setVisited(v => { const b = [...v]; b[newIndex] = true; return b })
   }
 
   const prevIndexRef = useRef(qIndex)
@@ -153,26 +200,34 @@ export default function Test() {
 
   if (loading) return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
+      {/* Top bar skeleton */}
+      <div className="bg-card-surface border border-border-soft rounded-lg mb-3 px-5 py-3">
+        <Skeleton className="h-6 w-full" />
+      </div>
+      
       <div className="flex-1 grid grid-cols-12 gap-4">
-        <div className="col-span-7 bg-card-surface rounded p-4 overflow-hidden">
+        <div className="col-span-5 bg-card-surface rounded p-4 overflow-hidden border border-border-soft">
           <Skeleton className="h-6 w-2/5 mb-4" />
           <SkeletonText lines={6} />
         </div>
         <div className="col-span-4 space-y-3">
-          <div className="bg-card-surface rounded p-3"><Skeleton className="h-5 w-1/3" /></div>
-          <div className="bg-card-surface rounded p-4 space-y-2">
+          <div className="bg-card-surface rounded p-3 border border-border-soft"><Skeleton className="h-5 w-1/3" /></div>
+          <div className="bg-card-surface rounded p-4 space-y-2 border border-border-soft">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
             <Skeleton className="h-4 w-3/5" />
           </div>
         </div>
-        <div className="col-span-1 flex flex-col gap-2 items-stretch">
-          {Array.from({ length: QUESTION_COUNT }).map((_, i) => <div key={i} className="h-10 rounded bg-card-surface" />)}
+        <div className="col-span-3 space-y-3">
+          <Skeleton className="h-16 rounded" />
+          <Skeleton className="h-48 rounded" />
+          <Skeleton className="h-16 rounded" />
+          <Skeleton className="h-48 rounded" />
         </div>
       </div>
-      <div className="mt-4 h-16 bg-card-surface rounded flex items-center justify-between px-4 text-sm text-text-secondary">
+      <div className="mt-4 bg-card-surface rounded flex items-center justify-between px-5 py-3 border border-border-soft">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-10 w-48" />
       </div>
     </div>
   )
@@ -181,16 +236,60 @@ export default function Test() {
 
   const q = rc.questions[qIndex]
 
+  // Handler functions for footer actions
+  const handleMarkAndNext = () => {
+    setMarked(m => { const c = [...m]; c[qIndex] = true; return c })
+    if (qIndex < QUESTION_COUNT - 1) goToQuestion(qIndex + 1)
+  }
+
+  const handleClearResponse = () => {
+    selectAnswer(qIndex, '')
+  }
+
+  const handleSaveAndNext = () => {
+    if (qIndex < QUESTION_COUNT - 1) goToQuestion(qIndex + 1)
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
+      {/* Top Section Bar - CAT Style */}
+      {!(isPractice || isPreview) && (
+        <div className="bg-card-surface border border-border-soft rounded-lg mb-3 px-5 py-3 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-8">
+            <div className="text-sm">
+              <span className="text-text-secondary">Section: </span>
+              <span className="font-semibold text-info-blue">Data Interpretation & Reading Comprehension</span>
+            </div>
+            <div className="text-sm">
+              <span className="text-text-secondary">Question No. </span>
+              <span className="font-bold text-text-primary">{qIndex + 1}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-sm">
+              <span className="text-text-secondary">Marks for correct answer </span>
+              <span className="font-bold text-success-green">3</span>
+              <span className="text-text-secondary"> | Negative Marks </span>
+              <span className="font-bold text-error-red">0</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-text-secondary">Time Left :</span>
+              <div className={`text-2xl font-bold ${timeLeft <= 60 ? 'text-error-red' : 'text-text-primary'}`}>
+                {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
         {/* Passage Column */}
-        <div className="col-span-7 bg-card-surface rounded flex flex-col">
-          <div className="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between">
+        <div className="col-span-5 bg-card-surface rounded flex flex-col border border-border-soft shadow-sm">
+          <div className="px-5 pt-4 pb-3 border-b border-border-soft flex items-center justify-between">
             <h2 className="text-lg font-semibold truncate pr-4">{rc.title}</h2>
-            {!(isPractice || isPreview) && (
-              <Badge color={timeLeft <= 60 ? 'warning' : 'default'} aria-live={timeLeft <= 60 ? 'assertive' : 'off'} aria-label={`Time remaining ${Math.floor(timeLeft / 60)} minutes ${timeLeft % 60} seconds`}>
-                {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
+            {(isPractice || isPreview) && (
+              <Badge color="default">
+                {isPractice ? 'Practice Mode' : 'Preview'}
               </Badge>
             )}
           </div>
@@ -198,10 +297,11 @@ export default function Test() {
             {rc.passageText}
           </div>
         </div>
+
         {/* Question Column */}
-        <div className="col-span-4 bg-card-surface rounded flex flex-col">
-          <div className="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between text-sm">
-            <div>Question {qIndex + 1} / {QUESTION_COUNT}</div>
+        <div className="col-span-4 bg-card-surface rounded flex flex-col border border-border-soft shadow-sm">
+          <div className="px-5 pt-4 pb-3 border-b border-border-soft flex items-center justify-between text-sm">
+            <div className="font-semibold text-text-primary">Question {qIndex + 1}</div>
             <div className="flex items-center gap-3">
               {isPractice && (
                 <>
@@ -217,11 +317,11 @@ export default function Test() {
             </div>
           </div>
           <div className="p-5 flex-1 overflow-auto">
-            <div className="mb-4 text-sm">{q.questionText}</div>
-            <fieldset className="space-y-2">
+            <div className="mb-4 text-sm leading-relaxed">{q.questionText}</div>
+            <fieldset className="space-y-2.5">
               <legend className="sr-only">Answer choices</legend>
               {q.options.map(op => (
-                <label key={op.id} className="flex items-start gap-2 cursor-pointer text-sm">
+                <label key={op.id} className="flex items-start gap-2.5 cursor-pointer text-sm hover:bg-surface-muted/50 p-2 rounded transition-colors">
                   <input type="radio" className="mt-0.5" name={`q${qIndex}`} checked={answers[qIndex] === op.id} onChange={() => selectAnswer(qIndex, op.id)} />
                   <span className="leading-snug">
                     <span className="font-medium mr-1">{op.id}.</span>{op.text}
@@ -235,7 +335,9 @@ export default function Test() {
               ))}
             </fieldset>
             {isPractice && revealAnswers && (
-              <div className="mt-4 text-sm text-text-secondary">Explanation: {rc.questions[qIndex].explanation}</div>
+              <div className="mt-4 text-sm text-text-secondary bg-surface-muted p-3 rounded">
+                <span className="font-semibold">Explanation: </span>{rc.questions[qIndex].explanation}
+              </div>
             )}
             <div className="mt-4">
               <label className="inline-flex items-center gap-2 cursor-pointer text-xs">
@@ -245,34 +347,64 @@ export default function Test() {
             </div>
           </div>
         </div>
-        {/* Palette Gutter */}
-        <div className="col-span-1 flex flex-col items-stretch gap-2" aria-label="Question palette">
-          {Array.from({ length: QUESTION_COUNT }).map((_, i) => {
-            const answered = !!answers[i]
-            const isCurrent = i === qIndex
-            return (
-              <button
-                key={i}
-                onClick={() => setQIndex(i)}
-                aria-label={`Go to question ${i + 1}${marked[i] ? ' marked for review' : ''}${answered ? ' answered' : ''}`}
-                className={`h-10 rounded text-sm font-medium border transition relative
-                  ${isCurrent ? 'border-accent-amber' : 'border-white/10'}
-                  ${answered ? 'bg-white/10' : ''}
-                  ${marked[i] ? 'ring-2 ring-accent-amber/60' : ''}`}
-              >{i + 1}</button>
-            )
-          })}
+
+        {/* Right Panel - CAT Style */}
+        <div className="col-span-3 flex flex-col gap-3 overflow-auto">
+          <UserProfileCard />
+          <QuestionStatusLegend />
+          <SectionInfo 
+            sectionName="Reading Comprehension"
+            topicTags={rc.topicTags || []}
+          />
+          <QuestionPalette
+            currentIndex={qIndex}
+            answers={answers}
+            marked={marked}
+            visited={visited}
+            onQuestionClick={goToQuestion}
+          />
         </div>
       </div>
-      {/* Footer */}
-      <div className="mt-4 h-16 bg-card-surface rounded flex items-center justify-between px-5 text-sm">
-        <Link to="/dashboard" className="text-text-secondary hover:text-text-primary">← Dashboard</Link>
+
+      {/* Footer - CAT Style with 4 Buttons */}
+      <div className="mt-4 bg-card-surface rounded flex items-center justify-between px-5 py-3 border border-border-soft shadow-sm">
+        <Link to="/dashboard" className="text-text-secondary hover:text-primary transition-colors text-sm font-medium">
+          ← Back to Dashboard
+        </Link>
         <div className="flex items-center gap-3">
-          {qIndex > 0 && <Button variant="outline" onClick={() => setQIndex(i => i - 1)}>Previous</Button>}
+          {/* Mark for Review & Next */}
+          <button
+            onClick={handleMarkAndNext}
+            className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
+          >
+            Mark for Review & Next
+          </button>
+
+          {/* Clear Response */}
+          {answers[qIndex] && (
+            <button
+              onClick={handleClearResponse}
+              className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
+            >
+              Clear Response
+            </button>
+          )}
+
+          {/* Save & Next OR Submit */}
           {qIndex < QUESTION_COUNT - 1 ? (
-            <Button onClick={() => setQIndex(i => i + 1)}>{(isPractice || isPreview) ? 'Next' : 'Save & Next'}</Button>
+            <button
+              onClick={handleSaveAndNext}
+              className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
+            >
+              {(isPractice || isPreview) ? 'Next' : 'Save & Next'}
+            </button>
           ) : (
-            <Button onClick={submit}>{(isPractice || isPreview) ? 'Done' : 'Submit Test'}</Button>
+            <button
+              onClick={submit}
+              className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
+            >
+              {(isPractice || isPreview) ? 'Done' : 'Submit'}
+            </button>
           )}
         </div>
       </div>
