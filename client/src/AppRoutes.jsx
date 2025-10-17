@@ -38,6 +38,7 @@ import Refund from './features/static/Refund'
 import HomePage from './features/static/Home/HomePage'
 import Shell from './components/layout/Shell'
 import NotFound from './components/layout/NotFound'
+import RcDraftsList from './features/admin/RcDraftList'
 
 export const routeConfig = [
   // Static routes
@@ -125,6 +126,7 @@ export default function AppRoutes() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/rcs" element={<RcList />} />
         <Route path="/admin/rcs/new" element={<RcForm />} />
+        <Route path="/admin/rcs/drafts" element={<RcDraftsList />} />
         <Route path="/admin/rcs/:id" element={<RcForm />} />
         <Route path="/admin/rcs/:id/analytics" element={<RcAnalyticsPage />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
