@@ -6,10 +6,38 @@ import { startOfIST } from '../utils/date.js'
 
 export async function listRcs(req, res, next) {
   try {
-    const rcs = await RcPassage.find().sort({ createdAt: -1 })
-    return success(res, rcs)
+    const rcs = await RcPassage.find().sort({ createdAt: -1 });
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const updates = [];
+    for (const rc of rcs) {
+      if (rc.scheduledDate) {
+        const rcDate = new Date(rc.scheduledDate);
+        const rcDateStr = rcDate.toISOString().slice(0, 10);
+        // If scheduled for today and not live, set to live
+        if (rc.status === 'scheduled' && rcDateStr === todayStr) {
+          rc.status = 'live';
+          if (!rc.topicTags.includes('live')) rc.topicTags.push('live');
+          // Remove 'scheduled' tag if present
+          rc.topicTags = rc.topicTags.filter(t => t !== 'scheduled');
+          updates.push(rc.save());
+        }
+        // If scheduled date is before today and not archived, set to archived
+        if ((rc.status === 'live' || rc.status === 'scheduled') && rcDate < now && rcDateStr !== todayStr) {
+          rc.status = 'archived';
+          if (!rc.topicTags.includes('archived')) rc.topicTags.push('archived');
+          // Remove 'live' and 'scheduled' tags if present
+          rc.topicTags = rc.topicTags.filter(t => t !== 'live' && t !== 'scheduled');
+          updates.push(rc.save());
+        }
+      }
+    }
+    if (updates.length) await Promise.all(updates);
+    // Re-fetch to get updated statuses
+    const updatedRcs = await RcPassage.find().sort({ createdAt: -1 });
+    return success(res, updatedRcs);
   } catch (e) {
-    next(e)
+    next(e);
   }
 }
 

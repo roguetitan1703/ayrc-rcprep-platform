@@ -41,13 +41,6 @@ export default function Feedback() {
     }
   }, [submittedToday, success, toast])
 
-  // Show toast on successful submission
-  useEffect(() => {
-    if (success) {
-      toast.show('Feedback saved. See you tomorrow!', { variant: 'success' })
-    }
-  }, [success, toast])
-
   const handleAnswer = (id, value) => {
     setAnswers((prev) => ({ ...prev, [id]: value }))
   }
@@ -58,7 +51,7 @@ export default function Feedback() {
     const interval = setInterval(() => {
       setNextCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval)
+          clearInterval(interval) 
           setNextDisabled(false)
           return 0
         }
