@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { X, Menu, BookOpen } from 'lucide-react'
+import { X, Menu } from 'lucide-react'
+import Logo from '../ui/Logo'
 
 export default function StaticNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -23,9 +24,9 @@ export default function StaticNavbar() {
       {/* Full Static Header */}
       <div className="w-full px-6 h-14 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-accent-amber">
-          <BookOpen size={24} />
-          <span className="font-bold text-xl">ARC</span>
+        <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
+          <Logo className="h-6 w-6" />
+          <span className="font-bold text-lg">ARC</span>
         </Link>
 
         {/* Desktop Navigation */}
