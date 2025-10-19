@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useAuth } from '../../components/auth/AuthContext'
 import { Link } from 'react-router-dom'
 import rcApi from '../../lib/rcs'
 import { Card, CardHeader, CardContent } from '../../components/ui/Card'
@@ -6,9 +7,18 @@ import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { Icon } from '../../components/ui/Icon'
-import { Archive as ArchiveIcon, Calendar, Clock, Award, Search, Filter, TrendingUp } from 'lucide-react'
+import {
+  Archive as ArchiveIcon,
+  Calendar,
+  Clock,
+  Award,
+  Search,
+  Filter,
+  TrendingUp,
+} from 'lucide-react'
 
 export default function Archive() {
+  const { user } = useAuth()
   const [items, setItems] = useState([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -19,24 +29,25 @@ export default function Archive() {
 
   // Calculate stats
   const stats = useMemo(() => {
-    const attempted = items.filter(rc => rc.attempted)
+    const attempted = items.filter((rc) => rc.attempted)
     const totalScore = attempted.reduce((sum, rc) => sum + (rc.score || 0), 0)
     const avgScore = attempted.length > 0 ? (totalScore / attempted.length).toFixed(1) : 0
     const topics = new Set()
-    attempted.forEach(rc => rc.topicTags?.forEach(tag => topics.add(tag)))
-    
+    attempted.forEach((rc) => rc.topicTags?.forEach((tag) => topics.add(tag)))
+
     return {
       totalArchived: items.length,
       avgScore,
-      uniqueTopics: topics.size
+      uniqueTopics: topics.size,
     }
   }, [items])
 
   // Filter and sort items
   const filteredItems = useMemo(() => {
-    let filtered = items.filter(rc => 
-      rc.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rc.topicTags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    let filtered = items.filter(
+      (rc) =>
+        rc.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rc.topicTags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     )
 
     filtered.sort((a, b) => {
@@ -48,56 +59,88 @@ export default function Archive() {
     return filtered
   }, [items, searchQuery, sortBy])
 
+  // Detect free plan from context user
+  const isFreePlan = user && (user.subscription || '').toLowerCase() === 'free'
+
   useEffect(() => {
-    (async () => {
+    if (isFreePlan) {
+      setLoading(false)
+      setItems([])
+      setHasMore(false)
+      return
+    }
+    ;(async () => {
       try {
         setLoading(true)
         const data = await rcApi.getArchive(page, 10)
+        // Debug: log archive data and user info
+        console.log('Archive fetch:', { archive: data, user })
         setItems(data)
         setHasMore(data.length === 10)
       } catch (e) {
         setError(e?.response?.data?.error || e.message)
+        // Debug: log error
+        console.error('Archive fetch error:', e)
       } finally {
         setLoading(false)
       }
     })()
-  }, [page])
+  }, [page, isFreePlan, user])
 
-  if (loading) return (
-    <div className="flex flex-col space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-[#273043] mb-2">Archive</h1>
-        <p className="text-sm text-[#5C6784]">Your complete practice history</p>
+  if (isFreePlan) {
+    return (
+      <div className="flex flex-col space-y-6 items-center justify-center min-h-[60vh]">
+        <ArchiveIcon size={64} className="mx-auto text-[#8B95A8] mb-6" />
+        <h1 className="text-3xl font-bold text-[#273043] mb-2">Archive Unavailable</h1>
+        <p className="text-lg text-[#5C6784] mb-4">
+          Archive RCs are not available for free plan users.
+        </p>
+        <Link to="/test">
+          <Button variant="primary">Start Practicing</Button>
+        </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Skeleton className="h-24 rounded-xl" />
-        <Skeleton className="h-24 rounded-xl" />
-        <Skeleton className="h-24 rounded-xl" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
-      </div>
-    </div>
-  )
+    )
+  }
 
-  if (error) return (
-    <div className="p-6 bg-[#E4572E]/10 border-2 border-[#E4572E]/40 text-[#E4572E] rounded-xl flex items-start gap-3">
-      <Icon icon="alertCircle" size={20} className="flex-shrink-0 mt-0.5" />
-      <div>
-        <div className="font-semibold">Error Loading Archive</div>
-        <div className="text-sm mt-1">{error}</div>
+  if (loading)
+    return (
+      <div className="flex flex-col space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-[#273043] mb-2">Archive</h1>
+          <p className="text-sm text-[#5C6784]">Your complete practice history</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
+        </div>
       </div>
-    </div>
-  )
+    )
+
+  if (error)
+    return (
+      <div className="p-6 bg-[#E4572E]/10 border-2 border-[#E4572E]/40 text-[#E4572E] rounded-xl flex items-start gap-3">
+        <Icon icon="alertCircle" size={20} className="flex-shrink-0 mt-0.5" />
+        <div>
+          <div className="font-semibold">Error Loading Archive</div>
+          <div className="text-sm mt-1">{error}</div>
+        </div>
+      </div>
+    )
 
   return (
     <div className="flex flex-col space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-[#273043] mb-2">Archive</h1>
-        <p className="text-sm text-[#5C6784]">Your complete practice history and performance insights</p>
+        <p className="text-sm text-[#5C6784]">
+          Your complete practice history and performance insights
+        </p>
       </div>
 
       {/* Stats Summary */}
@@ -151,7 +194,10 @@ export default function Archive() {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5C6784]" />
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5C6784]"
+              />
               <input
                 type="text"
                 placeholder="Search by title or topic..."
@@ -187,7 +233,7 @@ export default function Archive() {
               {searchQuery ? 'No matching passages found' : 'No archived passages yet'}
             </div>
             <p className="text-sm text-[#5C6784] mb-6">
-              {searchQuery 
+              {searchQuery
                 ? 'Try adjusting your search query'
                 : 'Your practice history will appear here once you complete your first RC'}
             </p>
@@ -201,14 +247,21 @@ export default function Archive() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredItems.map(rc => {
-              const scoreColor = 
-                (rc.score || 0) >= 3.5 ? '#23A094' : 
-                (rc.score || 0) >= 2.5 ? '#3B82F6' : 
-                (rc.score || 0) >= 1.5 ? '#F6B26B' : '#E4572E'
+            {filteredItems.map((rc) => {
+              const scoreColor =
+                (rc.score || 0) >= 3.5
+                  ? '#23A094'
+                  : (rc.score || 0) >= 2.5
+                  ? '#3B82F6'
+                  : (rc.score || 0) >= 1.5
+                  ? '#F6B26B'
+                  : '#E4572E'
 
               return (
-                <Card key={rc._id || rc.id} className="bg-white border border-[#D8DEE9] hover:border-[#D33F49]/30 transition-all duration-200">
+                <Card
+                  key={rc._id || rc.id}
+                  className="bg-white border border-[#D8DEE9] hover:border-[#D33F49]/30 transition-all duration-200"
+                >
                   <CardHeader className="p-4 border-b border-[#D8DEE9]">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="text-base font-semibold text-[#273043] line-clamp-2">
@@ -216,11 +269,11 @@ export default function Archive() {
                       </h3>
                       {rc.attempted && (
                         <div className="flex-shrink-0">
-                          <Badge 
-                            style={{ 
-                              backgroundColor: `${scoreColor}15`, 
+                          <Badge
+                            style={{
+                              backgroundColor: `${scoreColor}15`,
                               color: scoreColor,
-                              border: `1px solid ${scoreColor}30`
+                              border: `1px solid ${scoreColor}30`,
                             }}
                             className="text-sm font-bold"
                           >
@@ -236,16 +289,18 @@ export default function Archive() {
                     <div className="flex flex-col gap-2 text-xs text-[#5C6784]">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} />
-                        <span>{new Date(rc.scheduledDate).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}</span>
+                        <span>
+                          {new Date(rc.scheduledDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
                       </div>
                       {rc.topicTags && rc.topicTags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
                           {rc.topicTags.slice(0, 3).map((tag, idx) => (
-                            <span 
+                            <span
                               key={idx}
                               className="px-2 py-0.5 bg-[#EEF1FA] text-[#273043] rounded text-[10px] font-medium"
                             >
@@ -270,7 +325,10 @@ export default function Archive() {
                           </Button>
                         </Link>
                       )}
-                      <Link to={`/test/${rc._id || rc.id}?mode=practice`} className={rc.attempted ? 'flex-1' : 'w-full'}>
+                      <Link
+                        to={`/test/${rc._id || rc.id}?mode=practice`}
+                        className={rc.attempted ? 'flex-1' : 'w-full'}
+                      >
                         <Button variant={rc.attempted ? 'secondary' : 'primary'} className="w-full">
                           {rc.attempted ? 'Retry' : 'Practice'}
                         </Button>
@@ -284,20 +342,20 @@ export default function Archive() {
 
           {/* Pagination */}
           <div className="flex items-center justify-center gap-4 pt-4">
-            <Button 
-              variant="secondary" 
-              disabled={page <= 1} 
-              onClick={() => setPage(p => p - 1)}
+            <Button
+              variant="secondary"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
               className="flex items-center gap-2"
             >
               <Icon icon="chevronLeft" size={16} />
               Previous
             </Button>
             <span className="text-sm text-[#5C6784] font-medium">Page {page}</span>
-            <Button 
-              variant="secondary" 
-              disabled={!hasMore} 
-              onClick={() => setPage(p => p + 1)}
+            <Button
+              variant="secondary"
+              disabled={!hasMore}
+              onClick={() => setPage((p) => p + 1)}
               className="flex items-center gap-2"
             >
               Next

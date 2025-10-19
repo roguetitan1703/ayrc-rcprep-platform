@@ -61,6 +61,8 @@ export default function Test() {
     ;(async () => {
       try {
         const { data } = await api.get(`/rcs/${id}${isPractice ? '?practice=1' : ''}`)
+        // Debug: log RC and user info
+        console.log('RC fetch:', { rc: data, user: window.arcUser })
         setRc(data)
         // restore any local progress
         const key = LOCAL_PROGRESS_KEY(id, isPractice ? 'practice' : isPreview ? 'preview' : 'test')
@@ -93,6 +95,8 @@ export default function Test() {
         }
       } catch (e) {
         setError(e?.response?.data?.error || e.message)
+        // Debug: log error
+        console.error('RC fetch error:', e)
       } finally {
         setLoading(false)
       }
@@ -424,13 +428,34 @@ export default function Test() {
         </div>
       </div>
     )
+
+  // If error, show error message
   if (error)
     return (
       <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">
         {error}
       </div>
     )
+
+  // If RC not loaded yet
   if (!rc) return null
+
+  // Subscription/join date access control: block content if not allowed
+  if (rc && rc.allowedForUser === false) {
+    return (
+      <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded text-center max-w-xl mx-auto mt-16">
+        <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
+        <p className="mb-4">
+          This Reading Comprehension is not available under your current subscription plan or join
+          date.
+        </p>
+        <p className="mb-4">Upgrade your plan or check your eligibility to access this content.</p>
+        <Link to="/dashboard" className="inline-block mt-2 text-info-blue underline">
+          Back to Dashboard
+        </Link>
+      </div>
+    )
+  }
 
   const q = rc.questions[qIndex]
 

@@ -38,17 +38,42 @@ const submitSchema = z.object({
 })
 
 export async function submitAttempt(req, res, next) {
+  // Debug: log user and RC
+  console.log('[submitAttempt] user:', { id: req.user.id, subscription: (req.user.subscription || 'free'), joinedDate: req.user.subon || req.user.createdAt }, 'rc:', rc);
   try {
     const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } =
-      submitSchema.parse(req.body)
-    const rc = await RcPassage.findById(rcPassageId)
-    if (!rc) throw notFoundErr('RC not found')
+      submitSchema.parse(req.body);
+    const rc = await RcPassage.findById(rcPassageId);
+    if (!rc) throw notFoundErr('RC not found');
+
+    const user = req.user;
+    const subscription = (user.subscription || 'free').toLowerCase();
+    const joinedDate = user.subon || user.createdAt;
+    const now = new Date();
+
+    // Subscription-based access control
+    if (subscription === 'free') {
+      if (rc.createdAt < joinedDate) return forbidden('Not allowed: RC uploaded before you joined');
+      // Only allow attempt if scheduledDate is today (not for missed RCs)
+      const today = startOfIST();
+      const rcDay = startOfIST(rc.scheduledDate);
+      if (rcDay.getTime() !== today.getTime()) {
+        return forbidden('Not allowed: You can only attempt today\'s RCs');
+      }
+    } else if (subscription === 'weekly' || subscription === '1 week plan') {
+      const sevenDaysAfterJoin = new Date(joinedDate);
+      sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7);
+      if (rc.createdAt < joinedDate || rc.createdAt > sevenDaysAfterJoin) {
+        return forbidden('Not allowed: RC not in your subscription window');
+      }
+    } // else for till CAT, allow all
+
     // Prevent official attempts on future-dated content not yet live
     if ((!attemptType || attemptType === 'official') && rc.scheduledDate) {
-      const todayStart = startOfIST()
-      const rcDay = startOfIST(rc.scheduledDate)
+      const todayStart = startOfIST();
+      const rcDay = startOfIST(rc.scheduledDate);
       if (rcDay > todayStart && rc.status !== 'live' && rc.status !== 'archived') {
-        return badRequest('Cannot submit attempt before RC date')
+        return badRequest('Cannot submit attempt before RC date');
       }
     }
 

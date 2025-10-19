@@ -21,66 +21,77 @@ export default function Subscriptions() {
       : 'Not set'
 
   // Pricing plans
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      period: 'forever',
-      description: 'Perfect for getting started',
-      icon: Target,
-      color: '#5C6784',
-      features: [
-        'Daily RCs access',
-        'Basic performance tracking',
-        'Question explanations',
-        'Community support'
-      ],
-      limitations: [
-        'Limited to 2 RCs per day',
-        'No advanced analytics',
-        'No personalized insights'
-      ]
-    },
-    {
-      id: 'monthly',
-      name: 'Premium',
-      price: 499,
-      period: 'month',
-      description: 'Unlock your full potential',
-      icon: Zap,
-      color: '#3B82F6',
-      recommended: true,
-      features: [
-        'Unlimited RC practice',
-        'Advanced performance analytics',
-        'Personalized insights & recommendations',
-        'Detailed mistake analysis',
-        'Priority support',
-        'Download practice materials',
-        'No daily limits'
-      ]
-    },
-    {
-      id: 'annual',
-      name: 'Premium Annual',
-      price: 4999,
-      savings: 1000,
-      period: 'year',
-      description: 'Best value - Save ₹1000',
-      icon: Crown,
-      color: '#D33F49',
-      features: [
-        'All Premium features',
-        'Save ₹1000 annually',
-        'Extended analytics history',
-        'Early access to new features',
-        'Exclusive study materials',
-        'Priority support',
-        '1-on-1 strategy session'
-      ]
-    }
-  ]
+ const plans = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    period: 'forever',
+    description: 'Get started and practice daily',
+    icon: Target,
+    color: '#5C6784',
+    features: [
+      'Access 2 RCs per day',
+      'View RCs only after attempting and giving feedback',
+      'Cannot see RCs uploaded before joining',
+      'Question explanations after attempt',
+      'Basic performance tracking',
+      'Community support'
+    ],
+    limitations: [
+      'Must provide feedback to attempt RC',
+      'RCs missed cannot be accessed later',
+      'No advanced analytics',
+      'No personalized insights'
+    ]
+  },
+  {
+    id: 'weekly',
+    name: '1 Week Plan',
+    price: 199, // demo price
+    period: 'week',
+    description: 'Practice daily with limited archive access',
+    icon: Zap,
+    color: '#3B82F6',
+    recommended: true,
+    features: [
+      'Access 2 RCs per day',
+      'RCs uploaded from the day of joining are accessible for 7 days',
+      'Question explanations',
+      'Performance tracking with recent 7-day history',
+      'Community support'
+    ],
+    limitations: [
+      'RCs uploaded before joining are not visible',
+      'Access to RCs expires after 7 days',
+      'No extended analytics',
+      'Limited personalized insights'
+    ]
+  },
+  {
+    id: 'till-cat',
+    name: 'Till CAT 2025',
+    price: 499, // demo price
+    period: 'until CAT 2025',
+    description: 'Unlimited access to all RCs till CAT 2025',
+    icon: Crown,
+    color: '#D33F49',
+    features: [
+      'Access 2 RCs per day',
+      'Full archive access including RCs uploaded before joining',
+      'Question explanations',
+      'Advanced performance analytics',
+      'Extended history of attempts',
+      'Personalized insights and recommendations',
+      'Priority community support',
+      'Download practice materials'
+    ],
+    limitations: [
+      'None – full access till CAT 2025'
+    ]
+  }
+]
+
 
   const currentPlan = plans.find(p => p.id === (user?.subscription || 'free')?.toLowerCase()) || plans[0]
 
