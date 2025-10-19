@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
+import { Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { api } from '../../lib/api'
 import { QUESTION_COUNT, TEST_DURATION_SECONDS, LOCAL_PROGRESS_KEY } from '../../lib/constants'
 import { Button } from '../../components/ui/Button'
@@ -11,6 +12,10 @@ import { UserProfileCard } from './components/UserProfileCard'
 import { QuestionStatusLegend } from './components/QuestionStatusLegend'
 import { SectionInfo } from './components/SectionInfo'
 import { QuestionPalette } from './components/QuestionPalette'
+import { FullscreenRequired } from './components/FullscreenRequired'
+import { InstructionsModal } from './components/InstructionsModal'
+import { OtherInstructionsModal } from './components/OtherInstructionsModal'
+import { FullscreenExitedModal } from './components/FullscreenExitedModal'
 
 export default function Test() {
   const { id } = useParams()
@@ -35,6 +40,18 @@ export default function Test() {
   const toast = useToast()
   const intervalRef = useRef(null)
   const autosaveRef = useRef(null)
+
+  // Fullscreen and Instructions State
+  const [showFullscreenRequired, setShowFullscreenRequired] = useState(!isPractice && !isPreview)
+  const [showInstructions, setShowInstructions] = useState(false)
+  const [showOtherInstructions, setShowOtherInstructions] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showFullscreenExited, setShowFullscreenExited] = useState(false)
+  const [testStarted, setTestStarted] = useState(false)
+  const [timerPaused, setTimerPaused] = useState(false)
+
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -65,13 +82,119 @@ export default function Test() {
     })()
   }, [id, isPractice, isPreview])
 
+  // Timer effect - only run when not paused
   useEffect(() => {
-    if (isPractice || isPreview) return
+    if (isPractice || isPreview || !testStarted || timerPaused) return
     intervalRef.current = setInterval(() => setTimeLeft(t => t > 0 ? t - 1 : 0), 1000)
     return () => clearInterval(intervalRef.current)
-  }, [isPractice, isPreview])
+  }, [isPractice, isPreview, testStarted, timerPaused])
 
   useEffect(() => { if (!(isPractice || isPreview) && timeLeft === 0) submit() }, [timeLeft, isPractice, isPreview])
+
+  // Fullscreen change detection
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      )
+      
+      setIsFullscreen(isCurrentlyFullscreen)
+      
+      // If test has started and user exits fullscreen, pause the test
+      if (testStarted && !isCurrentlyFullscreen && !(isPractice || isPreview)) {
+        setTimerPaused(true)
+        setShowFullscreenExited(true)
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+    }
+  }, [testStarted, isPractice, isPreview])
+
+  // Fullscreen handlers
+  const enterFullscreen = async () => {
+    try {
+      const elem = document.documentElement
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen()
+      } else if (elem.webkitRequestFullscreen) {
+        await elem.webkitRequestFullscreen()
+      } else if (elem.mozRequestFullScreen) {
+        await elem.mozRequestFullScreen()
+      } else if (elem.msRequestFullscreen) {
+        await elem.msRequestFullscreen()
+      }
+      setIsFullscreen(true)
+      setShowFullscreenExited(false)
+      if (testStarted) setTimerPaused(false) // Resume timer when re-entering fullscreen
+    } catch (err) {
+      console.error('Error entering fullscreen:', err)
+      toast.show('Unable to enter fullscreen mode', { variant: 'error' })
+    }
+  }
+
+  const exitFullscreen = async () => {
+    try {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen()
+      } else if (document.webkitExitFullscreen) {
+        await document.webkitExitFullscreen()
+      } else if (document.mozCancelFullScreen) {
+        await document.mozCancelFullScreen()
+      } else if (document.msExitFullscreen) {
+        await document.msExitFullscreen()
+      }
+      setIsFullscreen(false)
+    } catch (err) {
+      console.error('Error exiting fullscreen:', err)
+    }
+  }
+
+  const toggleFullscreen = () => {
+    if (isFullscreen) {
+      exitFullscreen()
+    } else {
+      enterFullscreen()
+    }
+  }
+
+  // Handler for entering fullscreen from initial screen
+  const handleEnterFullscreenFromRequired = async () => {
+    await enterFullscreen()
+    setShowFullscreenRequired(false)
+    setShowInstructions(true)
+  }
+
+  // Handler for moving from instructions to other instructions
+  const handleInstructionsNext = () => {
+    setShowInstructions(false)
+    setShowOtherInstructions(true)
+  }
+
+  // Handler for going back from other instructions to instructions
+  const handleOtherInstructionsPrevious = () => {
+    setShowOtherInstructions(false)
+    setShowInstructions(true)
+  }
+
+  // Handler for starting the test
+  const handleStartTest = () => {
+    setShowOtherInstructions(false)
+    setTestStarted(true)
+    setTimerPaused(false)
+  }
 
   // Helper function to save progress
   const saveProgress = () => {
@@ -250,41 +373,81 @@ export default function Test() {
     if (qIndex < QUESTION_COUNT - 1) goToQuestion(qIndex + 1)
   }
 
+  // Show fullscreen required screen
+  if (showFullscreenRequired && !isPractice && !isPreview) {
+    return <FullscreenRequired onEnterFullscreen={handleEnterFullscreenFromRequired} />
+  }
+
+  // Show instructions screen
+  if (showInstructions && !isPractice && !isPreview) {
+    return <InstructionsModal rc={rc} onNext={handleInstructionsNext} />
+  }
+
+  // Show other instructions screen
+  if (showOtherInstructions && !isPractice && !isPreview) {
+    return (
+      <OtherInstructionsModal
+        rc={rc}
+        onPrevious={handleOtherInstructionsPrevious}
+        onStartTest={handleStartTest}
+      />
+    )
+  }
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      {/* Top Section Bar - CAT Style */}
-      {!(isPractice || isPreview) && (
-        <div className="bg-card-surface border border-border-soft rounded-lg mb-3 px-5 py-3 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-8">
-            <div className="text-sm">
-              <span className="text-text-secondary">Section: </span>
-              <span className="font-semibold text-info-blue">Data Interpretation & Reading Comprehension</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-text-secondary">Question No. </span>
-              <span className="font-bold text-text-primary">{qIndex + 1}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-sm">
-              <span className="text-text-secondary">Marks for correct answer </span>
-              <span className="font-bold text-success-green">3</span>
-              <span className="text-text-secondary"> | Negative Marks </span>
-              <span className="font-bold text-error-red">0</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-text-secondary">Time Left :</span>
-              <div className={`text-2xl font-bold ${timeLeft <= 60 ? 'text-error-red' : 'text-text-primary'}`}>
-                {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
-              </div>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Fullscreen exited modal overlay */}
+      {showFullscreenExited && !isPractice && !isPreview && (
+        <FullscreenExitedModal onEnterFullscreen={enterFullscreen} />
       )}
 
-      <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
+      <div className="flex flex-col h-[calc(100vh-8rem)]">
+        {/* Top Section Bar - CAT Style */}
+        {!(isPractice || isPreview) && (
+          <div className="bg-card-surface border border-border-soft rounded-lg mb-3 px-5 py-3 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-8">
+              <div className="text-sm">
+                <span className="text-text-secondary">Section: </span>
+                <span className="font-semibold text-info-blue">Data Interpretation & Reading Comprehension</span>
+              </div>
+              <div className="text-sm">
+                <span className="text-text-secondary">Question No. </span>
+                <span className="font-bold text-text-primary">{qIndex + 1}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-sm">
+                <span className="text-text-secondary">Marks for correct answer </span>
+                <span className="font-bold text-success-green">3</span>
+                <span className="text-text-secondary"> | Negative Marks </span>
+                <span className="font-bold text-error-red">0</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-text-secondary">Time Left :</span>
+                <div className={`text-2xl font-bold ${timeLeft <= 60 ? 'text-error-red' : 'text-text-primary'} ${timerPaused ? 'opacity-50' : ''}`}>
+                  {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
+                  {timerPaused && <span className="text-xs ml-2 text-accent-amber">(Paused)</span>}
+                </div>
+              </div>
+              {/* Fullscreen Toggle Button */}
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 rounded hover:bg-surface-muted transition-colors text-text-secondary hover:text-text-primary"
+                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+              >
+                {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={`flex-1 gap-4 overflow-hidden relative transition-all duration-300 ${
+          sidebarCollapsed ? 'grid grid-cols-2' : 'grid grid-cols-12'
+        }`}>
         {/* Passage Column */}
-        <div className="col-span-5 bg-card-surface rounded flex flex-col border border-border-soft shadow-sm">
+        <div className={`bg-card-surface rounded flex flex-col border border-border-soft shadow-sm ${
+          sidebarCollapsed ? 'col-span-1' : 'col-span-5'
+        }`}>
           <div className="px-5 pt-4 pb-3 border-b border-border-soft flex items-center justify-between">
             <h2 className="text-lg font-semibold truncate pr-4">{rc.title}</h2>
             {(isPractice || isPreview) && (
@@ -299,7 +462,9 @@ export default function Test() {
         </div>
 
         {/* Question Column */}
-        <div className="col-span-4 bg-card-surface rounded flex flex-col border border-border-soft shadow-sm">
+        <div className={`bg-card-surface rounded flex flex-col border border-border-soft shadow-sm ${
+          sidebarCollapsed ? 'col-span-1' : 'col-span-4'
+        }`}>
           <div className="px-5 pt-4 pb-3 border-b border-border-soft flex items-center justify-between text-sm">
             <div className="font-semibold text-text-primary">Question {qIndex + 1}</div>
             <div className="flex items-center gap-3">
@@ -348,8 +513,12 @@ export default function Test() {
           </div>
         </div>
 
-        {/* Right Panel - CAT Style */}
-        <div className="col-span-3 flex flex-col gap-3 overflow-auto">
+        {/* Right Panel - CAT Style with Collapse */}
+        <div 
+          className={`transition-all duration-300 flex flex-col gap-3 overflow-auto relative ${
+            sidebarCollapsed ? 'col-span-0 w-0 opacity-0 pointer-events-none' : 'col-span-3'
+          }`}
+        >
           <UserProfileCard />
           <QuestionStatusLegend />
           <SectionInfo 
@@ -364,6 +533,22 @@ export default function Test() {
             onQuestionClick={goToQuestion}
           />
         </div>
+
+        {/* Sidebar Toggle Button - Positioned on border */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-card-surface border-2 border-border-soft rounded-l-lg shadow-lg hover:bg-surface-muted transition-all p-2"
+          style={{
+            right: sidebarCollapsed ? '0' : 'calc(25% - 1rem)'
+          }}
+          title={sidebarCollapsed ? 'Show Question Palette' : 'Hide Question Palette'}
+        >
+          {sidebarCollapsed ? (
+            <ChevronLeft size={20} className="text-text-primary" />
+          ) : (
+            <ChevronRight size={20} className="text-text-primary" />
+          )}
+        </button>
       </div>
 
       {/* Footer - CAT Style with 4 Buttons */}
@@ -409,5 +594,6 @@ export default function Test() {
         </div>
       </div>
     </div>
+    </>
   )
 }
