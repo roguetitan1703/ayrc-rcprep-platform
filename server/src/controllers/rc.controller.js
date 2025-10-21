@@ -100,17 +100,20 @@ export async function getArchive(req, res, next) {
 }
 
 export async function getRcById(req, res, next) {
-  // Debug: log user and RC
-  console.log('[getRcById] user:', { id: req.user.id, subscription: (req.user.subscription || 'free'), joinedDate: req.user.subon || req.user.createdAt }, 'rc:', rc);
   try {
-
     const rc = await RcPassage.findById(req.params.id);
-    if (!rc) throw notFoundErr('RC not found');
+    if (!rc) {
+      console.error('[getRcById] RC not found for id:', req.params.id);
+      throw notFoundErr('RC not found');
+    }
 
     const user = req.user;
     const subscription = (user.subscription || 'free').toLowerCase();
     const joinedDate = user.subon || user.createdAt;
     const now = new Date();
+
+    // Debug: log user and RC after rc is defined
+    console.log('[getRcById] user:', { id: user.id, subscription, joinedDate }, 'rc:', rc._id);
 
     const preview = String(req.query.preview || '') === '1' || String(req.query.mode || '') === 'preview';
     const practice = String(req.query.practice || '') === '1' || String(req.query.mode || '') === 'practice';
@@ -168,6 +171,7 @@ export async function getRcById(req, res, next) {
     }))
     return success(res, safe)
   } catch (e) {
+    console.error('[getRcById] error:', e);
     next(e)
   }
 }

@@ -75,8 +75,14 @@ export default function Archive() {
         const data = await rcApi.getArchive(page, 10)
         // Debug: log archive data and user info
         console.log('Archive fetch:', { archive: data, user })
-        setItems(data)
-        setHasMore(data.length === 10)
+        // If backend returns {data: [], message: ...}, use data.data
+        if (data && Array.isArray(data.data)) {
+          setItems(data.data)
+          setHasMore(data.data.length === 10)
+        } else {
+          setItems(Array.isArray(data) ? data : [])
+          setHasMore(Array.isArray(data) && data.length === 10)
+        }
       } catch (e) {
         setError(e?.response?.data?.error || e.message)
         // Debug: log error

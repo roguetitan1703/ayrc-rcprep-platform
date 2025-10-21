@@ -38,14 +38,29 @@ const submitSchema = z.object({
 })
 
 export async function submitAttempt(req, res, next) {
-  // Debug: log user and RC
-  console.log('[submitAttempt] user:', { id: req.user.id, subscription: (req.user.subscription || 'free'), joinedDate: req.user.subon || req.user.createdAt }, 'rc:', rc);
   try {
+  // Validate user authentication
+    if (!req.user || !req.user.id) {
+      return forbidden('User not authenticated'); 
+    }
+
     const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } =
       submitSchema.parse(req.body);
     const rc = await RcPassage.findById(rcPassageId);
     if (!rc) throw notFoundErr('RC not found');
 
+    // Safe debug log: req.user may be undefined in some error cases, and rc is now defined
+    try {
+      const userInfo = {
+        id: req.user?.id || null,
+        subscription: (req.user?.subscription || 'free'),
+        joinedDate: req.user?.subon || req.user?.createdAt,
+      }
+      console.log('[submitAttempt] user:', userInfo, 'rcId:', rc._id.toString())
+    } catch (logErr) {
+      console.error('submitAttempt: failed to log debug info', logErr)
+    }
+ 
     const user = req.user;
     const subscription = (user.subscription || 'free').toLowerCase();
     const joinedDate = user.subon || user.createdAt;

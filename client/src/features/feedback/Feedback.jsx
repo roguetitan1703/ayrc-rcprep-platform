@@ -34,7 +34,7 @@ export default function Feedback() {
     })()
   }, [])
 
-  // Show toast when already submitted
+  // Show toast when already submitted (on initial load)
   useEffect(() => {
     if (submittedToday && !success) {
       toast.show("Thanks! You've already submitted feedback for today.", { variant: 'success' })
@@ -51,7 +51,7 @@ export default function Feedback() {
     const interval = setInterval(() => {
       setNextCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval) 
+          clearInterval(interval)
           setNextDisabled(false)
           return 0
         }
@@ -91,18 +91,18 @@ export default function Feedback() {
     try {
       console.log(dailyQuestions)
       // Convert answers object to array for backend
-      const answersArray = dailyQuestions.map(q => ({
+      const answersArray = dailyQuestions.map((q) => ({
         questionId: q.id,
         type: q.type,
         value: answers[q.id],
         expectedTime: q.time || 0,
-        timeSpent: 0 // You can update this if you track time per question
+        timeSpent: 0, // You can update this if you track time per question
       }))
       await submitFeedback(answersArray)
       setSuccess(true)
       setSubmittedToday(true)
       toast.show('Feedback saved. See you tomorrow!', { variant: 'success' })
-      } catch (e) {
+    } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
       setError(msg)
       toast.show(msg, { variant: 'error' })
@@ -111,14 +111,18 @@ export default function Feedback() {
     }
   }
 
-    // If feedback is already submitted today → show info container
-  if (submittedToday && !success) {
+  // If feedback is submitted today (either previously or just now) → show info container
+  if (submittedToday) {
     return (
       <div className="flex items-center justify-center px-4">
         <div className="max-w-xl w-full bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 rounded-lg p-6 border border-neutral-gray shadow-sm text-center space-y-4">
-          <h2 className="text-lg font-semibold text-text-primary">Feedback Submitted!</h2>
+          <h2 className="text-lg font-semibold text-text-primary">
+            {success ? 'Thanks — Feedback Submitted!' : 'Feedback Submitted!'}
+          </h2>
           <p className="text-text-secondary">
-            Great job! You've already submitted your feedback for today. Keep practicing your RCs and come back tomorrow for more insights!
+            {success
+              ? "Thanks for your feedback! We've saved it — come back tomorrow for more insights."
+              : "Great job! You've already submitted your feedback for today. Keep practicing your RCs and come back tomorrow for more insights!"}
           </p>
           <Button onClick={() => nav('/dashboard')} variant="primary">
             Back to Dashboard
@@ -128,7 +132,7 @@ export default function Feedback() {
     )
   }
 
-// Normal feedback form
+  // Normal feedback form
   if (!dailyQuestions.length) {
     return <div className="flex items-center justify-center px-4">Loading questions...</div>
   }

@@ -344,6 +344,12 @@ export default function Test() {
         try {
           localStorage.removeItem(LOCAL_PROGRESS_KEY(id))
         } catch {}
+        // Exit fullscreen when practice test is finished/submitted
+        try {
+          await exitFullscreen()
+        } catch (err) {
+          console.error('Error exiting fullscreen before practice result nav:', err)
+        }
         nav(`/results/${id}?practice=1&score=${scoreP}&time=${totalDurationP}`)
         return
       }
@@ -384,6 +390,12 @@ export default function Test() {
       try {
         localStorage.removeItem(LOCAL_PROGRESS_KEY(id))
       } catch {}
+      // Exit fullscreen when official test is submitted, before navigating to results
+      try {
+        await exitFullscreen()
+      } catch (err) {
+        console.error('Error exiting fullscreen before results nav:', err)
+      }
       nav(`/results/${id}?score=${data.score}&time=${TEST_DURATION_SECONDS - timeLeft}`)
     } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
