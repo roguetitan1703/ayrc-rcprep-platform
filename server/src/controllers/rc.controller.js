@@ -39,6 +39,7 @@ export async function getArchive(req, res, next) {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)));
     const skip = (page - 1) * limit;
     const user = req.user;
+
     // Normalize subscription: treat missing, null, undefined, empty string, or 'none' as no subscription
     let subscription = user.subscription;
     if (!subscription || typeof subscription !== 'string' || !subscription.trim()) {
@@ -46,25 +47,55 @@ export async function getArchive(req, res, next) {
     } else {
       subscription = subscription.toLowerCase();
     }
+
     const joinedDate = user.subon || user.createdAt;
     const now = new Date();
 
     let rcQuery = { status: { $in: ['scheduled', 'live', 'archived'] } };
 
-    // For free plan, no subscription, or empty subscription: do not return any archive RCs
+    // ✅ Updated logic for free/unsubscribed users
     if (subscription === 'none' || subscription === 'free') {
-      console.log('[getArchive] No subscription, empty, or free plan user, blocking archive RCs');
-      return success(res, { data: [], message: 'Archive RCs are not available for free or unsubscribed users.' });
+      console.log('[getArchive] Free or unsubscribed user — showing only attempted RCs');
+
+      // 1️⃣ Find all attempts made by this user
+      const attempts = await Attempt.find({ userId: user.id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      // 2️⃣ Extract RC IDs from those attempts
+      const rcIds = attempts.map((a) => a.rcPassageId);
+
+      // 3️⃣ Fetch the RC details for those attempted passages
+      const rcs = await RcPassage.find({ _id: { $in: rcIds } })
+        .select('title scheduledDate topicTags createdAt');
+
+      // 4️⃣ Map attempts to RC data
+      const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]));
+
+      const data = rcs.map((rc) => {
+        const a = attemptMap.get(rc._id.toString());
+        return {
+          id: rc._id,
+          title: rc.title,
+          scheduledDate: rc.scheduledDate,
+          topicTags: rc.topicTags,
+          attempted: true,
+          score: a?.score ?? null,
+        };
+      });
+
+      console.log('[getArchive] free user result:', data);
+      return success(res, { data });
     }
 
-    // Weekly and other plans
+    // ✅ Paid plans — same logic as before
     if (subscription === 'weekly' || subscription === '1 week plan') {
       const sevenDaysAfterJoin = new Date(joinedDate);
       sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7);
       rcQuery.createdAt = { $gte: joinedDate, $lte: sevenDaysAfterJoin };
     }
 
-    // Debug: log user and query
     console.log('[getArchive] user:', { id: user.id, subscription, joinedDate }, 'rcQuery:', rcQuery);
 
     const rcs = await RcPassage.find(rcQuery)
@@ -77,9 +108,10 @@ export async function getArchive(req, res, next) {
       userId: user.id,
       rcPassageId: { $in: rcs.map((r) => r._id) },
     });
+
     const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]));
 
-    let data = rcs.map((rc) => {
+    const data = rcs.map((rc) => {
       const a = attemptMap.get(rc._id.toString());
       return {
         id: rc._id,
@@ -91,13 +123,13 @@ export async function getArchive(req, res, next) {
       };
     });
 
-    // Debug: log result
     console.log('[getArchive] result:', data);
-    return success(res, data);
+    return success(res, { data });
   } catch (e) {
-    next(e)
+    next(e);
   }
 }
+
 
 export async function getRcById(req, res, next) {
   try {
