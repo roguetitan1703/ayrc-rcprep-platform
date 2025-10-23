@@ -8,6 +8,9 @@ import {
   updateFeedbackQuestion,
   deleteFeedbackQuestion,
   getTodayAndFutureQuestions,
+  republishFeedbackQuestion,
+  archiveFeedbackQuestion,
+  getAllFeedbackQuestions,
 } from '../controllers/feedback.controller.js'
 import { feedbackLockInfo } from '../middleware/policy.js'
 import { success } from '../utils/http.js'
@@ -28,31 +31,17 @@ router.get('/lock-status', authRequired, async (req, res, next) => {
 })
 
 // Admin routes for managing feedback questions
-router.post(
-  '/questions',
-  authRequired,
-  requireRole('admin'),
-  createFeedbackQuestion
-)
-router.get(
-  '/questions/future',
-  authRequired,
-  requireRole('admin'),
-  getTodayAndFutureQuestions
-)
+router.post('/questions', authRequired, requireRole('admin'), createFeedbackQuestion)
+router.get('/questions/future', authRequired, requireRole('admin'), getTodayAndFutureQuestions)
 
-router.put(
-  '/questions/:id',
-  authRequired,
-  requireRole('admin'),
-  updateFeedbackQuestion
-)
+router.put('/questions/:id', authRequired, requireRole('admin'), updateFeedbackQuestion)
 
-router.delete(
-  '/questions/:id',
-  authRequired,
-  requireRole('admin'),
-  deleteFeedbackQuestion
-)
+router.delete('/questions/:id', authRequired, requireRole('admin'), deleteFeedbackQuestion)
+
+router.patch('/:id/archive', authRequired, archiveFeedbackQuestion) 
+
+router.patch('/:id/republish', authRequired, republishFeedbackQuestion)
+
+router.get('/all', authRequired, getAllFeedbackQuestions)
 
 export default router

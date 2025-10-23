@@ -29,6 +29,8 @@ export async function getFeedbackLockStatus() {
     return data
 }
 
+
+
 // -----------------------------
 // Admin APIs (require auth + admin role)
 // -----------------------------
@@ -56,3 +58,20 @@ export async function getTodayandfutureQuestions() {
     return data
 }
 
+// Archive a feedback question
+export async function archiveFeedbackQuestion(id) {
+    const { data } = await api.patch(`/feedback/${id}/archive`)
+    return data
+}
+
+// Republish a feedback question
+export async function republishFeedbackQuestion(id) {
+    const { data } = await api.patch(`/feedback/${id}/republish`)
+    return data
+}   
+
+// Fetch all feedback questions
+export async function getAllFeedbackQuestions() {
+    const { data } = await api.get('/feedback/all')
+    return data
+}

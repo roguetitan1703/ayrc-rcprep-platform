@@ -13,6 +13,7 @@ const feedbackQuestionSchema = new mongoose.Schema(
         buttonText: { type: String },// only for redirect type
         minWords: { type: Number },  // for open & redirect review
         time: { type: Number, default: 0 }, // time in seconds for stepwise blocking
+        status: { type: String, default: 'live', enum: ['live', 'archived'] },
         date: { type: Date, default: null }, // optional: assign for a specific day
     },
     { timestamps: true }

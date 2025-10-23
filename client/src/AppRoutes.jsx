@@ -39,6 +39,7 @@ import HomePage from './features/static/Home/HomePage'
 import Shell from './components/layout/Shell'
 import NotFound from './components/layout/NotFound'
 import RcDraftsList from './features/admin/RcDraftList'
+import FeedbackForm from './features/admin/FeedbackForm'
 
 export const routeConfig = [
   // Static routes
@@ -92,19 +93,39 @@ export default function AppRoutes() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/refund-policy" element={<Refund />} />
-      
+
       {/* Auth routes - No Shell */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot" element={<Forgot />} />
-      <Route path="/reset" element={<RequireAuth><Reset /></RequireAuth>} />
+      <Route
+        path="/reset"
+        element={
+          <RequireAuth>
+            <Reset />
+          </RequireAuth>
+        }
+      />
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Test routes - RequireAuth but no Shell (full-screen test experience) */}
-      <Route path="/test/:id" element={<RequireAuth><Test /></RequireAuth>} />
+      <Route
+        path="/test/:id"
+        element={
+          <RequireAuth>
+            <Test />
+          </RequireAuth>
+        }
+      />
 
       {/* Authenticated routes with Shell (sidebar + padding) */}
-      <Route element={<RequireAuth><Shell /></RequireAuth>}>
+      <Route
+        element={
+          <RequireAuth>
+            <Shell />
+          </RequireAuth>
+        }
+      >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/archive" element={<Archive />} />
         <Route path="/test/today" element={<TestToday />} />
@@ -122,7 +143,13 @@ export default function AppRoutes() {
       </Route>
 
       {/* Admin routes with Shell */}
-      <Route element={<RequireAdmin><Shell /></RequireAdmin>}>
+      <Route
+        element={
+          <RequireAdmin>
+            <Shell />
+          </RequireAdmin>
+        }
+      >
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/rcs" element={<RcList />} />
         <Route path="/admin/rcs/new" element={<RcForm />} />
@@ -131,6 +158,8 @@ export default function AppRoutes() {
         <Route path="/admin/rcs/:id/analytics" element={<RcAnalyticsPage />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/feedback" element={<AdminFeedback />} />
+        <Route path="/admin/feedback/:id" element={<FeedbackForm />} />
+        <Route path="/admin/feedback/new" element={<FeedbackForm />} />
         <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
       </Route>
 

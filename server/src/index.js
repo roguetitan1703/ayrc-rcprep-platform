@@ -54,6 +54,7 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/rcs', rcRoutes)
 app.use('/api/v1/attempts', attemptRoutes)
 app.use('/api/v1/feedback', feedbackRoutes)
+app.use('/api/v1/admin/feedback', feedbackRoutes) // Admin feedback routes
 app.use('/api/v1/admin', adminRoutes)
 
 app.use(notFound)

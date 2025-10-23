@@ -249,6 +249,16 @@ function SidebarContent({
               >
                 {'Feedback'}
               </Item>
+
+              <Item
+                to="admin/feedback/new"
+                icon={BarChart2}
+                expanded={expanded}
+                compact={compact}
+                mobile={mobile}
+              >
+                {'Create Feedback Q'}
+              </Item>
             </>
           ) : (
             <>

@@ -3,6 +3,7 @@ import { FeedbackQuestion } from '../models/FeedbackQuestion.js'
 import { success, badRequest } from '../utils/http.js'
 import { startOfIST } from '../utils/date.js'
 import { z } from 'zod'
+import mongoose from 'mongoose'
 
 // Schema for dynamic answers
 const answerSchema = z.array(
@@ -19,10 +20,13 @@ const answerSchema = z.array(
 export async function submitFeedback(req, res, next) {
   try {
     // Handle both formats: direct array or { answers: array }
-    const answersPayload = Array.isArray(req.body) ? req.body : req.body.answers
-    const answers = answerSchema.parse(answersPayload)
+    const answersPayload = Array.isArray(req.body) ? req.body : req.body?.answers
 
-    if (!answers || answers.length === 0) return badRequest(res, 'No answers provided')
+    if (!answersPayload || !Array.isArray(answersPayload) || answersPayload.length === 0) {
+      return badRequest(res, 'No answers provided')
+    }
+
+    const answers = answerSchema.parse(answersPayload)
 
     const today = startOfIST()
 
@@ -178,6 +182,82 @@ export async function deleteFeedbackQuestion(req, res, next) {
     if (!question) return badRequest(res, 'Question not found')
 
     return success(res, { ok: true })
+  } catch (e) {
+    next(e)
+  }
+}
+
+// -----------------------------
+// ADMIN: (Optional) Manually Archive a feedback question
+// -----------------------------
+export async function archiveFeedbackQuestion(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error(`Invalid question ID for archive: ${id}`);
+      return badRequest(res, { message: 'Invalid question ID format' });
+    }
+    console.log(`Received PATCH request to archive question ID: ${id}`);
+    const question = await FeedbackQuestion.findByIdAndUpdate(
+      id,
+      { status: 'archived' },
+      { new: true }
+    );
+    if (!question) {
+      console.error(`Question not found for archive: ${id}`);
+      return notFoundErr(res, { message: 'Question not found' });
+    }
+    console.log(`Successfully archived question: ${id}`);
+    return success(res, { message: 'Question archived successfully', question });
+  } catch (e) {
+    console.error('Error in archiveFeedbackQuestion:', e);
+    next(e);
+  }
+}
+
+
+// ADMIN: Get all feedback questions
+export async function getAllFeedbackQuestions(req, res, next) {
+  try {
+    // Optional: restrict to admin only
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only admins can access feedback questions' });
+    }
+
+    
+    // // ✅ Update all questions where status is 'published' → 'live'
+    // await FeedbackQuestion.updateMany(
+    //   { status: 'published' },
+    //   { $set: { status: 'live' } }
+    // )
+
+    // Fetch all questions, no filters
+    const questions = await FeedbackQuestion.find().sort({ createdAt: -1 });
+
+    return success(res, { questions });
+  } catch (e) {
+    next(e);
+  }
+}
+// -----------------------------
+// ADMIN: Republish archived/draft question
+// -----------------------------
+export async function republishFeedbackQuestion(req, res, next) {
+  try {
+    if (req.user.role !== 'admin') {
+      return badRequest(res, 'Only admins can republish feedback questions')
+    }
+
+    const { id } = req.params;
+    const { date } = req.body; // Optional new date
+    const updateData = { status: 'live' };
+    if (date) updateData.date = new Date(date);
+    const question = await FeedbackQuestion.findByIdAndUpdate(id, updateData, { new: true });
+    if (!question) throw notFoundErr('Question not found');
+    return success(res, {
+      message: 'Question republished successfully',
+      question,
+    })
   } catch (e) {
     next(e)
   }
