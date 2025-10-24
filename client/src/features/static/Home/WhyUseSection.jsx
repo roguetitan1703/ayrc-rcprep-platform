@@ -1,15 +1,22 @@
 import React from 'react';
-import { Award, CheckCircle2, Target, Tag, PieChart, Settings } from 'lucide-react';
+import { Award, CheckCircle2, Target, Tag, PieChart, Settings, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function WhyUseSection() {
   const features = [
-    { icon: Award, title: "Curated by Experts", description: "Every passage and question is carefully selected and reviewed by experienced educators who understand competitive exam patterns.", stat: "100%", statLabel: "Expert-verified" },
-    { icon: CheckCircle2, title: "Quality Explanations", description: "Detailed explanations for every answer help you understand not just what's correct, but why. Learn the reasoning behind each solution.", stat: "Detailed", statLabel: "Step-by-step" },
-    { icon: Target, title: "Exam-Level Difficulty", description: "Practice with passages that mirror the actual difficulty and style of CAT, XAT, and other competitive exams.", stat: "Real", statLabel: "Exam patterns" },
-    { icon: Tag, title: "Topic Tagging & Tracking", description: "Identify your strengths and weaknesses with intelligent topic categorization. Focus on areas that need improvement.", stat: "Smart", statLabel: "Analytics" },
-    { icon: PieChart, title: "Instant Result Analysis", description: "Get immediate feedback on your performance. See your accuracy, time management, and areas of improvement in real-time.", stat: "Live", statLabel: "Feedback" },
-    { icon: Settings, title: "Admin Portal", description: "Powerful admin tools for uploading content, managing passages, and maintaining quality standards across the platform.", stat: "Full", statLabel: "Control" }
+    { icon: Award, title: "Curated by Experts", description: "Every passage is selected and refined by experienced educators to mirror real CAT-level comprehension standards.", stat: "100%", statLabel: "Expert-verified" },
+    { icon: CheckCircle2, title: "Instant Feedback & Explanations", description: "Get immediate performance feedback and clear, detailed explanations for every answer help you learn the reasoning behind each solution.", stat: "Detailed", statLabel: "Feedback" },
+    { icon: Target, title: "Exam-Level Practice Sets", description: "Practice with passages that match real CAT/XAT difficulty, tone, and logic for authentic preparation", stat: "Real", statLabel: "Exam patterns" },
+    { icon: Tag, title: "Topic Tagging & Tracking", description: "Identify your strengths and weaknesses with intelligent topic categorization. Focus on areas that need improvement.", stat: "Smart", statLabel: "Tracking" },
+    { icon: PieChart, title: "Progress Tracking Dashboard", description: "Track your performance across accuracy, speed, and topics — see your growth over time.", stat: "Live", statLabel: "Insights" },
+   {
+    icon: Zap,
+    title: "Adaptive Learning Experience",
+    description:
+      "Receive structured practice suggestions and difficulty-balanced sets that adapt to your performance and learning pace for goal-oriented smarter prep.",
+    stat: "Planned",
+    statLabel: "Learning path",
+  },
   ];
 
   return (
@@ -87,28 +94,7 @@ export default function WhyUseSection() {
           })}
         </div>
 
-        {/* Bottom Highlights */}
-        <div className="mt-16 bg-card-surface rounded-2xl p-8 border border-border-soft">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary mb-2">100+</div>
-              <div className="text-text-secondary text-sm">RC Passages</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-success-green mb-2">24/7</div>
-              <div className="text-text-secondary text-sm">Access</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-accent-amber mb-2">Daily</div>
-              <div className="text-text-secondary text-sm">New Content</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary-dark mb-2">Free</div>
-              <div className="text-text-secondary text-sm">Forever</div>
-            </div>
-          </div>
-        </div>
-
+        
         {/* CTA */}
         <div className="mt-12 text-center">
           <Link to="/register">

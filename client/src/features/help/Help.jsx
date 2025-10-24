@@ -1,5 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState , useEffect} from 'react'
 import { Search, ChevronDown, ChevronRight, BookOpen, Target, Award, CreditCard, AlertCircle, HelpCircle, Star } from 'lucide-react'
+import Navbar from '../../components/layout/StaticNavbar'       
+import Footer from '../../components/layout/Footer'        
+import { useLocation } from 'react-router-dom'
 
 // Help content data
 const helpSections = [
@@ -181,6 +184,26 @@ export default function Help() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedSection, setExpandedSection] = useState('getting-started')
   const [expandedArticle, setExpandedArticle] = useState(null)
+  const [isDashboard, setIsDashboard] = useState(false)
+  const location = useLocation()
+
+  // ✅ Detect if opened inside dashboard (Shell)
+  useEffect(() => {
+    // Simple heuristic: if path starts with /dashboard, /test, etc. it’s inside app shell
+    const dashboardPaths = [
+      '/dashboard',
+      '/analysis',
+      '/results',
+      '/archive',
+      '/performance',
+      '/subscriptions',
+      '/profile',
+      '/leaderboard',
+    ]
+    const inside = dashboardPaths.some((path) => location.pathname.startsWith(path))
+    setIsDashboard(inside)
+  }, [location])
+
 
   // Filter sections and articles based on search
   const filteredSections = helpSections.map(section => ({
@@ -209,7 +232,7 @@ export default function Help() {
     })
   }
 
-  return (
+  const HelpContent = (
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -363,4 +386,15 @@ export default function Help() {
       </div>
     </div>
   )
+    // ✅ Return correct layout depending on context
+  return isDashboard ? (
+    HelpContent
+  ) : (
+    <>
+      <Navbar />
+     <div className='p-6 mx-auto'>{HelpContent}</div>
+      <Footer /> 
+    </>
+  )
+
 }

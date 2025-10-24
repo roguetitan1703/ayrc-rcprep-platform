@@ -14,14 +14,14 @@ export default function HomePage(){
   return (
     <>
     <HeroSection/>
-   <FeaturesOverview/>
+   {/* <FeaturesOverview/> */}
     <HowItWorks/>
     <WhyUseSection/>
     <SampleRCPreview/>
-    <RcCounter/>
-    <VideoSection/>
-    <AboutPreview/>
-    <TestimonialsSection/>
+    {/* <RcCounter/> */}
+    {/* <VideoSection/> */}
+    {/* <AboutPreview/> */}
+    {/* <TestimonialsSection/> */}
     <FinalCTABanner/>
    
     </>

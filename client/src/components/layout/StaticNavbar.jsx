@@ -10,11 +10,11 @@ export default function StaticNavbar() {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/about', label: 'About' },
-    { to: '/pricing', label: 'Pricing' },
+    // { to: '/pricing', label: 'Pricing' },
     { to: '/contact', label: 'Contact' },
-    { to: '/privacy', label: 'Privacy' },
-    { to: '/terms', label: 'Terms' },
-    { to: '/refund-policy', label: 'Refund Policy' },
+    // { to: '/privacy', label: 'Privacy' },
+    // { to: '/terms', label: 'Terms' },
+    // { to: '/refund-policy', label: 'Refund Policy' },
   ]
 
   const isActive = (path) => location.pathname === path
