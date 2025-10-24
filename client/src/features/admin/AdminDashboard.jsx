@@ -15,7 +15,7 @@ ChartJS.register(
   LinearScale,
   BarElement,
   PointElement,
-  LineElement, 
+  LineElement,
   ArcElement,
   Tooltip,
   Legend
@@ -48,6 +48,7 @@ export default function AdminDashboard() {
         const { data: rcsData } = await api.get('/admin/rcs')
         setRcs(rcsData)
         const { data: analyticsData } = await api.get('/users/me/dashboard')
+        console.log('Admin dashboard analytics:', analyticsData)
         setAnalytics(analyticsData.analytics || {})
         // Fetch feedback data
         try {
@@ -90,10 +91,18 @@ export default function AdminDashboard() {
       <div className="w-full p-6 md:p-8 space-y-8">
         <Skeleton className="h-16 w-1/2" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-24" />)}
+          {Array(6)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-80" />)}
+          {Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} className="h-80" />
+            ))}
         </div>
       </div>
     )
@@ -119,7 +128,9 @@ export default function AdminDashboard() {
         {/* Total RCs */}
         <Card>
           <CardContent className="bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Total RCs</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Total RCs
+            </div>
             <div className="text-3xl font-bold text-text-primary">{total}</div>
             <div className="text-xs text-success-green flex items-center gap-1 mt-2">
               ▲ +5% this week
@@ -141,7 +152,9 @@ export default function AdminDashboard() {
         {/* Active Users */}
         <Card>
           <CardContent className="bg-gradient-to-br from-accent-amber/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Active Users</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Active Users
+            </div>
             <div className="text-3xl font-bold text-primary">
               {analytics?.activeUsersToday ?? 9}
             </div>
@@ -152,7 +165,9 @@ export default function AdminDashboard() {
         {/* Attempts Today */}
         <Card>
           <CardContent className="bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Attempts Today</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Attempts Today
+            </div>
             <div className="text-3xl font-bold text-accent-amber">
               {analytics?.attemptsToday ?? 8}
             </div>
@@ -165,7 +180,9 @@ export default function AdminDashboard() {
         {/* Avg Accuracy % */}
         <Card>
           <CardContent className="bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Avg Accuracy %</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Avg Accuracy %
+            </div>
             <div className="text-3xl font-bold text-success-green">
               {analytics?.avgAccuracy ?? 82}%
             </div>
@@ -178,7 +195,9 @@ export default function AdminDashboard() {
         {/* Retention Rate */}
         <Card>
           <CardContent className="bg-gradient-to-br from-accent-amber/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Retention Rate</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Retention Rate
+            </div>
             <div className="text-3xl font-bold text-primary">{analytics?.retentionRate ?? 67}%</div>
             <div className="text-xs text-success-green flex items-center gap-1 mt-2">
               ▲ +0.8% this week
@@ -208,13 +227,13 @@ export default function AdminDashboard() {
                   ],
                 }}
                 options={{
-                  plugins: { 
+                  plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' }
+                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                   },
-                  scales: { 
-                    x: { grid: { display: false }, ticks: { color: '#5C6784' } }, 
-                    y: { beginAtZero: true, ticks: { color: '#5C6784' } } 
+                  scales: {
+                    x: { grid: { display: false }, ticks: { color: '#5C6784' } },
+                    y: { beginAtZero: true, ticks: { color: '#5C6784' } },
                   },
                   responsive: true,
                   maintainAspectRatio: false,
@@ -261,13 +280,13 @@ export default function AdminDashboard() {
                   ],
                 }}
                 options={{
-                  plugins: { 
+                  plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' }
+                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                   },
-                  scales: { 
-                    x: { grid: { display: false }, ticks: { color: '#5C6784' } }, 
-                    y: { beginAtZero: true, ticks: { color: '#5C6784' } } 
+                  scales: {
+                    x: { grid: { display: false }, ticks: { color: '#5C6784' } },
+                    y: { beginAtZero: true, ticks: { color: '#5C6784' } },
                   },
                   responsive: true,
                   maintainAspectRatio: false,
@@ -312,9 +331,9 @@ export default function AdminDashboard() {
                   ],
                 }}
                 options={{
-                  plugins: { 
+                  plugins: {
                     legend: { position: 'bottom', labels: { color: '#5C6784', padding: 12 } },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' }
+                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                   },
                   responsive: true,
                   maintainAspectRatio: false,
@@ -369,9 +388,13 @@ export default function AdminDashboard() {
           {filtered.length === 0 ? (
             <div className="py-12 text-center">
               <div className="text-lg font-medium mb-2">No RCs found</div>
-              <div className="text-sm text-text-secondary mb-4">Try adjusting your filters or upload a new RC.</div>
+              <div className="text-sm text-text-secondary mb-4">
+                Try adjusting your filters or upload a new RC.
+              </div>
               <div className="flex items-center justify-center gap-2">
-                <Button onClick={() => setStatusFilter('all')} variant="outline">Reset Filters</Button>
+                <Button onClick={() => setStatusFilter('all')} variant="outline">
+                  Reset Filters
+                </Button>
                 <Button onClick={() => nav('/admin/rcs/new')}>Upload New RC</Button>
               </div>
             </div>
@@ -402,14 +425,15 @@ export default function AdminDashboard() {
                         <div className="text-xs text-text-secondary mt-1">{rc._id}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {rc.scheduledDate
-                          ? new Date(rc.scheduledDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })
-                          : <span className="text-text-secondary/60">Unscheduled</span>
-                        }
+                        {rc.scheduledDate ? (
+                          new Date(rc.scheduledDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })
+                        ) : (
+                          <span className="text-text-secondary/60">Unscheduled</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge
@@ -451,7 +475,9 @@ export default function AdminDashboard() {
                                 const { data } = await api.get(`/admin/rcs/${rc._id}/analytics`)
                                 setModalRcAnalytics(data)
                               } catch (e) {
-                                setModalRcAnalytics({ error: e?.response?.data?.error || e.message })
+                                setModalRcAnalytics({
+                                  error: e?.response?.data?.error || e.message,
+                                })
                               }
                             }}
                           >
@@ -505,8 +531,14 @@ export default function AdminDashboard() {
                   <Line
                     options={{
                       responsive: true,
-                      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' } },
-                      scales: { x: { display: false }, y: { display: true, ticks: { color: '#5C6784' } } },
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
+                      },
+                      scales: {
+                        x: { display: false },
+                        y: { display: true, ticks: { color: '#5C6784' } },
+                      },
                       maintainAspectRatio: false,
                     }}
                     data={{

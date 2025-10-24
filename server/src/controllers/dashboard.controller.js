@@ -273,6 +273,7 @@ export async function dashboardBundle(req, res, next) {
 
     // If admin, return platform-wide analytics
     if (user && user.role === 'admin') {
+      console.log('Admin dashboard bundle requested by', userId)
       // Basic stats (official attempts across platform)
       const attemptsAll = await Attempt.find({ attemptType: 'official' }).select(
         'score attemptedAt'

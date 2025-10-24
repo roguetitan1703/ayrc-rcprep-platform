@@ -36,8 +36,8 @@ const userSchema = new mongoose.Schema(
     // Subscription fields
     subscription: {
       type: String,
-      enum: ['Yearly', 'Monthly', 'Quarterly', 'Half-Yearly', 'none'],
-      default: 'none',
+      enum: ['free', 'weekly', 'cat2026'],
+      default: 'free',
     },
     subon: Date,
     subexp: Date,

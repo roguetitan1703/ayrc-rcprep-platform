@@ -10,6 +10,7 @@ import {
   Trophy,
   Grid,
   PlusCircle,
+  BarChart3,
 } from 'lucide-react'
 import React, { useState, useEffect, useRef, useContext } from 'react'
 
@@ -251,8 +252,8 @@ function SidebarContent({
               </Item>
 
               <Item
-                to="admin/feedback/new"
-                icon={BarChart2}
+                to="/admin/feedback/new"
+                icon={BarChart3}
                 expanded={expanded}
                 compact={compact}
                 mobile={mobile}

@@ -113,23 +113,23 @@ export default function FeedbackForm() {
 
   if (loading)
     return (
-      <div className="max-w-4xl mx-auto py-6">
-        <Card>
+      <div className="md:pl-[var(--arc-sidebar-width,16rem)] py-6">
+        <Card className="max-w-5xl">
           <CardHeader>
             <h1 className="h4">{isEdit ? 'Edit Feedback' : 'Create Feedback'}</h1>
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-10 w-full mb-3" />
+            <Skeleton className="h-10 w-3/4 mb-3" />
             <Skeleton className="h-10 w-1/2 mb-3" />
-            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-3/4" />
           </CardContent>
         </Card>
       </div>
     )
 
   return (
-    <div className="max-w-5xl mx-auto py-6">
-      <Card>
+    <div className="md:pl-[var(--arc-sidebar-width,16rem)] py-6">
+      <Card className="max-w-5xl">
         <CardHeader>
           <h1 className="h4">{isEdit ? 'Edit Feedback' : 'Create Feedback'}</h1>
         </CardHeader>
@@ -163,7 +163,6 @@ export default function FeedbackForm() {
                 </select>
               </div>
 
-              {/* Options for multi-choice */}
               {currentQ.type === 'multi' && (
                 <div className="space-y-1">
                   <label className="block text-sm mb-1">Options (comma separated)</label>
@@ -233,7 +232,6 @@ export default function FeedbackForm() {
               </Button>
             </div>
 
-            {/* Added Questions Preview */}
             {form.questions.length > 0 && (
               <div className="mt-4 space-y-3">
                 <h3 className="font-semibold text-md">Added Questions:</h3>
