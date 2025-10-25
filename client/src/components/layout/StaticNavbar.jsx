@@ -10,11 +10,11 @@ export default function StaticNavbar() {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/about', label: 'About' },
-    { to: '/pricing', label: 'Pricing' },
+    // { to: '/pricing', label: 'Pricing' },
     { to: '/contact', label: 'Contact' },
-    { to: '/privacy', label: 'Privacy' },
-    { to: '/terms', label: 'Terms' },
-    { to: '/refund-policy', label: 'Refund Policy' },
+    // { to: '/privacy', label: 'Privacy' },
+    // { to: '/terms', label: 'Terms' },
+    // { to: '/refund-policy', label: 'Refund Policy' },
   ]
 
   const isActive = (path) => location.pathname === path
@@ -26,7 +26,7 @@ export default function StaticNavbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
           <Logo className="h-6 w-6" />
-          <span className="font-bold text-lg">ARC</span>
+          <span className="font-bold text-lg">ARYC</span>
         </Link>
 
         {/* Desktop Navigation */}

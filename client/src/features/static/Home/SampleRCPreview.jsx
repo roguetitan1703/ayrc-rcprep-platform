@@ -122,26 +122,7 @@ export default function SampleRCPreview() {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-12 text-center">
-          <div className="inline-block bg-card-surface rounded-2xl p-8 border border-neutral-grey border-opacity-20">
-            <h3 className="text-2xl font-bold text-text-primary mb-3">
-              Ready to Practice More?
-            </h3>
-            <p className="text-text-secondary mb-6 max-w-md mx-auto">
-              Get access to 100+ passages like this with instant feedback and detailed explanations
-            </p>
-            <Link to="/register">
-            <button className="inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-lg text-lg shadow-lg hover:bg-primary-dark transform hover:scale-105 transition-all duration-200">
-              Create Free Account
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            </Link>
-            <p className="mt-4 text-text-secondary text-sm">
-              No credit card required • Start practicing in 30 seconds
-            </p>
-          </div>
-        </div>
+        
       </div>
     </section>
   );

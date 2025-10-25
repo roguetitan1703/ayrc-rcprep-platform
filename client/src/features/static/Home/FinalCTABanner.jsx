@@ -90,22 +90,6 @@ export default function FinalCTABanner() {
           <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-white rounded-full blur-3xl opacity-20"></div>
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-white rounded-full blur-3xl opacity-20"></div>
         </div>
-
-        {/* Bottom Mini Stats */}
-        <div className="mt-12 grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-bold text-primary-light mb-1">5K+</div>
-            <div className="text-sm text-text-secondary">Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-bold text-success-green mb-1">100+</div>
-            <div className="text-sm text-text-secondary">RC Passages</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-bold text-accent-amber mb-1">4.9/5</div>
-            <div className="text-sm text-text-secondary">User Rating</div>
-          </div>
-        </div>
       </div>
     </section>
   );

@@ -17,6 +17,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import AboutPreview from './Home/AboutPreview'
 
 export default function AboutPage() {
   const features = [
@@ -58,34 +59,7 @@ export default function AboutPage() {
     },
   ]
 
-  const stats = [
-    {
-      icon: <Users className="w-6 h-6 sm:w-8 sm:h-8" />,
-      number: '5000+',
-      label: 'Active Users',
-      gradient: 'bg-gradient-to-r from-primary to-accent-amber',
-    },
-    {
-      icon: <FileText className="w-6 h-6 sm:w-8 sm:h-8" />,
-      number: '1000+',
-      label: 'RC Passages',
-      gradient: 'bg-gradient-to-r from-success-green to-info-blue',
-    },
-    {
-      icon: <Award className="w-6 h-6 sm:w-8 sm:h-8" />,
-      number: '50+',
-      label: 'Topics Covered',
-      gradient: 'bg-gradient-to-r from-warm-orange to-accent-amber',
-    },
-    {
-      icon: <Globe className="w-6 h-6 sm:w-8 sm:h-8" />,
-      number: '100%',
-      label: 'Free Forever',
-      gradient: 'bg-gradient-to-r from-info-blue to-success-green',
-    },
-  ]
-
-    return (
+   return (
     <div className="min-h-screen">
       {/* Background decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -113,56 +87,10 @@ export default function AboutPage() {
           </div>
 
           {/* Mission Statement */}
-          <div className="mb-12 sm:mb-16 lg:mb-20">
-            <div className="flex justify-center mb-6 sm:mb-8">
-              <div className="mt-16">
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md"
-                >
-                  <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </motion.div>
-              </div>
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary text-center mb-8 sm:mb-12 px-4">
-              Our Mission
-            </h2>
-
-            <div className="bg-card-surface bg-opacity-50 backdrop-blur-sm p-6 sm:p-8 lg:p-12 rounded-2xl border border-white border-opacity-10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-gradient-to-br from-primary to-primary-light rounded-full blur-3xl opacity-10"></div>
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <div className="p-2 sm:p-3 bg-gradient-to-br from-primary to-primary-light rounded-lg flex-shrink-0">
-                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-text-primary">
-                    Why ARC Exists
-                  </h3>
-                </div>
-
-                <div className="space-y-4 text-text-secondary text-base sm:text-lg leading-relaxed">
-                  <p>
-                    At ARC RC Prep, we believe consistent reading practice is the most effective way
-                    to improve comprehension skills — especially for competitive exams like CAT,
-                    GRE, and more. Yet, many students struggle with finding structured, quality RC
-                    content without distractions or paywalls.
-                  </p>
-                  <p>
-                    That's why we built ARC: to provide a{' '}
-                    <span className="text-primary font-semibold">
-                      simple, effective, and open platform
-                    </span>{' '}
-                    where you can practice, reflect, and grow.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          <AboutPreview/>
+     
           {/* What We Offer - Features Grid */}
-          <div className="mb-12 sm:mb-16 lg:mb-20">
+          {/* <div className="mb-12 sm:mb-16 lg:mb-20">
             <div className="text-center mb-8 sm:mb-12 px-4">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
                 What We Offer
@@ -190,74 +118,11 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
-          {/* Stats Section - Responsive */}
-          <div className="mb-12 sm:mb-16 lg:mb-20">
-            <div className="text-center mb-8 sm:mb-12 px-4">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
-                Our Impact
-              </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">
-                Numbers that speak for themselves why we
-              </p>
-            </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="text-center p-4 sm:p-6 bg-card-surface bg-opacity-50 backdrop-blur-sm rounded-xl border border-white border-opacity-10 hover:border-opacity-20 transition-all duration-300 group hover:transform hover:scale-105"
-                >
-                  <div
-                    className={`inline-flex p-3 sm:p-4 bg-gradient-to-br ${stat.gradient} rounded-full mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}
-                  >
-                    {stat.icon}
-                  </div>
-                  <div
-                    className={`text-2xl sm:text-3xl lg:text-4xl font-semibold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-1 sm:mb-2`}
-                  >
-                    {stat.number}
-                  </div>
-                  <div className="text-text-secondary text-sm sm:text-base lg:text-xl font-medium">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pull Quote - Responsive */}
-          <div className="mb-12 sm:mb-16 lg:mb-20">
-            <div className="text-center mb-8 sm:mb-12 px-4">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-2 sm:mb-3">
-                Our Philosophy
-              </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-text-secondary">
-                Why we do what we do
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-r from-primary via-primary-light to-accent-amber p-1 rounded-2xl">
-              <div className="bg-card-surface p-6 sm:p-8 lg:p-12 rounded-2xl">
-                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                  <div className="text-4xl sm:text-5xl lg:text-6xl text-primary leading-none flex-shrink-0">
-                    "
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-text-primary mb-3 sm:mb-4 leading-relaxed">
-                      Quality practice shouldn't be hidden behind paywalls. Everyone deserves access
-                      to effective learning tools.
-                    </p>
-                    <p className="text-text-secondary text-base sm:text-lg">— The ARC Team</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Technology & Methodology */}
-          <div className="mb-12 sm:mb-16 lg:mb-20">
+               {/* Technology & Methodology */}
+          <div className="my-12 sm:my-16 lg:my-20">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center mb-8 sm:mb-12 font-bold text-text-primary px-4">
               Technology & Methodology
             </h2>

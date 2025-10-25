@@ -48,6 +48,7 @@ export const routeConfig = [
   { path: '/pricing' },
   { path: '/privacy' },
   { path: '/terms' },
+  { path: '/help' },
   { path: '/refund-policy' },
   { path: '/login' },
   { path: '/register' },
@@ -61,11 +62,11 @@ export const routeConfig = [
   { path: '/test/today' },
   { path: '/results' },
   { path: '/results/:id' },
-  { path: '/analysis/:id' }, // ✅ ADDED - was missing!
+  { path: '/analysis/:id' }, 
   { path: '/feedback' },
   { path: '/leaderboard/global' },
   { path: '/leaderboard/local' },
-  { path: '/help' },
+  // { path: '/help' },
   { path: '/performance' },
   { path: '/subscriptions' },
   { path: '/profile' },
@@ -91,6 +92,7 @@ export default function AppRoutes() {
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+       <Route path="/get-help" element={<Help />} />
       <Route path="/refund-policy" element={<Refund />} />
 
       {/* Auth routes - No Shell */}

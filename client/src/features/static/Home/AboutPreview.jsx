@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Users, Target, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion'
 
 export default function AboutPreview() {
   const values = [
@@ -27,17 +28,30 @@ export default function AboutPreview() {
   ];
 
   return (
-    <section className="bg-background py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section className='py-20 px-4 sm:px-6 lg:px-8'>
       {/* Background decorative */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/3 -left-32 w-64 h-64 bg-primary opacity-10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/3 -right-32 w-64 h-64 bg-primary-light opacity-10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="max-w-5xl mx-auto relative">
+      <div >
         {/* Card */}
         <div className="bg-card-surface rounded-3xl border border-border-soft shadow-card-hover overflow-hidden">
           <div className="p-8 sm:p-12">
+            <div className="mb-10 sm:mb-14 lg:mb-16">
+            <div className="flex justify-center mb-6 sm:mb-8">
+                          <div className="mt-16">
+                            <motion.div
+                              animate={{ y: [0, -8, 0] }}
+                              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md"
+                            >
+                              <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                            </motion.div>
+                          </div>
+                        </div>
+                        </div>
             {/* Header */}
             <div className="text-center mb-10">
               <div className="inline-block mb-4">

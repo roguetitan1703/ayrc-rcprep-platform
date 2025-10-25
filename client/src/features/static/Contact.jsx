@@ -1,42 +1,48 @@
 import StaticPage from '../../components/layout/StaticPage'
-import React, { useState } from 'react';
-import { Mail, MapPin, Phone, Send, MessageSquare, Clock, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react'
+import { Mail, MapPin, Phone, Send, MessageSquare, Clock, CheckCircle } from 'lucide-react'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: ''
-  });
-  const [submitted, setSubmitted] = useState(false);
+    message: '',
+  })
+  const [submitted, setSubmitted] = useState(false)
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
+    e.preventDefault()
+    setSubmitted(true)
     setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
-  };
+      setSubmitted(false)
+      setFormData({ name: '', email: '', subject: '', message: '' })
+    }, 3000)
+  }
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+      [e.target.name]: e.target.value,
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-surface-muted">
       <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-28 h-28 bg-info-blue rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-28 h-28 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-1/2 w-28 h-28 bg-warm-orange rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{animationDelay: '4s'}}></div>
+        <div
+          className="absolute top-40 right-10 w-28 h-28 bg-primary rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"
+          style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute bottom-20 left-1/2 w-28 h-28 bg-warm-orange rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"
+          style={{ animationDelay: '4s' }}
+        ></div>
       </div>
 
-      <StaticPage 
-        title="Get in Touch" 
+      <StaticPage
+        title="Get in Touch"
         subtitle="Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
       >
         <div className="mt-12 grid md:grid-cols-2 gap-8 text-left">
@@ -44,13 +50,16 @@ export default function ContactPage() {
             {/* Card 1 */}
             <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-gradient-to-br from-info-blue to-success-green rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <div className="p-3 bg-gradient-to-br from-info-blue to-info-blue/30 rounded-lg group-hover:scale-110 transition-transform duration-300">
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Email Us</h3>
                   <p className="text-text-secondary mb-2">Send us an email anytime!</p>
-                  <a href="mailto:support@arcrcprep.com" className="text-info-blue hover:text-primary transition-colors">
+                  <a
+                    href="mailto:support@arcrcprep.com"
+                    className="text-info-blue hover:text-primary transition-colors"
+                  >
                     support@arcrcprep.com
                   </a>
                 </div>
@@ -60,7 +69,7 @@ export default function ContactPage() {
             {/* Card 2 */}
             <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-gradient-to-br from-warm-orange to-accent-amber rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <div className="p-3 bg-gradient-to-br from-accent-amber to-accent-amber/40 rounded-lg group-hover:scale-110 transition-transform duration-300">
                   <Clock className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -74,15 +83,36 @@ export default function ContactPage() {
             {/* Card 3 */}
             <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-gradient-to-br from-success-green to-info-blue rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <div className="p-3 bg-gradient-to-br from-success-green to-success-green/30 rounded-lg group-hover:scale-110 transition-transform duration-300">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Location</h3>
                   <p className="text-text-secondary">
-                    Raipur, Chhattisgarh<br />
+                    Raipur, Chhattisgarh
+                    <br />
                     India
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4 - Feedback & Suggestions */}
+            <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-gradient-to-br from-primary to-primary/40 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-text-primary mb-2">
+                    Feedback & Suggestions
+                  </h3>
+                  <p className="text-text-secondary mb-2">
+                    Your input helps us improve. We’d love to hear your thoughts.
+                  </p>
+                  <a href="#" className="text-success-green hover:text-primary transition-colors">
+                    Share Feedback
+                  </a>
                 </div>
               </div>
             </div>
@@ -92,10 +122,10 @@ export default function ContactPage() {
           <div className="relative">
             <div className="bg-background bg-opacity-50 backdrop-blur-sm p-8 rounded-xl border border-border-soft relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-info-blue to-primary opacity-5"></div>
-              
+
               <div className="relative z-10">
                 <h3 className="text-2xl font-semibold text-text-primary mb-6">Send us a Message</h3>
-                
+
                 {submitted ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <div className="bg-success-green bg-opacity-20 p-4 rounded-full mb-4">
@@ -181,12 +211,15 @@ export default function ContactPage() {
         <div className="mt-16 text-center">
           <p className="text-text-secondary mb-4">
             Looking for quick answers? Check out our{' '}
-            <a href="/faq" className="text-info-blue hover:text-primary transition-colors font-medium">
+            <a
+              href="/faq"
+              className="text-info-blue hover:text-primary transition-colors font-medium"
+            >
               Frequently Asked Questions
             </a>
           </p>
         </div>
       </StaticPage>
     </div>
-  );
+  )
 }
