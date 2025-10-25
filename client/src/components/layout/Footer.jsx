@@ -1,5 +1,7 @@
 import React from 'react'
 import { BookOpen, Mail, Twitter, Linkedin, Facebook, Instagram } from 'lucide-react'
+import Logo from "../ui/Logo";
+import { Link } from 'react-router-dom'
 
 export default function Footer() {
   const footerLinks = {
@@ -36,12 +38,12 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="sm:col-span-2">
             {/* Logo */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-light flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl sm:text-2xl font-bold text-text-primary">ARC Prep</span>
-            </div>
+             <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                            <Link to="/" className="flex items-center gap-3 no-underline focus:outline-none focus:ring-2 focus:ring-primary/30 rounded">
+                              <Logo className="w-8 h-8 sm:w-9 sm:h-9 text-primary" />
+                              <div className="text-base sm:text-lg font-bold text-text-primary">ARYC</div>
+                            </Link>
+                          </div>
 
             {/* Description */}
             <p className="text-text-secondary mb-6 max-w-sm text-sm sm:text-base">

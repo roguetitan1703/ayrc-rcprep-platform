@@ -8,7 +8,7 @@ import VideoSection from "./VideoSection";
 import FinalCTABanner from "./FinalCTABanner";
 import TestimonialsSection from "./Testimonials";
 import FeaturesOverview from "./Overview";
-import Footer from "../../../components/layout/Footer";
+
 
 export default function HomePage(){
   return (
