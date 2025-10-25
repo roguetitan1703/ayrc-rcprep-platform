@@ -1,3 +1,4 @@
+ 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
 import { Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -16,46 +17,103 @@ import { FullscreenRequired } from './components/FullscreenRequired'
 import { InstructionsModal } from './components/InstructionsModal'
 import { OtherInstructionsModal } from './components/OtherInstructionsModal'
 import { FullscreenExitedModal } from './components/FullscreenExitedModal'
+import PreventBackModal from './components/PreventBackModal'
 
 export default function Test() {
-  const { id } = useParams()
-  const { search } = useLocation()
-  const params = new URLSearchParams(search)
-  const mode = params.get('mode')
-  const isPractice = mode === 'practice' || params.get('practice') === '1'
-  const isPreview = mode === 'preview' || params.get('preview') === '1'
-  const [rc, setRc] = useState(null)
-  const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''))
-  const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
-  const [visited, setVisited] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
-  const [qIndex, setQIndex] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS)
-  const [startedAt, setStartedAt] = useState(null)
-  const [questionTimers, setQuestionTimers] = useState(
-    Array.from({ length: QUESTION_COUNT }, () => 0)
-  ) // seconds per question
-  const questionStartRef = useRef(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [revealAnswers, setRevealAnswers] = useState(false)
-  const nav = useNavigate()
-  const toast = useToast()
-  const intervalRef = useRef(null)
-  const autosaveRef = useRef(null)
 
+  // --- All state and const declarations at the top ---
+  // Prevent back navigation modal state
+  const [showPreventBack, setShowPreventBack] = useState(false);
+  const { id } = useParams();
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const mode = params.get('mode');
+  const isPractice = mode === 'practice' || params.get('practice') === '1';
+  const isPreview = mode === 'preview' || params.get('preview') === '1';
+  const [rc, setRc] = useState(null);
+  const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''));
+  const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false));
+  const [visited, setVisited] = useState(Array.from({ length: QUESTION_COUNT }, () => false));
+  const [qIndex, setQIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS);
+  const [startedAt, setStartedAt] = useState(null);
+  const [questionTimers, setQuestionTimers] = useState(Array.from({ length: QUESTION_COUNT }, () => 0));
+  const questionStartRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [revealAnswers, setRevealAnswers] = useState(false);
+  const nav = useNavigate();
+  const toast = useToast();
+  const intervalRef = useRef(null);
+  const autosaveRef = useRef(null);
   // Fullscreen and Instructions State
-  const [showFullscreenRequired, setShowFullscreenRequired] = useState(!isPractice && !isPreview)
-  const [showInstructions, setShowInstructions] = useState(false)
-  const [showOtherInstructions, setShowOtherInstructions] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showFullscreenExited, setShowFullscreenExited] = useState(false)
-  const [testStarted, setTestStarted] = useState(false)
-  const [timerPaused, setTimerPaused] = useState(false)
+  const [showFullscreenRequired, setShowFullscreenRequired] = useState(!isPractice && !isPreview);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showOtherInstructions, setShowOtherInstructions] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreenExited, setShowFullscreenExited] = useState(false);
+  const [testStarted, setTestStarted] = useState(false);
+  const [timerPaused, setTimerPaused] = useState(false);
   // Window size check state
-  const [windowTooSmall, setWindowTooSmall] = useState(false)
-
+  const [windowTooSmall, setWindowTooSmall] = useState(false);
   // Sidebar collapse state
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // --- End of state/const declarations ---
+
+  // When modal closes, just hide it (user remains on test page)
+  const handleClosePreventBack = () => setShowPreventBack(false)
+
+
+  // Attach a single fullscreenchange listener for all fullscreen enforcement (instructions, other instructions, test)
+  useEffect(() => {
+    if (isPractice || isPreview) return;
+    function handleFullscreenChange() {
+      const isFs = document.fullscreenElement != null || document.webkitFullscreenElement != null || document.mozFullScreenElement != null || document.msFullscreenElement != null;
+      if (!isFs) {
+        if (testStarted) {
+          setTimerPaused(true);
+          setShowFullscreenExited(true);
+        } else {
+          // If in instructions or other instructions, close them and show fullscreen required
+          if (showInstructions) setShowInstructions(false);
+          if (showOtherInstructions) setShowOtherInstructions(false);
+          setShowFullscreenRequired(true);
+        }
+      }
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, [showInstructions, showOtherInstructions, isPractice, isPreview, testStarted]);
+
+  useEffect(() => {
+    if (!(testStarted && !isPractice && !isPreview)) return
+    // Push a dummy state if not already present
+    if (!window.history.state || !window.history.state.arcTestBlock) {
+      window.history.pushState({ arcTestBlock: true }, '')
+    }
+    const handlePopState = (e) => {
+      // Always push a new state to prevent back navigation
+      setShowPreventBack(true)
+      window.history.pushState({ arcTestBlock: true }, '')
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      // Clean up: go forward if user is stuck in dummy state
+      if (window.history.state && window.history.state.arcTestBlock) {
+        window.history.go(1)
+      }
+    }
+  }, [testStarted, isPractice, isPreview])
+
 
   useEffect(() => {
     ;(async () => {
@@ -326,31 +384,17 @@ export default function Test() {
         nav('/dashboard')
         return
       }
-      // For practice mode, compute score locally and show results without POSTing
+      // For practice mode, just exit fullscreen and do nothing else
       if (isPractice) {
-        // finalize timers
-        const nowP = Date.now()
-        const finalTimersP = [...questionTimers]
-        if (questionStartRef.current != null) {
-          const delta = Math.floor((nowP - questionStartRef.current) / 1000)
-          finalTimersP[qIndex] = (finalTimersP[qIndex] || 0) + delta
-        }
-        const normalizedP = answers.map((a) => (a === null ? '' : a))
-        let scoreP = 0
-        rc.questions.forEach((q, i) => {
-          if (normalizedP[i] && normalizedP[i] === q.correctAnswerId) scoreP += 1
-        })
-        const totalDurationP = Math.floor((nowP - (startedAt || nowP)) / 1000)
         try {
           localStorage.removeItem(LOCAL_PROGRESS_KEY(id))
         } catch {}
-        // Exit fullscreen when practice test is finished/submitted
         try {
           await exitFullscreen()
         } catch (err) {
-          console.error('Error exiting fullscreen before practice result nav:', err)
+          console.error('Error exiting fullscreen after practice', err)
         }
-        nav(`/results/${id}?practice=1&score=${scoreP}&time=${totalDurationP}`)
+        // No navigation to analysis or results in practice mode
         return
       }
       // finalize timers (compute synchronously so we can send correct payload)
@@ -396,7 +440,7 @@ export default function Test() {
       } catch (err) {
         console.error('Error exiting fullscreen before results nav:', err)
       }
-      nav(`/results/${id}?score=${data.score}&time=${TEST_DURATION_SECONDS - timeLeft}`)
+      nav(`/analysis/${id}`)
     } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
       setError(msg)
@@ -499,6 +543,7 @@ export default function Test() {
     return <InstructionsModal rc={rc} onNext={handleInstructionsNext} />
   }
 
+
   // Show other instructions screen
   if (showOtherInstructions && !isPractice && !isPreview) {
     return (
@@ -507,11 +552,12 @@ export default function Test() {
         onPrevious={handleOtherInstructionsPrevious}
         onStartTest={handleStartTest}
       />
-    )
+    );
   }
 
   return (
     <>
+      {showPreventBack && <PreventBackModal onClose={handleClosePreventBack} />}
       {/* Fullscreen exited modal overlay */}
       {showFullscreenExited && !isPractice && !isPreview && (
         <FullscreenExitedModal
@@ -720,39 +766,48 @@ export default function Test() {
             ← Back to Dashboard
           </Link>
           <div className="flex items-center gap-3">
-            {/* Mark for Review & Next */}
-            <button
-              onClick={handleMarkAndNext}
-              className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
-            >
-              Mark for Review & Next
-            </button>
-
-            {/* Clear Response */}
-            {answers[qIndex] && (
-              <button
-                onClick={handleClearResponse}
-                className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
-              >
-                Clear Response
-              </button>
-            )}
-
-            {/* Save & Next OR Submit */}
-            {qIndex < QUESTION_COUNT - 1 ? (
+            {/* Practice mode: Only show Next if not last question */}
+            {isPractice && qIndex < QUESTION_COUNT - 1 && (
               <button
                 onClick={handleSaveAndNext}
                 className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
               >
-                {isPractice || isPreview ? 'Next' : 'Save & Next'}
+                Next
               </button>
-            ) : (
-              <button
-                onClick={submit}
-                className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
-              >
-                {isPractice || isPreview ? 'Done' : 'Submit'}
-              </button>
+            )}
+            {/* Non-practice: Mark for Review, Clear, Next/Submit */}
+            {!isPractice && (
+              <>
+                <button
+                  onClick={handleMarkAndNext}
+                  className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
+                >
+                  Mark for Review & Next
+                </button>
+                {answers[qIndex] && (
+                  <button
+                    onClick={handleClearResponse}
+                    className="px-4 py-2.5 text-sm font-semibold text-text-primary bg-surface-muted border border-border-soft rounded hover:bg-neutral-grey/20 transition-colors"
+                  >
+                    Clear Response
+                  </button>
+                )}
+                {qIndex < QUESTION_COUNT - 1 ? (
+                  <button
+                    onClick={handleSaveAndNext}
+                    className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
+                  >
+                    {isPreview ? 'Next' : 'Save & Next'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={submit}
+                    className="px-5 py-2.5 bg-info-blue text-white font-bold text-sm rounded hover:bg-info-blue/90 transition-colors shadow-sm"
+                  >
+                    {isPreview ? 'Done' : 'Submit'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

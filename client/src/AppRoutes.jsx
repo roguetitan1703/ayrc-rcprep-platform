@@ -39,7 +39,6 @@ import HomePage from './features/static/Home/HomePage'
 import Shell from './components/layout/Shell'
 import NotFound from './components/layout/NotFound'
 import RcDraftsList from './features/admin/RcDraftList'
-import FeedbackForm from './features/admin/FeedbackForm'
 
 export const routeConfig = [
   // Static routes
@@ -128,7 +127,7 @@ export default function AppRoutes() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/archive" element={<Archive />} />
-        <Route path="/test/today" element={<TestToday />} />
+  <Route path="/test/today" element={<TestToday />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/results/:id" element={<Results />} />
         <Route path="/analysis/:id" element={<Analysis />} />
@@ -158,8 +157,6 @@ export default function AppRoutes() {
         <Route path="/admin/rcs/:id/analytics" element={<RcAnalyticsPage />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/feedback" element={<AdminFeedback />} />
-        <Route path="/admin/feedback/:id" element={<FeedbackForm />} />
-        <Route path="/admin/feedback/new" element={<FeedbackForm />} />
         <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
       </Route>
 

@@ -32,8 +32,8 @@ import { Search } from 'lucide-react'
 
 export default function AdminDashboard() {
   const [rcs, setRcs] = useState([])
-  const [analytics, setAnalytics] = useState(null)
-  const [feedback, setFeedback] = useState(null)
+  const [analytics, setAnalytics] = useState({})
+  const [feedback, setFeedback] = useState({ submitted: false, lockStatus: { lock: false } })
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -41,6 +41,23 @@ export default function AdminDashboard() {
   const [modalRc, setModalRc] = useState(null)
   const [modalRcAnalytics, setModalRcAnalytics] = useState(null)
   const nav = useNavigate()
+
+  // Defensive defaults for all analytics fields
+  const attemptsByDay = analytics.attemptsByDay ?? [];
+  const attemptsToday = analytics.attemptsToday ?? 0;
+  const attemptsWeek = analytics.attemptsWeek ?? 0;
+  const totalAttempts = analytics.totalAttempts ?? 0;
+  const activeUsersTrend = analytics.activeUsersTrend ?? [];
+  const activeUsersToday = analytics.activeUsersToday ?? 0;
+  const activeUsersWeek = analytics.activeUsersWeek ?? 0;
+  const avgAccuracy = analytics.avgAccuracy ?? 0;
+  const ratingsDist = analytics.ratingsDist ?? [];
+  const topics = analytics.topics ?? [];
+  const coverage = analytics.coverage ?? 0;
+  const reasons = analytics.reasons ?? { top: [] };
+  const attempts7d = analytics.attempts7d ?? 0;
+  const taggedWrong = analytics.taggedWrong ?? 0;
+  const totalWrong = analytics.totalWrong ?? 0;
 
   useEffect(() => {
     ;(async () => {
@@ -53,9 +70,9 @@ export default function AdminDashboard() {
         // Fetch feedback data
         try {
           const { data: feedbackData } = await api.get('/admin/feedback')
-          setFeedback(feedbackData)
+          setFeedback(feedbackData || { submitted: false, lockStatus: { lock: false } })
         } catch (e) {
-          // feedback endpoint may not exist, use defaults
+          setFeedback({ submitted: false, lockStatus: { lock: false } })
         }
       } catch (e) {
         console.error('Error loading dashboard data:', e)
@@ -111,96 +128,63 @@ export default function AdminDashboard() {
   return (
     <div className="w-full p-6 md:p-8 space-y-8">
       {/* Hero Section / Title */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-primary mb-2">
-          ARC Admin Dashboard
-        </h1>
-        <p className="text-base text-text-secondary max-w-3xl mx-auto">
-          Welcome to the ARC Reading Comprehension Platform Admin Panel.
-          <br />
-          <span className="font-semibold text-accent-amber">Monitor, manage, and analyze</span> all
-          RCs, user activity, and platform performance in one place.
-        </p>
+      <div className="w-full flex flex-col items-start mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">Admin Dashboard</h1>
+        <p className="text-sm text-text-secondary">Monitor, manage, and analyze all RCs, user activity, and platform performance in one place.</p>
       </div>
 
       {/* KPI Cards - 6 column grid on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {/* Total RCs */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
-              Total RCs
-            </div>
-            <div className="text-3xl font-bold text-text-primary">{total}</div>
-            <div className="text-xs text-success-green flex items-center gap-1 mt-2">
-              ▲ +5% this week
-            </div>
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Total RCs</div>
+            <div className="text-3xl font-bold text-text-primary">{total > 0 ? total : 'No data'}</div>
           </CardContent>
         </Card>
 
         {/* Live RCs */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-primary/10 to-accent-amber/10 rounded-lg flex flex-col items-center justify-center py-6">
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-primary/10 to-accent-amber/10 rounded-lg flex flex-col items-center justify-center py-6">
             <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Live RCs</div>
-            <div className="text-3xl font-bold text-success-green">{live}</div>
-            <div className="text-xs text-success-green flex items-center gap-1 mt-2">
-              ▲ +2% this week
-            </div>
+            <div className="text-3xl font-bold text-success-green">{live > 0 ? live : 'No data'}</div>
           </CardContent>
         </Card>
 
-        {/* Active Users */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-accent-amber/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
-              Active Users
-            </div>
-            <div className="text-3xl font-bold text-primary">
-              {analytics?.activeUsersToday ?? 9}
-            </div>
-            <div className="text-xs text-error-red flex items-center gap-1 mt-2">▼ −3% users</div>
+        {/* Active Users (Today / This Week) */}
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-accent-amber/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Active Users</div>
+            <div className="text-2xl font-bold text-primary">{activeUsersToday > 0 ? activeUsersToday : 'No data'} <span className="text-xs text-text-secondary font-normal">today</span></div>
+            <div className="text-lg font-semibold text-success-green">{activeUsersWeek > 0 ? activeUsersWeek : 'No data'} <span className="text-xs text-text-secondary font-normal">this week</span></div>
           </CardContent>
         </Card>
 
-        {/* Attempts Today */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
-              Attempts Today
-            </div>
-            <div className="text-3xl font-bold text-accent-amber">
-              {analytics?.attemptsToday ?? 8}
-            </div>
-            <div className="text-xs text-success-green flex items-center gap-1 mt-2">
-              ▲ +4% today
-            </div>
+        {/* Attempts (Today / This Week) */}
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Attempts</div>
+            <div className="text-2xl font-bold text-accent-amber">{attemptsToday > 0 ? attemptsToday : 'No data'} <span className="text-xs text-text-secondary font-normal">today</span></div>
+            <div className="text-lg font-semibold text-primary">{attemptsWeek > 0 ? attemptsWeek : 'No data'} <span className="text-xs text-text-secondary font-normal">this week</span></div>
           </CardContent>
         </Card>
 
         {/* Avg Accuracy % */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
-              Avg Accuracy %
-            </div>
-            <div className="text-3xl font-bold text-success-green">
-              {analytics?.avgAccuracy ?? 82}%
-            </div>
-            <div className="text-xs text-success-green flex items-center gap-1 mt-2">
-              ▲ +1.2% this week
-            </div>
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Avg Accuracy %</div>
+            <div className="text-3xl font-bold text-success-green">{avgAccuracy > 0 ? `${avgAccuracy}%` : 'No data'}</div>
           </CardContent>
         </Card>
 
         {/* Retention Rate */}
-        <Card>
-          <CardContent className="bg-gradient-to-br from-accent-amber/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
-              Retention Rate
-            </div>
-            <div className="text-3xl font-bold text-primary">{analytics?.retentionRate ?? 67}%</div>
-            <div className="text-xs text-success-green flex items-center gap-1 mt-2">
-              ▲ +0.8% this week
+        <Card className="h-full">
+          <CardContent className="h-full bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Retention Rate</div>
+            <div className="text-3xl font-bold text-primary">
+              {typeof analytics.retentionRate === 'number' && analytics.retentionRate >= 0
+                ? `${analytics.retentionRate}%`
+                : 'No data'}
             </div>
           </CardContent>
         </Card>
@@ -213,32 +197,36 @@ export default function AdminDashboard() {
           <CardHeader>Attempts Overview</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              <Bar
-                data={{
-                  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                  datasets: [
-                    {
-                      label: 'Attempts',
-                      data: analytics?.attemptsByDay ?? [12, 19, 7, 15, 10, 5, 8],
-                      backgroundColor: '#3B82F6',
-                      borderRadius: 6,
-                      borderSkipped: false,
+              {attemptsByDay.length > 0 && attemptsByDay.some(d => d.attempts > 0) ? (
+                <Bar
+                  data={{
+                    labels: attemptsByDay.map(d => d.date),
+                    datasets: [
+                      {
+                        label: 'Attempts',
+                        data: attemptsByDay.map(d => d.attempts),
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                     },
-                  ],
-                }}
-                options={{
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
-                  },
-                  scales: {
-                    x: { grid: { display: false }, ticks: { color: '#5C6784' } },
-                    y: { beginAtZero: true, ticks: { color: '#5C6784' } },
-                  },
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+                    scales: {
+                      x: { grid: { display: false }, ticks: { color: '#5C6784' } },
+                      y: { beginAtZero: true, ticks: { color: '#5C6784' } },
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-text-secondary">No attempts in last 7 days</div>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-2 text-center text-sm">
               <div>
@@ -262,36 +250,40 @@ export default function AdminDashboard() {
           <CardHeader>Active Learners</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              <Line
-                data={{
-                  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                  datasets: [
-                    {
-                      label: 'Active Users',
-                      data: analytics?.activeUsersTrend ?? [5, 8, 6, 10, 7, 4, 9],
-                      borderColor: '#23A094',
-                      backgroundColor: 'rgba(35, 160, 148, 0.12)',
-                      tension: 0.4,
-                      fill: true,
-                      pointBackgroundColor: '#23A094',
-                      pointBorderColor: '#FFFFFF',
-                      pointBorderWidth: 2,
+              {activeUsersTrend.length > 0 && activeUsersTrend.some(d => d.count > 0) ? (
+                <Line
+                  data={{
+                    labels: activeUsersTrend.map(d => d.date),
+                    datasets: [
+                      {
+                        label: 'Active Users',
+                        data: activeUsersTrend.map(d => d.count),
+                        borderColor: '#23A094',
+                        backgroundColor: 'rgba(35, 160, 148, 0.12)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#23A094',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                     },
-                  ],
-                }}
-                options={{
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
-                  },
-                  scales: {
-                    x: { grid: { display: false }, ticks: { color: '#5C6784' } },
-                    y: { beginAtZero: true, ticks: { color: '#5C6784' } },
-                  },
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+                    scales: {
+                      x: { grid: { display: false }, ticks: { color: '#5C6784' } },
+                      y: { beginAtZero: true, ticks: { color: '#5C6784' } },
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-text-secondary">No active users in last 7 days</div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2 text-center text-sm">
               <div>
@@ -311,34 +303,38 @@ export default function AdminDashboard() {
           <CardHeader>Learner Feedback & Reviews</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              <Pie
-                data={{
-                  labels: ['5★', '4★', '3★', '2★', '1★'],
-                  datasets: [
-                    {
-                      label: 'Ratings',
-                      data: feedback?.ratingsDist || analytics?.ratingsDist || [12, 7, 3, 2, 1],
-                      backgroundColor: [
-                        '#23A094', // success-green for 5 stars
-                        '#3B82F6', // info-blue for 4 stars
-                        '#F6B26B', // accent-amber for 3 stars
-                        '#FB923C', // orange for 2 stars
-                        '#E4572E', // error-red for 1 star
-                      ],
-                      borderColor: '#FFFFFF',
-                      borderWidth: 2,
+              {(ratingsDist.length > 0 && ratingsDist.some(v => v > 0)) ? (
+                <Pie
+                  data={{
+                    labels: ['5★', '4★', '3★', '2★', '1★'],
+                    datasets: [
+                      {
+                        label: 'Ratings',
+                        data: ratingsDist,
+                        backgroundColor: [
+                          '#23A094',
+                          '#3B82F6',
+                          '#F6B26B',
+                          '#FB923C',
+                          '#E4572E',
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: {
+                      legend: { position: 'bottom', labels: { color: '#5C6784', padding: 12 } },
+                      tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
                     },
-                  ],
-                }}
-                options={{
-                  plugins: {
-                    legend: { position: 'bottom', labels: { color: '#5C6784', padding: 12 } },
-                    tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
-                  },
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+                    responsive: true,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-text-secondary">No ratings submitted yet</div>
+              )}
             </div>
           </CardContent>
         </Card>

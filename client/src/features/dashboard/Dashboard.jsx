@@ -16,6 +16,13 @@ export default function Dashboard() {
   const nav = useNavigate()
   const { user } = useAuth()
   const [today, setToday] = useState([])
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      if (user?.role === 'admin') {
+        navigate('/admin', { replace: true });
+      }
+    }, [user, navigate]);
   const [feedbackRequired, setFeedbackRequired] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

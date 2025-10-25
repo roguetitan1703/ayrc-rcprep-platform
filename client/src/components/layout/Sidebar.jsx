@@ -16,7 +16,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react'
 
 // This prevents re-showing the skeleton and retriggering requests when the
 // sidebar unmounts/remounts (mobile drawer open/close).
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import Logo from '../ui/Logo'
 import MobileNavContext from './MobileNavContext'
@@ -35,6 +35,14 @@ function Item({
   const textClass = mobile ? 'text-base' : compact ? 'text-sm' : 'text-sm'
   const mobileNav = useContext(MobileNavContext)
   const mobileClose = mobileNav?.close
+  const location = useLocation();
+  // Custom isActive logic for Results
+  const customIsActive = () => {
+    if (to === '/results') {
+      return location.pathname.startsWith('/results') || location.pathname.startsWith('/analysis');
+    }
+    return location.pathname === to;
+  };
   return (
     <NavLink
       to={to}
@@ -42,7 +50,8 @@ function Item({
       onClick={() => {
         if (mobile) mobileClose?.()
       }}
-      className={({ isActive }) => {
+      className={() => {
+        const isActive = customIsActive();
         const base = isActive
           ? 'text-primary bg-primary/15'
           : 'text-text-secondary hover:text-text-primary hover:bg-surface-muted'
@@ -249,16 +258,6 @@ function SidebarContent({
                 mobile={mobile}
               >
                 {'Feedback'}
-              </Item>
-
-              <Item
-                to="/admin/feedback/new"
-                icon={BarChart3}
-                expanded={expanded}
-                compact={compact}
-                mobile={mobile}
-              >
-                {'Create Feedback Q'}
               </Item>
             </>
           ) : (

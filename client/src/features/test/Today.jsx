@@ -89,16 +89,16 @@ export default function TestToday() {
                 {rc.status === 'attempted' && (
                   <Badge color="success">Attempted {rc.score}/4</Badge>
                 )}
-                {!blocked && (
+                {!blocked ? (
                   rc.status === 'attempted' ? (
                     <>
-                      <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
+                      <Button variant="outline" onClick={() => nav(`/analysis/${rc.id}`)}>View Analysis</Button>
                       <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
                     </>
                   ) : (
                     <Button onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
                   )
-                )}
+                ) : null}
               </div>
             </CardHeader>
           </Card>
