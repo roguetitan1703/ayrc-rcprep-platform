@@ -251,7 +251,7 @@ function SidebarContent({
                 {'Feedback'}
               </Item>
 
-              <Item
+              {/* <Item
                 to="/admin/feedback/new"
                 icon={BarChart3}
                 expanded={expanded}
@@ -259,7 +259,7 @@ function SidebarContent({
                 mobile={mobile}
               >
                 {'Create Feedback Q'}
-              </Item>
+              </Item> */}
             </>
           ) : (
             <>
