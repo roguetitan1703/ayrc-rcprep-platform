@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import content from '../../content/static.json'
 import { Button } from "./Button"
 import { createOrder } from "../../lib/subs"
 import { useAuth } from "../auth/AuthContext"
@@ -39,7 +40,7 @@ export default function SubscriptionSelector({ onSuccess }) {
                 key,
                 amount: order.amount,
                 currency: order.currency || "INR",
-                name: "ARC",
+                name: content.platformName || "AYRC",
                 description: `${order.notes?.subtype || type} Subscription`,
                 image: import.meta.env.VITE_APP_LOGO || undefined,
                 order_id: order.id,

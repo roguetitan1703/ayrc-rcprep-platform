@@ -12,8 +12,8 @@ export function OtherInstructionsModal({ rc, onPrevious, onStartTest }) {
   const questionCount = rc?.questions?.length || 0
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="bg-card-surface rounded-xl shadow-2xl max-w-3xl w-full p-8 border border-border-soft">
+    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
+      <div className="bg-card-surface rounded-xl shadow-2xl max-w-3xl w-full p-8 border border-border-soft overflow-y-auto max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
           <h1 className="text-2xl font-bold text-text-primary">Other Important Instructions</h1>
@@ -108,7 +108,7 @@ export function OtherInstructionsModal({ rc, onPrevious, onStartTest }) {
               disabled={!agreed}
               className={`px-8 py-3 font-bold rounded-lg transition-all shadow-sm text-sm ${
                 agreed
-                  ? 'bg-success-green text-white hover:bg-success-green-light cursor-pointer'
+                  ? 'bg-primary text-white hover:bg-primary-hover cursor-pointer'
                   : 'bg-neutral-grey/30 text-text-secondary cursor-not-allowed opacity-50'
               }`}
             >

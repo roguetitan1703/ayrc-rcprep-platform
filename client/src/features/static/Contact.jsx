@@ -1,5 +1,6 @@
 import StaticPage from '../../components/layout/StaticPage'
 import React, { useState } from 'react'
+import content from '../../content/static.json'
 import { Mail, MapPin, Phone, Send, MessageSquare, Clock, CheckCircle } from 'lucide-react'
 
 export default function ContactPage() {
@@ -41,10 +42,7 @@ export default function ContactPage() {
         ></div>
       </div>
 
-      <StaticPage
-        title="Get in Touch"
-        subtitle="Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
-      >
+      <StaticPage title={content.contact.title} subtitle={content.contact.subtitle}>
         <div className="mt-12 grid md:grid-cols-2 gap-8 text-left">
           <div className="space-y-8">
             {/* Card 1 */}
@@ -56,12 +54,21 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Email Us</h3>
                   <p className="text-text-secondary mb-2">Send us an email anytime!</p>
-                  <a
-                    href="mailto:support@arcrcprep.com"
-                    className="text-info-blue hover:text-primary transition-colors"
-                  >
-                    support@arcrcprep.com
-                  </a>
+                  <a href={`mailto:${content.contact.supportEmail}`} className="text-info-blue hover:text-primary transition-colors">{content.contact.supportEmail}</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Phone Card */}
+            <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-gradient-to-br from-primary to-primary/40 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                  <Phone className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-text-primary mb-2">Call Us</h3>
+                  <p className="text-text-secondary mb-2">We're available during business hours</p>
+                  <a href={`tel:${content.contact.supportPhone}`} className="text-info-blue hover:text-primary transition-colors">{content.contact.supportPhone}</a>
                 </div>
               </div>
             </div>
@@ -75,7 +82,8 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Response Time</h3>
                   <p className="text-text-secondary mb-2">We typically respond within 24 hours</p>
-                  <span className="text-success-green font-medium">Mon - Fri: 9 AM - 6 PM IST</span>
+                    <span className="text-success-green font-medium">{content.contact.businessHours}</span>
+                    <div className="text-text-secondary text-sm mt-1">Response SLA: <span className="font-medium">{content.contact.responseTime}</span></div>
                 </div>
               </div>
             </div>
@@ -91,7 +99,7 @@ export default function ContactPage() {
                   <p className="text-text-secondary">
                     Raipur, Chhattisgarh
                     <br />
-                    India
+                {content.contact.address}
                   </p>
                 </div>
               </div>
@@ -209,15 +217,10 @@ export default function ContactPage() {
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-text-secondary mb-4">
-            Looking for quick answers? Check out our{' '}
-            <a
-              href="/faq"
-              className="text-info-blue hover:text-primary transition-colors font-medium"
-            >
-              Frequently Asked Questions
-            </a>
-          </p>
+            <p className="text-text-secondary mb-4">
+              Looking for quick answers? Check out our{' '}
+              <a href="/faq" className="text-info-blue hover:text-primary transition-colors font-medium">Frequently Asked Questions</a>
+            </p>
         </div>
       </StaticPage>
     </div>

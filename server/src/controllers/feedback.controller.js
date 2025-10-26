@@ -49,7 +49,18 @@ export async function submitFeedback(req, res, next) {
 export async function getTodayFeedbackStatus(req, res, next) {
   try {
     const today = startOfIST()
-    const fb = await Feedback.findOne({ userId: req.user.id, date: today })
+    // Check if there are any feedback questions for today
+    const todayStr = today.toISOString().slice(0, 10)
+    const questions = await FeedbackQuestion.find().sort({ _id: 1 })
+    const todaysQuestions = questions.filter(
+      (q) => q.date?.toISOString().slice(0, 10) === todayStr || !q.date
+    )
+
+    let fb = await Feedback.findOne({ userId: req.user.id, date: today })
+    if ((!todaysQuestions || todaysQuestions.length === 0) && !fb) {
+      // No questions for today, auto-unlock by creating a Feedback doc
+      fb = await Feedback.create({ userId: req.user.id, date: today, answers: [] })
+    }
     return success(res, { submitted: !!fb })
   } catch (e) {
     next(e)
@@ -192,39 +203,37 @@ export async function deleteFeedbackQuestion(req, res, next) {
 // -----------------------------
 export async function archiveFeedbackQuestion(req, res, next) {
   try {
-    const { id } = req.params;
+    const { id } = req.params
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.error(`Invalid question ID for archive: ${id}`);
-      return badRequest(res, { message: 'Invalid question ID format' });
+      console.error(`Invalid question ID for archive: ${id}`)
+      return badRequest(res, { message: 'Invalid question ID format' })
     }
-    console.log(`Received PATCH request to archive question ID: ${id}`);
+    console.log(`Received PATCH request to archive question ID: ${id}`)
     const question = await FeedbackQuestion.findByIdAndUpdate(
       id,
       { status: 'archived' },
       { new: true }
-    );
+    )
     if (!question) {
-      console.error(`Question not found for archive: ${id}`);
-      return notFoundErr(res, { message: 'Question not found' });
+      console.error(`Question not found for archive: ${id}`)
+      return notFoundErr(res, { message: 'Question not found' })
     }
-    console.log(`Successfully archived question: ${id}`);
-    return success(res, { message: 'Question archived successfully', question });
+    console.log(`Successfully archived question: ${id}`)
+    return success(res, { message: 'Question archived successfully', question })
   } catch (e) {
-    console.error('Error in archiveFeedbackQuestion:', e);
-    next(e);
+    console.error('Error in archiveFeedbackQuestion:', e)
+    next(e)
   }
 }
-
 
 // ADMIN: Get all feedback questions
 export async function getAllFeedbackQuestions(req, res, next) {
   try {
     // Optional: restrict to admin only
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can access feedback questions' });
+      return res.status(403).json({ error: 'Only admins can access feedback questions' })
     }
 
-    
     // // ✅ Update all questions where status is 'published' → 'live'
     // await FeedbackQuestion.updateMany(
     //   { status: 'published' },
@@ -232,11 +241,11 @@ export async function getAllFeedbackQuestions(req, res, next) {
     // )
 
     // Fetch all questions, no filters
-    const questions = await FeedbackQuestion.find().sort({ createdAt: -1 });
+    const questions = await FeedbackQuestion.find().sort({ createdAt: -1 })
 
-    return success(res, { questions });
+    return success(res, { questions })
   } catch (e) {
-    next(e);
+    next(e)
   }
 }
 // -----------------------------
@@ -248,12 +257,12 @@ export async function republishFeedbackQuestion(req, res, next) {
       return badRequest(res, 'Only admins can republish feedback questions')
     }
 
-    const { id } = req.params;
-    const { date } = req.body; // Optional new date
-    const updateData = { status: 'live' };
-    if (date) updateData.date = new Date(date);
-    const question = await FeedbackQuestion.findByIdAndUpdate(id, updateData, { new: true });
-    if (!question) throw notFoundErr('Question not found');
+    const { id } = req.params
+    const { date } = req.body // Optional new date
+    const updateData = { status: 'live' }
+    if (date) updateData.date = new Date(date)
+    const question = await FeedbackQuestion.findByIdAndUpdate(id, updateData, { new: true })
+    if (!question) throw notFoundErr('Question not found')
     return success(res, {
       message: 'Question republished successfully',
       question,

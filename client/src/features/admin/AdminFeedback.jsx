@@ -4,6 +4,8 @@ import {
   deleteFeedbackQuestion,
   archiveFeedbackQuestion,
   republishFeedbackQuestion,
+  createFeedbackQuestion,
+  updateFeedbackQuestion,
 } from '../../lib/feedback'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -373,9 +375,9 @@ export default function AdminFeedback() {
 
                 try {
                   if (editingQuestion) {
-                    await api.put(`/feedback/questions/${editingQuestion._id}`, formData)
+                    await updateFeedbackQuestion(editingQuestion._id, formData)
                   } else {
-                    await api.post(`/feedback/questions`, formData)
+                    await createFeedbackQuestion(formData)
                   }
                   setModalOpen(false)
                   fetchQuestions()

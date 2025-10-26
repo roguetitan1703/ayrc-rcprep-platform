@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quote, Star } from 'lucide-react';
+import content from '../../../content/static.json'
 
 export default function TestimonialsSection() {
   const testimonials = [
@@ -47,7 +48,7 @@ export default function TestimonialsSection() {
       role: "CAT Topper 2024",
       image: "K",
       rating: 5,
-      text: "I used ARC Prep throughout my preparation. The quality of passages matches actual exam standards. It's like having a personal RC coach available 24/7.",
+  text: `I used ${content.platformName} throughout my preparation. The quality of passages matches actual exam standards. It's like having a personal RC coach available 24/7.`,
       colorClasses: {
         text: "text-primary-light",
         bg: "bg-primary-light",
@@ -100,7 +101,7 @@ export default function TestimonialsSection() {
             </span>
           </h2>
           <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
-            See what our users are saying about their experience with ARC Prep
+            See what our users are saying about their experience with {content.platformName}
           </p>
         </div>
 

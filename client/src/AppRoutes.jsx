@@ -11,10 +11,11 @@ import Reset from './features/auth/Reset'
 import Dashboard from './features/dashboard/Dashboard'
 import Test from './features/test/Test'
 import TestToday from './features/test/Today'
-import ResultsPage from './features/results/ResultsPage'
-import Results from './features/results/ResultsPage'
+import ResultsPage from './features/attempts/ResultsPage'
+import Results from './features/attempts/ResultsPage'
 
 import Analysis from './features/analysis/Analysis'
+import AttemptDetail from './features/attempts/AttemptDetail'
 import RcAnalyticsPage from './features/admin/RcAnalyticsPage'
 import Feedback from './features/feedback/Feedback'
 import ChangePassword from './features/profile/ChangePassword'
@@ -32,25 +33,24 @@ import { RequireAuth, RequireAdmin } from './components/auth/RequireAuth'
 import About from './features/static/About'
 import Terms from './features/static/Terms'
 import Contact from './features/static/Contact'
-import Pricing from './features/static/Pricing'
 import Privacy from './features/static/Privacy'
 import Refund from './features/static/Refund'
+import Shipping from './features/static/Shipping'
 import HomePage from './features/static/Home/HomePage'
 import Shell from './components/layout/Shell'
 import NotFound from './components/layout/NotFound'
 import RcDraftsList from './features/admin/RcDraftList'
-import FeedbackForm from './features/admin/FeedbackForm'
 
 export const routeConfig = [
   // Static routes
   { path: '/' },
   { path: '/about' },
   { path: '/contact' },
-  { path: '/pricing' },
   { path: '/privacy' },
   { path: '/terms' },
   { path: '/help' },
   { path: '/refund-policy' },
+  { path: '/shipping-policy' },
   { path: '/login' },
   { path: '/register' },
   { path: '/forgot' },
@@ -61,13 +61,13 @@ export const routeConfig = [
   { path: '/archive' },
   { path: '/test/:id' },
   { path: '/test/today' },
-  { path: '/results' },
-  { path: '/results/:id' },
-  { path: '/analysis/:id' }, 
+  { path: '/attempts' },
+  { path: '/attempts/:id' },
+  { path: '/attempts/:id/analysis' },
+  
   { path: '/feedback' },
-  { path: '/leaderboard/global' },
-  { path: '/leaderboard/local' },
-  // { path: '/help' },
+  { path: '/leaderboard' },
+  { path: '/dashboard/help' },
   { path: '/performance' },
   { path: '/subscriptions' },
   { path: '/profile' },
@@ -89,11 +89,11 @@ export default function AppRoutes() {
       {/* Static routes - No auth, no Shell */}
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/pricing" element={<Pricing />} />
+  <Route path="/contact" element={<Contact />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
-       <Route path="/get-help" element={<Help />} />
+  <Route path="/shipping-policy" element={<Shipping />} />
+  <Route path="/help" element={<Help />} />
       <Route path="/refund-policy" element={<Refund />} />
 
       {/* Auth routes - No Shell */}
@@ -130,14 +130,13 @@ export default function AppRoutes() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/archive" element={<Archive />} />
-        <Route path="/test/today" element={<TestToday />} />
-        <Route path="/results" element={<ResultsPage />} />
-        <Route path="/results/:id" element={<Results />} />
-        <Route path="/analysis/:id" element={<Analysis />} />
+  <Route path="/test/today" element={<TestToday />} />
+  <Route path="/attempts" element={<ResultsPage />} />
+  <Route path="/attempts/:id" element={<AttemptDetail />} />
+  <Route path="/attempts/:id/analysis" element={<Analysis />} />
         <Route path="/feedback" element={<Feedback />} />
-        <Route path="/leaderboard/global" element={<Leaderboard />} />
-        <Route path="/leaderboard/local" element={<LeaderboardLocal />} />
-        <Route path="/help" element={<Help />} />
+  <Route path="/leaderboard" element={<Leaderboard />} />
+  <Route path="/dashboard/help" element={<Help />} />
         <Route path="/performance" element={<Performance />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/profile" element={<Profile />} />
@@ -160,8 +159,6 @@ export default function AppRoutes() {
         <Route path="/admin/rcs/:id/analytics" element={<RcAnalyticsPage />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/feedback" element={<AdminFeedback />} />
-        <Route path="/admin/feedback/:id" element={<FeedbackForm />} />
-        <Route path="/admin/feedback/new" element={<FeedbackForm />} />
         <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
       </Route>
 

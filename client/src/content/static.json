@@ -5,10 +5,12 @@
     "ctaPrimary": "Get Started",
     "ctaSecondary": "Admin Console"
   },
+  "platformName": "AYRC",
+  "platformFullName": "Ace Your Reading Comprehensions",
   "about": {
-    "title": "About ARC RC Prep",
+  "title": "About AYRC",
     "subtitle": "Built for aspirants. Optimized for learning.",
-    "body": "ARC is a daily practice platform for Reading Comprehension. It delivers two high-quality passages every day, provides instant results, and offers detailed analysis to help you improve faster."
+  "body": "AYRC is a daily practice platform for Reading Comprehension. It delivers two high-quality passages every day, provides instant attempt summaries, and offers detailed analysis to help you improve faster."
   },
   "features": [
     "Two curated RCs daily",
@@ -19,31 +21,127 @@
   ],
   "tos": {
     "title": "Terms of Service",
-    "body": "By using ARC, you agree to practice respectfully, not redistribute content, and accept that the service is provided as-is during the pilot. See the README for contact details."
+    "body": "These Terms govern your use of AYRC. By accessing or using our services you agree to these Terms and to any policies posted on the site. If you do not agree, do not use the service.",
+    "sections": [
+      {
+        "heading": "Acceptable Use",
+        "body": "You may use AYRC only for lawful, personal educational purposes. You must not (a) copy, redistribute, or resell content; (b) attempt to bypass access controls; (c) use the service to harass or harm others; or (d) upload content that infringes third-party rights."
+      },
+      {
+        "heading": "Accounts and Security",
+        "body": "You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. Notify support immediately if you suspect unauthorized access. We may suspend or terminate accounts that violate these Terms."
+      },
+      {
+        "heading": "Intellectual Property",
+        "body": "All content, designs, text, and software on AYRC are the property of AYRC or its licensors and are protected by copyright and other laws. Personal use of the content is permitted; commercial use or redistribution is prohibited without prior written permission."
+      },
+      {
+        "heading": "Payment and Subscriptions",
+        "body": "Subscription purchases are subject to the payment terms displayed at checkout. If you purchase a subscription, you authorize us to charge the payment method you provide. Refunds and cancellations are governed by our Cancellation & Refund Policy."
+      },
+      {
+        "heading": "Disclaimer and Limitation of Liability",
+  "body": "AYRC provides educational content on an \"as‑is\" basis. While we strive for accuracy, we do not guarantee results, outcomes, or the suitability of content for any particular purpose. To the maximum extent permitted by law, AYRC’s liability for any claim arising from your use of the service is limited to the fees you paid in the 12 months prior to the claim."
+      },
+      {
+        "heading": "Changes to Service and Terms",
+        "body": "We may modify the platform, features, pricing, or these Terms. Material changes to the Terms will be posted on the site and, where appropriate, notified to subscribers. Continued use after changes constitutes acceptance."
+      },
+      {
+        "heading": "Governing Law and Dispute Resolution",
+        "body": "These Terms are governed by the laws applicable to the operator's principal place of business. For disputes, parties should first attempt informal resolution by contacting support via the Contact page."
+      }
+    ]
   },
   "contact": {
     "title": "Contact Us",
     "subtitle": "We'd love to hear from you.",
-    "body": "Email: support@example.com\nWe'll respond within 2 business days."
+    "body": "Email: omchandel1703@gmail.com\nWe'll respond within 24 hours (Mon–Fri).",
+    "supportEmail": "omchandel1703@gmail.com",
+    "supportPhone": "+91 9685890401",
+    "businessHours": "Mon - Fri: 9 AM - 6 PM IST",
+    "responseTime": "24 hours (Free) / 12 hours (Premium)",
+    "address": "Raipur, Chhattisgarh, India",
+  "legalEntity": "AYRC"
   },
-  "pricing": {
-    "title": "Pricing",
-    "subtitle": "Simple, transparent plans.",
-    "body": "Choose a plan that fits your prep.",
-    "plans": [
-      "Free: Limited daily RCs",
-      "Pro: Full access and analytics",
-      "Team: Bulk for institutes"
+  "shipping": {
+    "title": "Shipping Policy",
+    "subtitle": "Digital products are delivered electronically; physical items (if offered) follow the shipping terms below.",
+    "sections": [
+      {
+        "heading": "Digital Products",
+        "body": "Our platform primarily provides digital test-preparation products and online access to practice materials. Because these are delivered electronically, there is no physical shipping associated with most purchases."
+      },
+      {
+        "heading": "Delivery of Digital Goods",
+        "body": "After successful purchase, digital access (course enrollment, test bundles, or downloadable materials where applicable) will be made available immediately or within a short processing window. Access is typically granted to the account email used at checkout. If you do not receive access within 24 hours, please contact support."
+      },
+      {
+        "heading": "Physical Items (If Any)",
+        "body": "In rare cases we may offer physical merchandise. For those items, shipping rates and delivery timelines will be displayed at checkout. Shipping charges, where applicable, are calculated based on the delivery address and selected shipping method."
+      },
+      {
+        "heading": "Refunds & Cancellations",
+        "body": "For digital products, please refer to our Refund Policy page. Because digital access is delivered instantly, refunds are handled on a case-by-case basis and subject to our refund terms. For physical items, returns must follow the instructions on the Refund Policy page and may be subject to shipping charges."
+      }
     ]
   },
   "privacy": {
     "title": "Privacy Policy",
-    "subtitle": "Your data, your control.",
-    "body": "We collect minimal data necessary to operate ARC. We never sell your data."
+    "subtitle": "How we collect and use personal information",
+    "body": "AYRC collects and processes personal data to provide and improve our services. This Policy explains what we collect, why we collect it, how we use it, and the choices available to you.",
+    "sections": [
+      {
+        "heading": "Data We Collect",
+        "body": "We collect (a) account information you provide (name, email, phone), (b) transaction data for purchases, and (c) usage and analytics data such as pages visited, test attempts, and performance metrics. We do not collect more data than is necessary to deliver the service."
+      },
+      {
+        "heading": "How We Use Data",
+        "body": "We use personal data to (a) provide and operate the service, (b) process payments, (c) personalize learning experiences and analytics, (d) detect abuse and maintain security, and (e) communicate about your account."
+      },
+      {
+        "heading": "Third‑Party Services",
+        "body": "We may share necessary data with trusted third parties who provide services on our behalf (for example, payment processors and hosting/analytics providers). We require such vendors to protect your data and use it only for the agreed purpose."
+      },
+      {
+        "heading": "Data Retention",
+        "body": "We retain personal data for as long as necessary to provide the service and comply with legal obligations. Usage and analytics data may be retained in aggregated or anonymized form for product improvement. If you request deletion, we will remove your personal data subject to legal or operational constraints."
+      },
+      {
+        "heading": "Security",
+        "body": "We implement industry‑standard administrative, technical, and physical safeguards to protect personal data. No system is fully secure, and we cannot guarantee absolute protection. Report suspected incidents to support so we can investigate."
+      },
+      {
+        "heading": "Your Rights",
+        "body": "You can access, correct, or request deletion of your personal data. To exercise these rights, contact support via the Contact page. We will respond within a reasonable timeframe and in accordance with applicable law."
+      }
+    ]
   },
   "refund": {
     "title": "Cancellation & Refund Policy",
-    "subtitle": "Fair and clear.",
-    "body": "Subscriptions can be canceled anytime. Refunds are provided on a prorated basis within 7 days for annual plans and not available for monthly plans unless required by law."
+    "subtitle": "Clear and practical",
+    "body": "Our goal is to be fair. This policy explains when refunds are available and how to request one. Refunds are granted only as described below and in accordance with applicable law.",
+    "sections": [
+      {
+        "heading": "Subscription Cancellations",
+        "body": "You may cancel a subscription at any time from your account. Cancellation prevents future auto-renewal; access remains active until the end of the paid period unless otherwise specified at purchase."
+      },
+      {
+        "heading": "Refund Eligibility",
+        "body": "Refunds are considered in limited situations: (a) if a purchase cannot be fulfilled due to a platform error; (b) if duplicate charges occur; or (c) where required by law. For annual subscriptions, prorated refunds may be available within 7 days of purchase for documented technical issues preventing use. Monthly subscriptions are generally non-refundable once access has been granted, except where required by law. Promotional purchases marked non‑refundable at checkout are final."
+      },
+      {
+        "heading": "How to Request a Refund",
+        "body": "To request a refund, contact support via the Contact page with your account email, order reference, date of purchase, and reason. We will acknowledge receipt within 3 business days and investigate."
+      },
+      {
+        "heading": "Processing Time",
+        "body": "Approved refunds will be issued to the original payment method within 5–14 business days depending on payment provider processing times."
+      },
+      {
+        "heading": "Exceptions and Abuse",
+        "body": "We reserve the right to deny refunds in cases of suspected abuse, fraud, or breach of the Terms. Decisions are made on a case-by-case basis."
+      }
+    ]
   }
 }

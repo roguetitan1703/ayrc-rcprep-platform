@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronsLeft, ArrowLeft, Clock } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useMobileNav } from './MobileNavContext';
@@ -11,6 +11,7 @@ export default function TopBar() {
   const { open, openNav, close, setToggleRef } = useMobileNav();
   const toggleRef = useRef(null)
   const { crumbs, pageTitle } = useBreadcrumbs();
+  const location = useLocation()
   const isAdmin = user?.role === 'admin';
   // Show back only when there are nested crumbs beyond Home, but hide on the Home -> Dashboard case
   // where breadcrumbs are [Home, Dashboard] (we don't want a back affordance on top-level dashboard).
@@ -21,6 +22,27 @@ export default function TopBar() {
     if (length === 2 && crumbs[1]?.href === '/dashboard') return false
     return true
   })()
+
+  // Prefer deterministic breadcrumb navigation over history.back(-1) which can lead to
+  // returning to an unwanted stacked screen (e.g. completed test). If breadcrumbs are
+  // available, navigate to the previous breadcrumb href; otherwise, fallback to dashboard.
+  const handleBack = () => {
+    // If a caller set an explicit from location in navigation state, prefer that
+    const from = location?.state?.from
+    if (from) {
+      navigate(from)
+      return
+    }
+
+    const length = crumbs?.length || 0
+    // Find previous breadcrumb that points to a known/real path (avoid synthetic '/analysis')
+    if (length >= 2 && crumbs[length - 2]?.href) {
+      navigate(crumbs[length - 2].href)
+      return
+    }
+
+    navigate('/dashboard')
+  }
 
   return (
     <div className="w-full px-6 py-3">
@@ -43,7 +65,7 @@ export default function TopBar() {
           {/* Desktop back button (md+). Visible on larger screens only when there is somewhere to go back to. */}
           {showBack && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               aria-label="Go back"
               className="hidden md:inline-flex items-center justify-center p-2 rounded-lg hover:bg-surface-muted text-text-secondary hover:text-text-primary transition-colors"
             >
@@ -67,7 +89,11 @@ export default function TopBar() {
                       {/* In mobile view show plain text (no back button) */}
                       <span className="md:hidden text-text-secondary">{c.label}</span>
                       {/* Show a back-button on medium+ screens */}
-                      <button onClick={() => navigate(-1)} className="hidden md:inline hover:text-text-primary transition-colors no-underline">
+                      <button onClick={() => {
+                        // navigate to the breadcrumb's href if available, else fallback to dashboard
+                        if (c.href) navigate(c.href)
+                        else navigate('/dashboard')
+                      }} className="hidden md:inline hover:text-text-primary transition-colors no-underline">
                         {c.label}
                       </button>
                     </>

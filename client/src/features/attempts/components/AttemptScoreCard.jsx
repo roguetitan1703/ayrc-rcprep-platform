@@ -40,10 +40,11 @@ export function AttemptScoreCard({
   if (variant === 'hero') {
     return (
       <div className="bg-card-surface border border-soft rounded-xl p-8 mb-6 relative shadow-sm">
+        {/*
         {isPersonalBest && (
           <div className="absolute inset-0 bg-gradient-radial from-primary/10 to-transparent rounded-xl pointer-events-none" />
         )}
-
+        */}
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -52,10 +53,8 @@ export function AttemptScoreCard({
                 {correctCount}/{totalQuestions} correct · {formatDuration(duration)}
               </p>
             </div>
-
-            {isPersonalBest && <PersonalBestBadge />}
+            {/* {isPersonalBest && <PersonalBestBadge />} */}
           </div>
-
           <div className="text-sm text-text-secondary">
             {rcTitle} · {formatDate(attemptedAt)}
           </div>
@@ -77,11 +76,6 @@ export function AttemptScoreCard({
 
         <div className="flex flex-col items-end gap-2 ml-4">
           <div className={`text-3xl font-bold ${getScoreColor()}`}>{percentage}%</div>
-          {isPersonalBest && (
-            <span className="px-2 py-0.5 bg-primary-light text-white rounded text-xs font-semibold whitespace-nowrap">
-              🎉 Best
-            </span>
-          )}
         </div>
       </div>
 

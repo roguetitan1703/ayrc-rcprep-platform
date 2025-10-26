@@ -40,7 +40,7 @@ export default function TestToday() {
   }, [])
 
   if (loading || fbLoading) return (
-    <div className="min-h-screen p-6 space-y-4">
+    <div className="p-6 space-y-4">
       <h2 className="text-2xl font-semibold">Today's RC</h2>
       <Skeleton className="h-6 w-1/2" />
       <Skeleton className="h-6 w-2/5" />
@@ -49,13 +49,13 @@ export default function TestToday() {
   )
 
   if (error) return (
-    <div className="min-h-screen p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">
+    <div className="p-6 bg-error-red/10 border border-error-red/40 text-error-red rounded">
       {error}
     </div>
   )
 
   return (
-    <div className="min-h-screen p-6 space-y-4">
+    <div className="p-6 space-y-4">
       <h2 className="text-2xl font-semibold">Today's RC</h2>
 
       {/* Subscription / Feedback Wall */}
@@ -89,16 +89,16 @@ export default function TestToday() {
                 {rc.status === 'attempted' && (
                   <Badge color="success">Attempted {rc.score}/4</Badge>
                 )}
-                {!blocked && (
+                {!blocked ? (
                   rc.status === 'attempted' ? (
                     <>
-                      <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
+                      <Button variant="outline" onClick={() => nav(`/attempts/${rc.id}/analysis`)}>View Analysis</Button>
                       <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
                     </>
                   ) : (
                     <Button onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
                   )
-                )}
+                ) : null}
               </div>
             </CardHeader>
           </Card>

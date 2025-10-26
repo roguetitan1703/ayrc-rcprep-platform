@@ -1,6 +1,7 @@
 import React from 'react';
 import { Award, CheckCircle2, Target, Tag, PieChart, Settings, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import content from '../../../content/static.json'
 
 export default function WhyUseSection() {
   const features = [
@@ -26,7 +27,7 @@ export default function WhyUseSection() {
         <div className="text-center mb-16">
           <div className="inline-block mb-4">
             <span className="px-4 py-2 bg-primary bg-opacity-10 border border-primary border-opacity-30 rounded-full text-primary text-sm font-semibold">
-              Why Choose ARC Prep
+              Why Choose {content.platformName}
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-4">

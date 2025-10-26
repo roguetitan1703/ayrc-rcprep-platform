@@ -318,7 +318,7 @@ Your complete practice history and performance insights
 
                 <div className="flex gap-2">
                   {rc.attempted && (
-                    <Link to={`/analysis/${rc._id || rc.id}`} className="flex-1">
+                    <Link to={`/attempts/${rc._id || rc.id}/analysis`} className="flex-1">
                       <Button variant="primary" className="w-full">
                         View Analysis
                       </Button>

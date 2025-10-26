@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Users, Calendar, Zap, CheckCircle, TrendingUp, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import content from '../../../content/static.json'
 
 export default function HeroSection() {
 
@@ -32,7 +33,7 @@ export default function HeroSection() {
             Elevate Your Reading Skills
             <br />
             <span className="bg-gradient-to-r from-primary via-accent-amber to-primary-light bg-clip-text text-transparent">
-              with ARC RC Prep
+              with {content.platformName}
             </span>
           </h1>
 

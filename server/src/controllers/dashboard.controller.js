@@ -146,31 +146,86 @@ export async function getAdminAnalytics() {
 
   // For analytics, use last 30 days
   const recentAttempts = await Attempt.find({ attemptedAt: { $gte: since } }).select(
-    'answers attemptedAt rcPassageId attemptType analysisFeedback userId'
+    'answers attemptedAt rcPassageId attemptType analysisFeedback userId score'
   )
 
   // For coverage calculation, get ALL official attempts (not time-limited)
   const allOfficialAttempts = await Attempt.find({ attemptType: 'official' }).select(
-    'answers attemptedAt rcPassageId attemptType analysisFeedback userId'
+    'answers attemptedAt rcPassageId attemptType analysisFeedback userId score'
   )
 
+  // --- Active Users Trend (last 7 days) ---
+  const today = startOfIST()
+  const activeUsersTrend = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const key = startOfIST(d).toISOString()
+    const users = new Set(
+      recentAttempts
+        .filter(
+          (a) => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official'
+        )
+        .map((a) => a.userId.toString())
+    )
+    activeUsersTrend.push({ date: key.slice(0, 10), count: users.size })
+  }
+  const activeUsersToday = activeUsersTrend[6]?.count || 0
+  const activeUsersWeek = activeUsersTrend.reduce((sum, day) => sum + day.count, 0)
+
+  // --- Average Accuracy ---
+  let totalQuestions = 0
+  let totalCorrect = 0
+  for (const a of recentAttempts) {
+    const rc = await RcModel.findById(a.rcPassageId).select('questions')
+    if (!rc) continue
+    rc.questions.forEach((q, i) => {
+      totalQuestions++
+      if (a.answers[i] && a.answers[i] === q.correctAnswerId) totalCorrect++
+    })
+  }
+  const avgAccuracy =
+    totalQuestions > 0 ? Number(((totalCorrect / totalQuestions) * 100).toFixed(1)) : 0
+
+  // --- Ratings Distribution ---
+  const feedbacks = await Feedback.find({ date: { $gte: since } }).select('answers')
+  // Assume ratings are in answers with type 'rating' and value 1-5
+  const ratingsDist = [0, 0, 0, 0, 0] // [5,4,3,2,1]
+  feedbacks.forEach((fb) => {
+    fb.answers.forEach((ans) => {
+      if (
+        ans.type === 'rating' &&
+        typeof ans.value === 'number' &&
+        ans.value >= 1 &&
+        ans.value <= 5
+      ) {
+        ratingsDist[5 - ans.value]++
+      }
+    })
+  })
+
+  // --- Topic Accuracy Stats (normalized tags) ---
   const rcMap = new Map()
   const passageIds = recentAttempts.map((a) => a.rcPassageId)
   const passages = await RcModel.find({ _id: { $in: passageIds } }).select('topicTags questions')
   passages.forEach((p) => rcMap.set(p._id.toString(), p))
-
-  // Topic accuracy stats
   const topicStats = new Map()
+  const systemTags = new Set(['archived', 'system', ''])
   for (const a of recentAttempts) {
     const p = rcMap.get(a.rcPassageId.toString())
     if (!p) continue
     p.topicTags.forEach((tag) => {
-      if (!topicStats.has(tag)) topicStats.set(tag, { tag, correct: 0, total: 0 })
+      const cleanTag = (tag || '').replace(/['"\\]/g, '').trim()
+      if (!cleanTag || systemTags.has(cleanTag.toLowerCase())) return
+      if (!topicStats.has(cleanTag))
+        topicStats.set(cleanTag, { tag: cleanTag, correct: 0, total: 0 })
     })
     p.questions.forEach((q, i) => {
       const correct = a.answers[i] && a.answers[i] === q.correctAnswerId
       p.topicTags.forEach((tag) => {
-        const t = topicStats.get(tag)
+        const cleanTag = (tag || '').replace(/['"\\]/g, '').trim()
+        if (!cleanTag || systemTags.has(cleanTag.toLowerCase())) return
+        const t = topicStats.get(cleanTag)
         t.total += 1
         if (correct) t.correct += 1
       })
@@ -183,20 +238,22 @@ export async function getAdminAnalytics() {
   }))
   topics.sort((a, b) => a.tag.localeCompare(b.tag))
 
-  // Trend last 7 days
-  const today2 = startOfIST()
-  const trend = []
+  // --- Attempts By Day (trend) ---
+  const attemptsByDay = []
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(today2)
+    const d = new Date(today)
     d.setDate(d.getDate() - i)
     const key = startOfIST(d).toISOString()
     const count = recentAttempts.filter(
       (a) => startOfIST(a.attemptedAt).toISOString() === key && a.attemptType === 'official'
     ).length
-    trend.push({ date: key.slice(0, 10), attempts: count })
+    attemptsByDay.push({ date: key.slice(0, 10), attempts: count })
   }
+  const attemptsToday = attemptsByDay[6]?.attempts || 0
+  const attemptsWeek = attemptsByDay.reduce((sum, day) => sum + day.attempts, 0)
+  const attempts7d = attemptsWeek
 
-  // Coverage: use ALL official attempts, per user+RC
+  // --- Coverage and Reasons (cleaned) ---
   const coverageByUserRC = new Map()
   for (const a of allOfficialAttempts) {
     const key = `${a.userId}_${a.rcPassageId}`
@@ -206,57 +263,59 @@ export async function getAdminAnalytics() {
     }
   }
   const initialAttempts = Array.from(coverageByUserRC.values())
-
-  // Fetch RC passage data for coverage attempts
   const coveragePassageIds = initialAttempts.map((a) => a.rcPassageId)
   const coveragePassages = await RcModel.find({ _id: { $in: coveragePassageIds } }).select(
     'questions'
   )
   const coverageRcMap = new Map()
   coveragePassages.forEach((p) => coverageRcMap.set(p._id.toString(), p))
-
   let totalWrong = 0
   let taggedWrong = 0
   const reasonCounts = new Map()
   for (const a of initialAttempts) {
     const p = coverageRcMap.get(a.rcPassageId.toString())
     if (!p) continue
-
-    // First, identify which questions are incorrect
     const incorrectQuestions = new Set()
     p.questions.forEach((q, i) => {
       const userAns = (a.answers && a.answers[i]) || ''
       const isCorrect = userAns && userAns === q.correctAnswerId
       if (!isCorrect) {
         totalWrong++
-        incorrectQuestions.add(i) // Store question index
+        incorrectQuestions.add(i)
       }
     })
-
-    // Only count tags for incorrect questions
     if (a.analysisFeedback && a.analysisFeedback.length) {
       a.analysisFeedback.forEach((f) => {
-        // Only count if this feedback is for an incorrect question
         if (incorrectQuestions.has(f.questionIndex)) {
+          // Clean reason string
+          const reason = (f.reason || '').replace(/[^a-zA-Z0-9 .,'-]/g, '').trim()
+          if (reason.length < 2) return
           taggedWrong++
-          reasonCounts.set(f.reason, (reasonCounts.get(f.reason) || 0) + 1)
+          reasonCounts.set(reason, (reasonCounts.get(reason) || 0) + 1)
         }
       })
     }
   }
-
-  // coverage: percentage of wrong questions that have been tagged
   const coverage = totalWrong > 0 ? Number(((taggedWrong / totalWrong) * 100).toFixed(1)) : 0
   const topReasons = Array.from(reasonCounts.entries())
     .map(([reason, count]) => ({ reason, count }))
     .sort((a, b) => b.count - a.count)
 
+  // --- Canonical Analytics Schema ---
   return {
+    attemptsByDay,
+    attemptsToday,
+    attemptsWeek,
+    totalAttempts: recentAttempts.length,
+    activeUsersTrend,
+    activeUsersToday,
+    activeUsersWeek,
+    avgAccuracy,
+    ratingsDist,
     topics,
-    trend,
     coverage,
     reasons: { top: topReasons },
-    attempts7d: trend.reduce((s, t) => s + t.attempts, 0),
+    attempts7d,
     taggedWrong,
     totalWrong,
   }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Play, ArrowRight, CheckCircle } from 'lucide-react';
+import content from '../../../content/static.json'
 
 export default function VideoSection() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -26,7 +27,7 @@ export default function VideoSection() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-6">
               See How{' '}
               <span className="bg-gradient-accent bg-clip-text text-transparent">
-                ARC Works
+                {content.platformName} Works
               </span>
             </h2>
 
@@ -124,7 +125,7 @@ export default function VideoSection() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-text-primary font-semibold">Platform Overview</h4>
-                      <p className="text-text-secondary text-sm">Quick tour of ARC features</p>
+                      <p className="text-text-secondary text-sm">Quick tour of {content.platformName} features</p>
                     </div>
                     <div className="flex items-center gap-2 text-text-secondary text-sm">
                       <span>👁️ 5,000+ views</span>

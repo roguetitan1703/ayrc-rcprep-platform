@@ -418,7 +418,7 @@ export default function Subscriptions() {
               We're here to help you choose the right plan for your preparation journey
             </p>
             <div className="flex justify-center gap-3">
-              <Link to="/help">
+              <Link to="/dashboard/help">
                 <Button variant="secondary">
                   Visit Help Center
                 </Button>

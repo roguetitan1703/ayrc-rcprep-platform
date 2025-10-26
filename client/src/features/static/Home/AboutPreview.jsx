@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, Users, Target, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion'
+import content from '../../../content/static.json'
 
 export default function AboutPreview() {
   const values = [
@@ -62,7 +63,7 @@ export default function AboutPreview() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-6">
                 Why{' '}
                 <span className="bg-gradient-accent bg-clip-text text-transparent">
-                  ARC Exists
+                  {content.platformName} Exists
                 </span>
               </h2>
             </div>
@@ -70,7 +71,7 @@ export default function AboutPreview() {
             {/* Mission */}
             <div className="max-w-3xl mx-auto mb-10">
               <p className="text-lg sm:text-xl text-text-secondary leading-relaxed text-center mb-6">
-                ARC Prep is an open reading comprehension practice platform built for serious aspirants preparing for competitive exams like CAT, XAT, and more.
+                {content.platformName} is an open reading comprehension practice platform built for serious aspirants preparing for competitive exams like CAT, XAT, and more.
               </p>
               <p className="text-lg text-text-secondary leading-relaxed text-center">
                 We believe quality practice shouldn't be hidden behind paywalls. Our mission is to provide a reliable, distraction-free space where you can improve your RC skills daily, backed by expert-curated content and intelligent analytics.

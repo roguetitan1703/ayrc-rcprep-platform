@@ -12,8 +12,8 @@ export function InstructionsModal({ rc, onNext }) {
   const durationMinutes = Math.floor(TEST_DURATION_SECONDS / 60) // Use actual test duration
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="bg-card-surface rounded-xl shadow-2xl max-w-3xl w-full p-8 border border-border-soft">
+    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
+      <div className="bg-card-surface rounded-xl shadow-2xl max-w-3xl w-full p-8 border border-border-soft overflow-y-auto max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border-soft">
           <h1 className="text-2xl font-bold text-text-primary">General Instructions</h1>
@@ -85,7 +85,7 @@ export function InstructionsModal({ rc, onNext }) {
           <div className="flex justify-end pt-4">
             <button
               onClick={onNext}
-              className="px-8 py-3 bg-info-blue text-white font-bold rounded-lg hover:bg-info-blue/90 transition-colors shadow-sm text-sm"
+              className="px-8 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-sm text-sm"
             >
               Next
             </button>

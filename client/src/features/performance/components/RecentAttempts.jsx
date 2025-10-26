@@ -20,7 +20,7 @@ export function RecentAttempts({ attempts, personalBest }) {
             return (
               <Link
                 key={attempt.rcId}
-                to={`/analysis/${attempt.rcId}`}
+                to={`/attempts/${attempt.rcId}/analysis`}
                 className="flex items-center justify-between p-6 hover:bg-[#EEF1FA]/40 transition-all duration-150 group"
               >
                 <div className="flex-1 min-w-0">
