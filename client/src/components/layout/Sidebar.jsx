@@ -38,8 +38,8 @@ function Item({
   const location = useLocation();
   // Custom isActive logic for Results
   const customIsActive = () => {
-    if (to === '/results') {
-      return location.pathname.startsWith('/results') || location.pathname.startsWith('/analysis');
+    if (to === '/attempts') {
+      return location.pathname.startsWith('/attempts') || location.pathname.startsWith('/analysis');
     }
     return location.pathname === to;
   };
@@ -146,14 +146,14 @@ function SidebarContent({
 
             <Heading label="Insights" expanded={expanded} />
             <Item
-              to="/results"
+              to="/attempts"
               icon={BarChart2}
               expanded={expanded}
               end
               compact={compact}
               mobile={mobile}
             >
-              {'Results'}
+              {'Attempts'}
             </Item>
             <Item
               to="/performance"
@@ -167,7 +167,7 @@ function SidebarContent({
 
             <Heading label="Leaderboard" expanded={expanded} />
             <Item
-              to="/leaderboard/global"
+              to="/leaderboard"
               icon={Trophy}
               expanded={expanded}
               compact={compact}
@@ -282,7 +282,7 @@ function SidebarContent({
               </Item>
             </>
           ))}
-        <Item to="/help" icon={Archive} expanded={expanded} compact={compact} mobile={mobile}>
+  <Item to="/dashboard/help" icon={Archive} expanded={expanded} compact={compact} mobile={mobile}>
           {'Help'}
         </Item>
       </div>

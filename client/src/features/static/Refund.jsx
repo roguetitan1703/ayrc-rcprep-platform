@@ -16,28 +16,26 @@ export default function Refund() {
         {c.body}
       </p>
 
-      {/* Policy Details */}
+      {/* Policy Details (rendered from static.json) */}
 
       <div className="text-left mt-12 space-y-6 max-w-4xl mx-auto ">
-        <h2 className="text-2xl font-semibold">Eligibility for Refunds</h2>
-        <ul className="list-disc pl-6 space-y-2 text-text-secondary">
-          <li>
-            Refunds are only applicable within <strong>7 days of payment</strong>.
-          </li>
-          <li>No refunds for partially used subscription periods.</li>
-          <li>Special promotional offers are non-refundable.</li>
-        </ul>
+        {c.sections.map((sec, idx) => (
+          <div key={idx}>
+            <h2 className="text-2xl font-semibold">{sec.heading}</h2>
+            {sec.points ? (
+              <ul className="list-disc pl-6 space-y-2 text-text-secondary">
+                {sec.points.map((p, pi) => (
+                  <li key={pi} className="text-text-secondary">{p}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-text-secondary">{sec.body}</p>
+            )}
+          </div>
+        ))}
 
-        <h2 className="text-2xl font-semibold">Cancellation Policy</h2>
         <p className='text-text-secondary'>
-          You may cancel your subscription anytime from your account dashboard. Cancellations take
-          effect from the next billing cycle.
-        </p>
-
-        <h2 className="text-2xl font-semibold">Processing</h2>
-        <p className='text-text-secondary'>
-          Approved refunds will be processed to the original payment method within{' '}
-          <strong>5–7 business days</strong>.
+          To request a refund, contact us at <a href={`mailto:${content.contact.supportEmail}`} className="text-info-blue hover:text-primary">{content.contact.supportEmail}</a> or call <strong>{content.contact.supportPhone}</strong>.
         </p>
       </div>
     </StaticPage>

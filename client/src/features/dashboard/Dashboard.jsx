@@ -13,16 +13,15 @@ import { extractErrorMessage } from '../../lib/utils'
 import { useAuth } from '../../components/auth/AuthContext'
 import SubFeedbackBlocker from '../../components/ui/SubFeedbackWall'
 export default function Dashboard() {
-  const nav = useNavigate()
   const { user } = useAuth()
   const [today, setToday] = useState([])
-    const navigate = useNavigate();
+  const navigate = useNavigate()
 
-    useEffect(() => {
-      if (user?.role === 'admin') {
-        navigate('/admin', { replace: true });
-      }
-    }, [user, navigate]);
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin', { replace: true })
+    }
+  }, [user, navigate])
   const [feedbackRequired, setFeedbackRequired] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -120,11 +119,11 @@ export default function Dashboard() {
                   {!blocked ? (
                     rc.status === 'attempted' ? (
                       <>
-                        <Button variant="outline" onClick={() => nav(`/results/${rc.id}`)}>View Results</Button>
-                        <Button onClick={() => nav(`/test/${rc.id}?mode=practice`)}>Practice</Button>
+                        <Button variant="outline" onClick={() => navigate(`/attempts/${rc.id}`)}>View attempt details</Button>
+                        <Button onClick={() => navigate(`/test/${rc.id}?mode=practice`)}>Practice</Button>
                       </>
                     ) : (
-                      <Button onClick={() => nav(`/test/${rc.id}`)}>Start Test</Button>
+                      <Button onClick={() => navigate(`/test/${rc.id}`)}>Start Test</Button>
                     )
                   ) : (
                     <div className="text-sm text-text-secondary italic">Unlock by submitting feedback or subscribing</div>

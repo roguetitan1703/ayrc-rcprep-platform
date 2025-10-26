@@ -440,7 +440,10 @@ export default function Test() {
       } catch (err) {
         console.error('Error exiting fullscreen before results nav:', err)
       }
-      nav(`/analysis/${id}`)
+    // Determine attempt id returned by backend and navigate to the overview (not directly to analysis)
+    const attemptId = data.attemptId || data.id || data._id || (data.attempt && (data.attempt.id || data.attempt._id)) || id
+    // Navigate to the attempt overview and replace history so Back does not return to the test
+    nav(`/attempts/${attemptId}`, { replace: true })
     } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
       setError(msg)

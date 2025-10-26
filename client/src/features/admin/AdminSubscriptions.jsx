@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Button } from '../../components/ui/Button'
 import subscriptionsApi from "../../lib/subs"
 
-// ARC badge helper
+// AYRC badge helper
 const SubscriptionBadge = ({ sub, issubexp }) => {
     const base = 'px-2 py-1 rounded-md text-xs font-medium'
     if (sub === 'none') return <span className={`${base} bg-error-red text-white`}>None</span>

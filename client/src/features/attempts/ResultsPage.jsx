@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { StatsPanel } from './components/StatsPanel'
 import { Card } from '../../components/ui/Card'
@@ -44,7 +44,8 @@ export default function ResultsPage() {
   }
 
   const handleAttemptClick = (attemptId) => {
-    navigate(`/analysis/${attemptId}`)
+    // Include current location as `from` so TopBar back can return here deterministically
+    navigate(`/attempts/${attemptId}`, { state: { from: window.location.pathname } })
   }
 
   const handlePageChange = (newPage) => {

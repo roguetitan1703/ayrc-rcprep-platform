@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import AboutPreview from './Home/AboutPreview'
+import content from '../../content/static.json'
 
 export default function AboutPage() {
   const features = [
@@ -77,7 +78,7 @@ export default function AboutPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-4 sm:mb-6">
               About{' '}
               <span className="bg-gradient-to-r from-primary via-accent-amber to-primary-light bg-clip-text text-transparent">
-                ARC RC Prep
+                {content.platformName}
               </span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-text-secondary leading-relaxed max-w-4xl mx-auto px-4">
@@ -201,7 +202,7 @@ export default function AboutPage() {
               </h2>
               <p className="text-base sm:text-lg text-text-secondary leading-relaxed text-center">
                 Thanks to everyone who's supported, tested, and given feedback. We're constantly
-                working to improve ARC and make it better for you. Your trust and encouragement fuel
+                working to improve {content.platformName} and make it better for you. Your trust and encouragement fuel
                 our commitment to providing the best RC practice platform.
               </p>
             </div>

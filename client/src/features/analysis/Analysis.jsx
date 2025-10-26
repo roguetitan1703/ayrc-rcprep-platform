@@ -4,9 +4,9 @@ import { api } from '../../lib/api'
 import { Card, CardContent, CardHeader } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import { Skeleton } from '../../components/ui/Skeleton'
-import { CoverageMeter } from '../results/components/CoverageMeter'
-import { CategoryAccuracyTable } from '../results/components/CategoryAccuracyTable'
-import { ReasonTagSelect } from '../results/components/ReasonTagSelect'
+import { CoverageMeter } from '../attempts/components/CoverageMeter'
+import { CategoryAccuracyTable } from '../attempts/components/CategoryAccuracyTable'
+import { ReasonTagSelect } from '../attempts/components/ReasonTagSelect'
 import { Clock3, Target, CalendarDays, Zap, Tag, Activity } from 'lucide-react'
 
 // Reusable stat tile
@@ -108,11 +108,13 @@ export default function Analysis() {
             <div className="text-5xl font-bold text-success-green">
               {Math.round((score / questions.length) * 100)}%
             </div>
+            {/*
             {isPersonalBest && (
               <span className="px-2 py-1 rounded bg-primary-light text-white text-xs font-semibold">
                 PERSONAL BEST
               </span>
             )}
+            */}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             <StatTile
@@ -234,23 +236,43 @@ export default function Analysis() {
             // Get real question type from backend data
             const qType = q.questionType || 'Unknown'
             const qDifficulty = q.difficulty || 'medium'
+            // Use only the definitive backend field `userAnswer` (do not guess alternate names)
+            const getUserAnswer = (q) => q.userAnswer
             return (
               <Card
                 key={i}
                 className={q.isCorrect ? 'border-success-green/40' : 'border-error-red/40'}
               >
                 <CardHeader className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-lg font-semibold text-text-primary">
-                      Question {i + 1}
-                    </span>
-                    <Badge
-                      color={q.isCorrect ? 'success' : 'error'}
-                      className="uppercase text-[10px] px-2 py-0.5"
-                    >
-                      {q.isCorrect ? 'Correct' : 'Incorrect'}
-                    </Badge>
-                  </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-lg font-semibold text-text-primary">
+                            Question {i + 1}
+                          </span>
+                          {(() => {
+                            const ua = getUserAnswer(q)
+                            // Consider null/undefined as skipped; only definitive userAnswer counts as answered
+                            const userAnswered = ua != null && ua !== ''
+                            if (q.isCorrect) {
+                              return (
+                                <Badge color="success" className="uppercase text-[10px] px-2 py-0.5">
+                                  Correct
+                                </Badge>
+                              )
+                            }
+                            if (!userAnswered) {
+                              return (
+                                <Badge color="neutral" className="uppercase text-[10px] px-2 py-0.5">
+                                  Skipped
+                                </Badge>
+                              )
+                            }
+                            return (
+                              <Badge color="error" className="uppercase text-[10px] px-2 py-0.5">
+                                Incorrect
+                              </Badge>
+                            )
+                          })()}
+                        </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Question metadata with labels */}
@@ -282,12 +304,13 @@ export default function Analysis() {
                   <div className="text-sm text-text-primary leading-relaxed">{q.questionText}</div>
                   <div className="space-y-3">
                     {q.options.map((opt) => {
-                      const isC = opt.id === q.correctAnswerId,
-                        isU = opt.id === q.userAnswer
+                      const ua = getUserAnswer(q)
+                      const isC = opt.id === q.correctAnswerId
+                      const isU = ua != null && String(opt.id) === String(ua)
                       return (
                         <div
                           key={opt.id}
-                          className={`rounded-lg border px-3 py-3 text-sm relative overflow-hidden ${
+                          className={`rounded-lg border px-3 py-3 text-sm relative overflow-hidden transition-transform hover:scale-[1.01] ${
                             isC
                               ? 'border-success-green bg-success-green/5'
                               : isU

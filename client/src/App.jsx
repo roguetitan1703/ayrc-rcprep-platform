@@ -21,11 +21,11 @@ export default function App() {
   const staticRoutes = [
     '/',
     '/about',
-    '/pricing',
     '/contact',
     '/privacy',
     '/terms',
     '/refund-policy',
+    '/help',
   ]
 
   // Define auth routes (no header/footer)
@@ -42,14 +42,12 @@ export default function App() {
     '/dashboard',
     '/archive',
     '/test',
-    '/results',
-    '/analysis',
+    '/attempts',
     '/feedback',
     '/reports',
     '/leaderboard',
     '/profile',
     '/subscriptions',
-    '/help',
     '/performance',
     '/me',
     '/admin',
