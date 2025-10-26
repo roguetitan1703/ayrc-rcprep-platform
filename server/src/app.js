@@ -16,6 +16,11 @@ import subRoutes from './routes/subs.js'
 import aggregationRoutes from './routes/aggregation.js'
 import { notFound, errorHandler } from './middleware/errors.js'
 
+console.log('✅ Loading routes...')
+import testMailRoute from './routes/testMail.js'
+console.log('✅ Imported testMailRoute')
+
+
 const app = express()
 
 // CORS setup
@@ -70,6 +75,7 @@ app.use('/api/v1/admin/feedback', feedbackRoutes) // Admin feedback routes
 app.use('/api/v1/admin', adminRoutes)
 app.use('/api/v1/sub', subRoutes)
 app.use('/api/v1/all', aggregationRoutes)
+app.use('/api/v1/test', testMailRoute)
 
 // Error handlers
 app.use(notFound)

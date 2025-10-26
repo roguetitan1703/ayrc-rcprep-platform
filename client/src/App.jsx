@@ -26,6 +26,7 @@ export default function App() {
     '/terms',
     '/refund-policy',
     '/help',
+    "/shipping-policy",
   ]
 
   // Define auth routes (no header/footer)
