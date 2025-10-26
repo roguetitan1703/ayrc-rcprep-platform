@@ -99,6 +99,18 @@ export default function RcForm() {
       return
     }
 
+     // ✅ Frontend validation: check correct answer text matches the selected option
+  const selectedOption = currentQ.options.find(
+    (o) => o.id === currentQ.correctAnswerId
+  )
+  if (!selectedOption || !selectedOption.text.trim()) {
+    toast.show(
+      'Selected correct answer option is empty. Please fill the option text.',
+      { variant: 'warning' }
+    )
+    return
+  }
+
     setForm((f) => {
       const updated = [...f.questions]
       if (editIndex !== null) updated[editIndex] = currentQ

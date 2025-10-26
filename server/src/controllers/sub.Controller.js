@@ -262,3 +262,36 @@ export async function extendSubscription(req, res, next) {
     next(e)
   }
 }
+
+
+// Auto-nullify expired subscriptions
+export const nullifyExpiredSubscriptions = async () => {
+  console.log('[nullifyExpiredSubscriptions] Started')
+  try {
+    const now = new Date()
+
+    const expiredUsers = await User.find({
+      subexp: { $lt: now },
+      issubexp: false,
+      subscription: { $ne: 'none' }
+    })
+
+    if (expiredUsers.length === 0){
+      console.log('No expired subscriptions found.')
+      return
+    }
+
+    const userIds = expiredUsers.map(u => u._id)
+
+    // Update all expired users in bulk
+    await User.updateMany(
+      { _id: { $in: userIds } },
+      { $set: { subscription: 'none', issubexp: true } }
+    )
+
+    console.log(`✅ Revoked ${expiredUsers.length} expired subscriptions`)
+
+  } catch (err) {
+    console.error('Error nullifying expired subscriptions:', err)
+  }
+}
