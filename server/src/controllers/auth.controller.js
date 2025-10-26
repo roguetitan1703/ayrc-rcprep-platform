@@ -201,43 +201,36 @@ export async function analytics(req, res, next) {
   }
 }
 
-// Minimal email-less reset flow stubs for MVP (can be wired to email service later)
-export async function forgotPassword(req, res, next) {
-  try {
-    // Normally generate token and email it; for MVP, respond OK to avoid blocking
-    return success(res, { ok: true })
-  } catch (e) {
-    next(e)
-  }
-}
-
 // Step 1: Send password reset link
-export async function requestPasswordReset(req, res, next) {
+export async function forgotPassword(req, res, next) {
   try {
     const { email } = req.body
     if (!email) throw badRequest('Email is required')
 
     const user = await User.findOne({ email })
-    if (!user) throw badRequest('User not found')
+    if (!user) {
+      console.warn(`Forgot password attempted for non-existent email: ${email}`)
+      throw badRequest('User or email not found')
+    }
 
-    // Generate token and expiry using your schema method
+    // Generate token and expiry
     const resetToken = user.createPasswordResetToken()
     await user.save({ validateBeforeSave: false })
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
 
-    await sendEmail('passwordReset', {
+    // Send email asynchronously
+    sendEmail('passwordReset', {
       name: user.name,
       email: user.email,
       resetLink,
-    })
+    }).catch((err) => console.error('Failed to send password reset email:', err))
 
     return success(res, { message: 'Password reset link sent to your email' })
   } catch (err) {
     next(err)
   }
 }
-// Step 2: Reset password using the token + new password provided by user
 
 // Step 2: Reset the password when token + new password provided
 export async function resetPassword(req, res, next) {

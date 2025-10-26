@@ -34,5 +34,5 @@ export async function sendEmail(type, data) {
     html,
   }
 
-  return transporter.sendEmail(mailOptions)
+  return transporter.sendMail(mailOptions)
 }
