@@ -7,29 +7,27 @@ import { api } from './api'
 
 // Fetch today's feedback status
 export async function getTodaysFeedback() {
-    const { data } = await api.get('/feedback/today')
-    return data // { submitted: true/false }
+  const { data } = await api.get('/feedback/today')
+  return data // { submitted: true/false }
 }
 
 // Fetch today's questions
 export async function getTodaysQuestions() {
-    const { data } = await api.get('/feedback/questions/today')
-    return data
+  const { data } = await api.get('/feedback/questions/today')
+  return data
 }
 
 // Submit feedback answers
 export async function submitFeedback(answers) {
-    const { data } = await api.post('/feedback', { answers })
-    return data
+  const { data } = await api.post('/feedback', { answers })
+  return data
 }
 
 // Get feedback lock status
 export async function getFeedbackLockStatus() {
-    const { data } = await api.get('/feedback/lock-status')
-    return data
+  const { data } = await api.get('/feedback/lock-status')
+  return data
 }
-
-
 
 // -----------------------------
 // Admin APIs (require auth + admin role)
@@ -37,41 +35,42 @@ export async function getFeedbackLockStatus() {
 
 // Create a new feedback question
 export async function createFeedbackQuestion(questionData) {
-    const { data } = await api.post('/feedback/questions', questionData)
-    return data
+  const { data } = await api.post('/feedback/questions', questionData)
+  return data
 }
 
 // Update an existing question
 export async function updateFeedbackQuestion(id, questionData) {
-    const { data } = await api.put(`/feedback/questions/${id}`, questionData)
-    return data
+  const { data } = await api.put(`/feedback/questions/${id}`, questionData)
+  return data
 }
 
 // Delete a feedback question
 export async function deleteFeedbackQuestion(id) {
-    const { data } = await api.delete(`/feedback/questions/${id}`)
-    return data
+  const { data } = await api.delete(`/feedback/questions/${id}`)
+  return data
 }
 
 export async function getTodayandfutureQuestions() {
-    const { data } = await api.get('/feedback/questions/future')
-    return data
+  const { data } = await api.get('/feedback/questions/future')
+  return data
 }
 
 // Archive a feedback question
 export async function archiveFeedbackQuestion(id) {
-    const { data } = await api.patch(`/feedback/${id}/archive`)
-    return data
+  const { data } = await api.patch(`/feedback/${id}/archive`)
+  return data
 }
 
 // Republish a feedback question
-export async function republishFeedbackQuestion(id) {
-    const { data } = await api.patch(`/feedback/${id}/republish`)
-    return data
-}   
+// Republish a feedback question. Accepts an optional payload (e.g. { status, date }).
+export async function republishFeedbackQuestion(id, payload = {}) {
+  const { data } = await api.patch(`/feedback/${id}/republish`, payload)
+  return data
+}
 
 // Fetch all feedback questions
 export async function getAllFeedbackQuestions() {
-    const { data } = await api.get('/feedback/all')
-    return data
+  const { data } = await api.get('/feedback/all')
+  return data
 }

@@ -41,6 +41,10 @@ function Item({
     if (to === '/attempts') {
       return location.pathname.startsWith('/attempts') || location.pathname.startsWith('/analysis');
     }
+    // Treat leaderboard as active for any leaderboard subpath (e.g. /leaderboard/global)
+    if (to === '/leaderboard') {
+      return location.pathname.startsWith('/leaderboard')
+    }
     return location.pathname === to;
   };
   return (
