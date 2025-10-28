@@ -1,0 +1,86 @@
+{
+  "files": {
+    "backend/src/services/paymentService.js": [
+      "const Razorpay = require(\"razorpay\");",
+      "exports.createRazorpayOrder = async (amount, currency = \"INR\", receiptId, notes) => {",
+      "const order = await razorpayInstance.orders.create(options);"
+    ],
+    "backend/src/controllers/transactionController.js": [
+      "case \"payment.captured\":",
+      "const transaction = await Transaction.findOneAndUpdate({ razorpay_order_id: orderId }, { razorpay_payment_id: paymentId, status: \"captured\" });",
+      "await activateSubscription(transaction, action);"
+    ],
+    "backend/src/controllers/subscriptionController.js": [
+      "const razorpayOrder = await paymentService.createRazorpayOrder(...)",
+      "await Transaction.create({ user_id: userId, amount: upgradeCost, razorpay_order_id: razorpayOrder.id, status: \"created\" });"
+    ],
+    "backend/src/models/Transaction.js": [
+      "razorpay_order_id: { type: String, required: true, index: true }",
+      "razorpay_payment_id: { type: String, index: true, default: null }",
+      "status: { type: String, enum: [\"created\", \"authorized\", \"captured\", \"failed\"] }"
+    ],
+    "backend/src/models/Subscription.js": [
+      "user_id: { type: mongoose.Schema.Types.ObjectId, ref: \"User\", required: true }",
+      "plan_id: { type: mongoose.Schema.Types.ObjectId, ref: \"Plan\" }",
+      "channel_id: { type: mongoose.Schema.Types.ObjectId, ref: \"Channel\", required: true }",
+      "start_date: { type: Date, required: true },",
+      "end_date: { type: Date, required: true }"
+    ],
+    "backend/src/utils/webhookHelper.js": [
+      "exports.verifyRazorpaySignature = (rawBody, signature, secret) => {",
+      "const hmac = crypto.createHmac(\"sha256\", secret); hmac.update(rawBody); const generatedSignature = hmac.digest(\"hex\");",
+      "return crypto.timingSafeEqual(Buffer.from(generatedSignature), Buffer.from(signature));"
+    ],
+    "backend/src/routes/webhookRoutes.js": [
+      "router.post(\"/razorpay\", transactionController.handleRazorpayWebhook);"
+    ],
+    "backend/server.js": [
+      "app.use(express.json({ limit: \"10kb\" }));",
+      "app.use(`${apiBase}/webhooks`, webhookRoutes);"
+    ],
+    "backend/config.env": [
+      "RAZORPAY_KEY_ID_PROD=...",
+      "RAZORPAY_KEY_SECRET_PROD=...",
+      "RAZORPAY_KEY_ID=...",
+      "RAZORPAY_KEY_SECRET=..."
+    ]
+  },
+  "models": {
+    "Transaction": {
+      "user_id": "ObjectId (User)",
+      "subscription_id": "ObjectId (Subscription) or null",
+      "plan_id": "ObjectId (Plan)",
+      "combo_id": "ObjectId (Combo)",
+      "channel_id": "ObjectId (Channel)",
+      "amount": "Number (units)",
+      "currency": "String",
+      "razorpay_order_id": "String",
+      "razorpay_payment_id": "String",
+      "status": "String (created|authorized|captured|failed)",
+      "invoice_url": "String"
+    },
+    "Subscription": {
+      "user_id": "ObjectId (User)",
+      "plan_id": "ObjectId (Plan)",
+      "combo_id": "ObjectId (Combo)",
+      "channel_id": "ObjectId (Channel)",
+      "start_date": "Date",
+      "end_date": "Date",
+      "status": "String (active|expired|pending|revoked|kycSub|agsign)"
+    }
+  },
+  "endpoints": [
+    { "method": "POST", "path": "/api/v1/transactions/order", "description": "Create a Razorpay order (server) and store Transaction (status: created)." },
+    { "method": "POST", "path": "/api/v1/transactions/verify", "description": "Verify client-provided payment signature and activate subscription (not found exact route wiring; tests expect it)." },
+    { "method": "POST", "path": "/api/v1/webhooks/razorpay", "description": "Public webhook. Should verify X-Razorpay-Signature on raw body and process events (payment.captured, payment.failed)." },
+    { "method": "GET", "path": "/api/v1/transactions", "description": "Admin: list transactions." },
+    { "method": "GET", "path": "/api/v1/transactions/:id/invoice", "description": "Redirect to invoice_url if stored or fetch from Razorpay." }
+  ],
+  "env": [
+    "RAZORPAY_KEY_ID",
+    "RAZORPAY_KEY_SECRET",
+    "RAZORPAY_KEY_ID_PROD",
+    "RAZORPAY_KEY_SECRET_PROD",
+    "(recommended) RAZORPAY_WEBHOOK_SECRET"
+  ]
+}

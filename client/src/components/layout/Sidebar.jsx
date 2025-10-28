@@ -227,6 +227,24 @@ function SidebarContent({
             >
               {'Drafts'}
             </Item>
+            <Item
+              to="/admin/plans"
+              icon={Tag}
+              expanded={expanded}
+              compact={compact}
+              mobile={mobile}
+            >
+              {'Plans'}
+            </Item>
+            <Item
+              to="/admin/transactions"
+              icon={BarChart3}
+              expanded={expanded}
+              compact={compact}
+              mobile={mobile}
+            >
+              {'Transactions'}
+            </Item>
           </>
         )}
 

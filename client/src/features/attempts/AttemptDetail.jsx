@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -8,6 +8,7 @@ import { Clock3, CheckCircle, XCircle, Slash } from 'lucide-react'
 export default function AttemptDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -33,7 +34,60 @@ export default function AttemptDetail() {
     }
   }, [id])
 
-  if (loading) return <div className="p-6">Loading...</div>
+  if (loading) return (
+    <div className="flex items-start justify-center py-8 px-4">
+      <div className="w-full max-w-5xl">
+        <div className="flex flex-col md:flex-row gap-6 items-stretch">
+          <aside className="md:w-80 flex-shrink-0 flex flex-col">
+            <div className="overflow-hidden rounded-xl border border-soft bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 p-5 shadow-sm animate-pulse h-56" />
+          </aside>
+
+          <main className="flex-1">
+            <div className="bg-white border rounded-lg shadow-md p-6 h-full min-h-[26rem] flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-2/3">
+                    <div className="h-6 bg-surface-muted rounded w-3/4 mb-3" />
+                    <div className="h-4 bg-surface-muted rounded w-1/2" />
+                  </div>
+                  <div className="w-1/6">
+                    <div className="h-4 bg-surface-muted rounded w-full ml-auto" />
+                    <div className="h-6 bg-surface-muted rounded w-full mt-2 ml-auto" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                  <div className="rounded-lg p-4 flex items-center gap-3 shadow-sm bg-surface-muted animate-pulse h-20" />
+                  <div className="rounded-lg p-4 flex items-center gap-3 shadow-sm bg-surface-muted animate-pulse h-20" />
+                  <div className="rounded-lg p-4 flex items-center gap-3 shadow-sm bg-surface-muted animate-pulse h-20" />
+                  <div className="rounded-lg p-4 flex items-center gap-3 shadow-sm bg-surface-muted animate-pulse h-20" />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="h-4 bg-surface-muted rounded w-3/4 animate-pulse" />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-soft">
+                <div>
+                  <div className="h-3 bg-surface-muted rounded w-24 mb-2 animate-pulse" />
+                  <div className="flex flex-wrap gap-2">
+                    <div className="h-6 w-16 bg-surface-muted rounded animate-pulse" />
+                    <div className="h-6 w-12 bg-surface-muted rounded animate-pulse" />
+                    <div className="h-6 w-10 bg-surface-muted rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-3">
+                  <div className="h-10 w-24 bg-surface-muted rounded animate-pulse" />
+                  <div className="h-10 w-40 bg-surface-muted rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  )
   if (error) return <div className="p-6 text-error-red">{error}</div>
   if (!analysis) return <div className="p-6">No attempt found</div>
 
@@ -51,7 +105,8 @@ export default function AttemptDetail() {
   const fmtDuration = durationSec ? `${Math.floor(durationSec / 60)}m ${durationSec % 60}s` : 'N/A'
   const scorePercent = totalQs ? Math.round((analysis.score / totalQs) * 100) : 0
   const performanceComment = (() => {
-    if (analysis.score === 0) return 'No answers submitted — consider attempting the next test to practice.'
+    // Show 'No answers submitted' only when the user did not provide any answers.
+    if (answeredCount === 0) return 'No answers submitted — consider attempting the next test to practice.'
     if (scorePercent >= 80) return 'Great job — strong performance. Keep it up!'
     if (scorePercent >= 50) return 'Good effort — a few areas to review.'
     return 'Room to improve — review the explanations and try again.'
@@ -167,7 +222,7 @@ export default function AttemptDetail() {
                       <div className="text-xl font-bold">{incorrect}</div>
                     </div>
                   </div>
-                  <div className="bg-gradient-to-br from-white to-neutral/20 rounded-lg p-4 flex items-center gap-3 shadow-sm">
+                  <div className="bg-gradient-to-br from-white to-neutral/40 rounded-lg p-4 flex items-center gap-3 shadow-sm border border-soft">
                     <div className="p-2 rounded-full bg-neutral/10 text-text-secondary">
                       <Slash className="h-5 w-5" />
                     </div>
@@ -196,7 +251,7 @@ export default function AttemptDetail() {
                 </div>
                 <div className="flex items-center justify-end gap-3">
                   <Button variant="outline" onClick={() => navigate('/attempts')}>Back</Button>
-                  <Button size='md' onClick={() => navigate(`/attempts/${id}/analysis`, { state: { from: '/attempts' } })}>View full analysis</Button>
+                  <Button size='md' onClick={() => navigate(`/attempts/${id}/analysis`, { state: { from: location.pathname } })}>View full analysis</Button>
                 </div>
               </div>
             </div>

@@ -13,8 +13,11 @@ import adminRoutes from './routes/admin.js'
 import attemptRoutes from './routes/attempts.js'
 import feedbackRoutes from './routes/feedback.js'
 import subRoutes from './routes/subs.js'
+import transactionsRoutes from './routes/transactions.js'
 import aggregationRoutes from './routes/aggregation.js'
 import { notFound, errorHandler } from './middleware/errors.js'
+import cron from 'node-cron'
+import { nullifyExpiredSubscriptions } from './services/subscription.service.js'
 
 const app = express()
 
@@ -35,7 +38,16 @@ app.use(
 
 app.use(helmet())
 app.use(cookieParser())
-app.use(express.json({ limit: '1mb' }))
+// Capture raw body for webhook signature verification (e.g. Razorpay)
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      // Store raw body buffer for later signature verification
+      req.rawBody = buf
+    },
+  })
+)
 app.use(express.urlencoded({ extended: true }))
 
 morgan.token('date', () => new Date().toISOString()) // ISO timestamp
@@ -69,7 +81,28 @@ app.use('/api/v1/feedback', feedbackRoutes)
 app.use('/api/v1/admin/feedback', feedbackRoutes) // Admin feedback routes
 app.use('/api/v1/admin', adminRoutes)
 app.use('/api/v1/sub', subRoutes)
+app.use('/api/v1/transactions', transactionsRoutes)
 app.use('/api/v1/all', aggregationRoutes)
+
+// Scheduler: always-on subscription maintenance (run once at startup and daily at midnight)
+;(async () => {
+  try {
+    await nullifyExpiredSubscriptions({ dryRun: false })
+    console.log('✅ Initial subscription nullification completed')
+  } catch (err) {
+    console.error('Error in initial nullification:', err)
+  }
+})()
+
+// Daily at midnight
+cron.schedule('0 0 * * *', async () => {
+  console.log(`[CRON] Running daily subscription nullification at ${new Date().toISOString()}`)
+  try {
+    await nullifyExpiredSubscriptions({ dryRun: false })
+  } catch (err) {
+    console.error('[CRON] Error nullifying subscriptions:', err)
+  }
+})
 
 // Error handlers
 app.use(notFound)

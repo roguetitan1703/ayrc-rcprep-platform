@@ -29,8 +29,9 @@ export default function ResultsPage() {
 
       const attemptsRes = await api.get(`/attempts?page=${page}&limit=${limit}`)
       setAttempts(attemptsRes.data?.attempts || [])
-      setTotalPages(attemptsRes.data?.pagination?.totalPages || 1)
-      setTotalCount(attemptsRes.data?.pagination?.total || 0)
+  setTotalPages(attemptsRes.data?.pagination?.totalPages || 1)
+  // API returns `totalAttempts` in pagination (rename mismatch fix)
+  setTotalCount(attemptsRes.data?.pagination?.totalAttempts || attemptsRes.data?.pagination?.total || 0)
 
       if (page === 1 && attemptsRes.data?.stats) {
         setStats(attemptsRes.data.stats)
@@ -67,19 +68,19 @@ export default function ResultsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#273043]">Attempt History</h1>
-        <p className="text-sm text-[#5C6784] mt-1">
+        <h1 className="text-3xl font-bold text-text-primary">Attempt History</h1>
+        <p className="text-sm text-text-secondary mt-1">
           Track your performance and review past attempts
         </p>
       </div>
 
-      <StatsPanel stats={stats} loading={loading && page === 1} />
+  <StatsPanel stats={stats} loading={loading && page === 1} totalAttempts={totalCount} />
 
       <Card className="overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#D8DEE9] bg-[#F7F8FC]">
+        <div className="px-6 py-4 border-b border-border-soft bg-[#F7F8FC]">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#273043]">Recent Attempts</h2>
-            <span className="text-xs text-[#5C6784]">
+            <h2 className="text-lg font-semibold text-text-primary">Recent Attempts</h2>
+            <span className="text-xs text-text-secondary">
               {totalCount} total attempt{totalCount !== 1 ? 's' : ''}
             </span>
           </div>
@@ -88,14 +89,14 @@ export default function ResultsPage() {
         {loading && attempts.length === 0 ? (
           <div className="p-12 text-center">
             <div className="animate-pulse space-y-3">
-              <div className="h-4 bg-[#EEF1FA] rounded w-full" />
-              <div className="h-4 bg-[#EEF1FA] rounded w-full" />
-              <div className="h-4 bg-[#EEF1FA] rounded w-full" />
+              <div className="h-4 bg-surface-muted rounded w-full" />
+              <div className="h-4 bg-surface-muted rounded w-full" />
+              <div className="h-4 bg-surface-muted rounded w-full" />
             </div>
           </div>
         ) : attempts.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-[#5C6784] mb-4">No attempts yet</p>
+            <p className="text-text-secondary mb-4">No attempts yet</p>
             <Button variant="primary" onClick={() => navigate('/dashboard')}>
               Start Your First Test
             </Button>
@@ -104,24 +105,24 @@ export default function ResultsPage() {
           <>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[#D8DEE9]">
-                <thead className="bg-[#EEF1FA]">
+                <thead className="bg-surface-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Passage
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Score
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Accuracy
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Topics
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-[#5C6784] uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -141,18 +142,21 @@ export default function ResultsPage() {
                     return (
                       <tr
                         key={attempt._id}
-                        className="hover:bg-[#EEF1FA]/30 transition-colors cursor-pointer"
+                        className="hover:bg-surface-muted/30 transition-colors cursor-pointer"
                         onClick={() => handleAttemptClick(attempt._id)}
                       >
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-[#273043]">
+                          <div className="text-sm font-medium text-text-primary">
                             {attempt.rcPassage?.title || 'Untitled Passage'}
                           </div>
-                          <div className="text-xs text-[#5C6784] mt-1 line-clamp-1">
-                            {attempt.rcPassage?.passage?.substring(0, 80)}...
+                          <div
+                            className="text-xs text-text-secondary mt-1 line-clamp-1"
+                            title={attempt.rcPassage?.passage}
+                          >
+                            {attempt.rcPassage?.passage || ''}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#5C6784]">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                           {attempt.attemptedAt && !isNaN(new Date(attempt.attemptedAt).getTime())
                             ? new Date(attempt.attemptedAt).toLocaleDateString('en-US', {
                                 month: 'short',
@@ -168,7 +172,7 @@ export default function ResultsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-[#EEF1FA] rounded-full h-2 w-16">
+                            <div className="flex-1 bg-surface-muted rounded-full h-2 w-16">
                               <div
                                 className={`h-2 rounded-full transition-all ${
                                   attempt.score === 4
@@ -182,7 +186,7 @@ export default function ResultsPage() {
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
-                            <span className="text-xs font-medium text-[#5C6784]">
+                            <span className="text-xs font-medium text-text-secondary">
                               {percentage}%
                             </span>
                           </div>
@@ -220,14 +224,14 @@ export default function ResultsPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-between px-6 py-4 border-t border-[#D8DEE9] bg-[#F7F8FC]">
-              <div className="text-sm text-[#5C6784]">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border-soft bg-[#F7F8FC]">
+              <div className="text-sm text-text-secondary">
                 Showing{' '}
-                <span className="font-semibold text-[#273043]">{(page - 1) * limit + 1}</span> to{' '}
-                <span className="font-semibold text-[#273043]">
+                <span className="font-semibold text-text-primary">{(page - 1) * limit + 1}</span> to{' '}
+                <span className="font-semibold text-text-primary">
                   {Math.min(page * limit, totalCount)}
                 </span>{' '}
-                of <span className="font-semibold text-[#273043]">{totalCount}</span> results
+                of <span className="font-semibold text-text-primary">{totalCount}</span> results
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -242,7 +246,7 @@ export default function ResultsPage() {
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Previous
                 </Button>
-                <div className="text-sm text-[#273043] font-medium px-3">
+                <div className="text-sm text-text-primary font-medium px-3">
                   Page {page} of {totalPages}
                 </div>
                 <Button

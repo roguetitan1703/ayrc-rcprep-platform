@@ -310,7 +310,7 @@ export async function leaderboard(req, res, next) {
       Object.values(results.tagLeaderboards).flat().length +
       results.monthly.length
     if (totalEntries === 0) {
-      return notFoundErr(res, 'No attempts found to generate leaderboards.')
+      return next(notFoundErr('No attempts found to generate leaderboards.'))
     }
 
     // 3. Return All Leaderboards

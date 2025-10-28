@@ -7,7 +7,7 @@ export function StatsRow({ stats, analytics, loading }) {
     return (
       <div className="grid sm:grid-cols-3 gap-4">
         {[1, 2, 3].map(i => (
-          <Card key={i} className="bg-white border border-[#D8DEE9]">
+          <Card key={i} className="bg-white border border-border-soft">
             <CardContent className="p-6">
               <Skeleton className="h-4 w-20 mb-2" />
               <Skeleton className="h-8 w-16" />
@@ -48,19 +48,19 @@ export function StatsRow({ stats, analytics, loading }) {
   return (
     <div className="grid sm:grid-cols-3 gap-4" aria-label="Key performance metrics">
       {tiles.map(({ label, value, subtext, icon: Icon, color, bgColor }) => (
-        <Card key={label} className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
+        <Card key={label} className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-border-soft hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs uppercase tracking-wider font-semibold text-[#5C6784]">
+              <div className="text-xs uppercase tracking-wider font-semibold text-text-secondary">
                 {label}
               </div>
               <div className={`${bgColor} p-2 rounded-lg`}>
                 <Icon className={`h-4 w-4 ${color}`} />
               </div>
             </div>
-            <div className="text-3xl font-bold text-[#273043]">{value}</div>
+            <div className="text-3xl font-bold text-text-primary">{value}</div>
             {subtext && (
-              <div className="text-xs text-[#5C6784] mt-2">{subtext}</div>
+              <div className="text-xs text-text-secondary mt-2">{subtext}</div>
             )}
           </CardContent>
         </Card>

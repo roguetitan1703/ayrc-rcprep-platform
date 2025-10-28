@@ -23,7 +23,7 @@ export async function submitFeedback(req, res, next) {
     const answersPayload = Array.isArray(req.body) ? req.body : req.body?.answers
 
     if (!answersPayload || !Array.isArray(answersPayload) || answersPayload.length === 0) {
-      return badRequest(res, 'No answers provided')
+      return next(badRequest('No answers provided'))
     }
 
     const answers = answerSchema.parse(answersPayload)
@@ -40,7 +40,7 @@ export async function submitFeedback(req, res, next) {
   } catch (e) {
     // Handle duplicate submission
     if (e.code === 11000) {
-      return badRequest(res, 'Feedback already submitted today')
+      return next(badRequest('Feedback already submitted today'))
     }
     next(e)
   }
@@ -151,7 +151,7 @@ export async function createFeedbackQuestion(req, res, next) {
     return success(res, question)
   } catch (e) {
     if (e.code === 11000) {
-      return badRequest(res, 'Question with this ID already exists')
+      return next(badRequest('Question with this ID already exists'))
     }
     next(e)
   }
@@ -173,7 +173,7 @@ export async function updateFeedbackQuestion(req, res, next) {
       new: true,
     })
 
-    if (!question) return badRequest(res, 'Question not found')
+    if (!question) return next(badRequest('Question not found'))
 
     return success(res, question)
   } catch (e) {
@@ -190,7 +190,7 @@ export async function deleteFeedbackQuestion(req, res, next) {
     console.log(id)
     const question = await FeedbackQuestion.findByIdAndDelete(id)
 
-    if (!question) return badRequest(res, 'Question not found')
+    if (!question) return next(badRequest('Question not found'))
 
     return success(res, { ok: true })
   } catch (e) {
@@ -204,9 +204,9 @@ export async function deleteFeedbackQuestion(req, res, next) {
 export async function archiveFeedbackQuestion(req, res, next) {
   try {
     const { id } = req.params
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.isValidObjectId(id)) {
       console.error(`Invalid question ID for archive: ${id}`)
-      return badRequest(res, { message: 'Invalid question ID format' })
+      return next(badRequest('Invalid question ID format'))
     }
     console.log(`Received PATCH request to archive question ID: ${id}`)
     const question = await FeedbackQuestion.findByIdAndUpdate(
@@ -216,7 +216,7 @@ export async function archiveFeedbackQuestion(req, res, next) {
     )
     if (!question) {
       console.error(`Question not found for archive: ${id}`)
-      return notFoundErr(res, { message: 'Question not found' })
+      return next(notFoundErr('Question not found'))
     }
     console.log(`Successfully archived question: ${id}`)
     return success(res, { message: 'Question archived successfully', question })
@@ -254,7 +254,7 @@ export async function getAllFeedbackQuestions(req, res, next) {
 export async function republishFeedbackQuestion(req, res, next) {
   try {
     if (req.user.role !== 'admin') {
-      return badRequest(res, 'Only admins can republish feedback questions')
+      return next(badRequest('Only admins can republish feedback questions'))
     }
 
     const { id } = req.params

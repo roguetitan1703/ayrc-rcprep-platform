@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { describe, test, expect } from '@jest/globals'
 
 const rc = {
   questions: [
@@ -17,6 +17,16 @@ function score(rc, answers) {
   return s
 }
 
-assert.equal(score(rc, ['A', 'B', 'C', 'D']), 4)
-assert.equal(score(rc, ['A', 'B', 'X', null]), 2)
-assert.equal(score(rc, ['', '', '', '']), 0)
+describe('score function', () => {
+  test('full correct answers', () => {
+    expect(score(rc, ['A', 'B', 'C', 'D'])).toBe(4)
+  })
+
+  test('partial correct answers', () => {
+    expect(score(rc, ['A', 'B', 'X', null])).toBe(2)
+  })
+
+  test('no answers', () => {
+    expect(score(rc, ['', '', '', ''])).toBe(0)
+  })
+})

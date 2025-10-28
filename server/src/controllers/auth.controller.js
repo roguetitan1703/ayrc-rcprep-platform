@@ -11,8 +11,8 @@ const registerSchema = z
     name: z.string().min(1),
     email: z.string().email(),
     phoneNumber: z.string().optional(),
-    password: z.string().min(6),
-    passwordConfirm: z.string().min(6),
+    password: z.string().min(8),
+    passwordConfirm: z.string().min(8),
   })
   .refine((d) => d.password === d.passwordConfirm, {
     message: 'Passwords do not match',
@@ -35,21 +35,21 @@ export async function register(req, res, next) {
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8),
 })
 
 export async function login(req, res, next) {
   try {
     const parseResult = loginSchema.safeParse(req.body)
     if (!parseResult.success) {
-      return res.status(400).json({ message: "Invalid credentials" })
+      return res.status(400).json({ message: 'Invalid credentials' })
     }
 
     const { email, password } = parseResult.data
 
     const user = await User.findOne({ email }).select('+password')
     if (!user || !user.password) throw badRequest('Invalid credentials')
-    
+
     const ok = await user.correctPassword(password, user.password)
     if (!ok) throw badRequest('Invalid credentials')
 
@@ -95,7 +95,7 @@ export async function updateMe(req, res, next) {
 export async function changePassword(req, res, next) {
   try {
     const { oldPassword, newPassword } = req.body
-    if (!oldPassword || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
+    if (!oldPassword || !newPassword || newPassword.length < 8) throw badRequest('Invalid input')
 
     const user = await User.findById(req.user.id).select('+password')
     if (!user || !user.password) throw badRequest('Invalid user')
@@ -207,7 +207,7 @@ export async function resetPassword(req, res, next) {
   try {
     // Accept email and newPassword for MVP
     const { email, newPassword } = req.body
-    if (!email || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
+    if (!email || !newPassword || newPassword.length < 8) throw badRequest('Invalid input')
     const user = await User.findOne({ email })
     if (!user) throw badRequest('Invalid reset link')
     user.password = await bcrypt.hash(newPassword, 10)

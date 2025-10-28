@@ -6,6 +6,7 @@ import { User } from '../models/User.js'
 import { z } from 'zod'
 import { startOfIST } from '../utils/date.js'
 import { REASON_CODES } from '../utils/reasonCodes.js'
+import planAccess from '../lib/planAccess.js'
 
 const qDetailZ = z.object({
   questionIndex: z.number().int().min(0),
@@ -39,56 +40,54 @@ const submitSchema = z.object({
 
 export async function submitAttempt(req, res, next) {
   try {
-  // Validate user authentication
+    // Validate user authentication
     if (!req.user || !req.user.id) {
-      return forbidden('User not authenticated'); 
+      return next(forbidden('User not authenticated'))
     }
 
     const { rcPassageId, answers, timeTaken, durationSeconds, deviceType, q_details, attemptType } =
-      submitSchema.parse(req.body);
-    const rc = await RcPassage.findById(rcPassageId);
-    if (!rc) throw notFoundErr('RC not found');
+      submitSchema.parse(req.body)
+    const rc = await RcPassage.findById(rcPassageId)
+    if (!rc) throw notFoundErr('RC not found')
+    // Resolve canonical plan for user (no legacy fallback)
+    const user = req.user
+    const plan = await planAccess.resolvePlanForUser(user)
+    const subscription = plan ? String(plan.slug).toLowerCase() : 'free'
+    const joinedDate = user.subon || user.createdAt
 
-    // Safe debug log: req.user may be undefined in some error cases, and rc is now defined
+    // Safe debug log: avoid reading legacy quick-field strings
     try {
-      const userInfo = {
-        id: req.user?.id || null,
-        subscription: (req.user?.subscription || 'free'),
-        joinedDate: req.user?.subon || req.user?.createdAt,
-      }
+      const userInfo = { id: user?.id || null, subscription, joinedDate }
       console.log('[submitAttempt] user:', userInfo, 'rcId:', rc._id.toString())
     } catch (logErr) {
       console.error('submitAttempt: failed to log debug info', logErr)
     }
- 
-    const user = req.user;
-    const subscription = (user.subscription || 'free').toLowerCase();
-    const joinedDate = user.subon || user.createdAt;
-    const now = new Date();
+    const now = new Date()
 
     // Subscription-based access control
     if (subscription === 'free') {
-      if (rc.createdAt < joinedDate) return forbidden('Not allowed: RC uploaded before you joined');
+      if (rc.createdAt < joinedDate)
+        return next(forbidden('Not allowed: RC uploaded before you joined'))
       // Only allow attempt if scheduledDate is today (not for missed RCs)
-      const today = startOfIST();
-      const rcDay = startOfIST(rc.scheduledDate);
+      const today = startOfIST()
+      const rcDay = startOfIST(rc.scheduledDate)
       if (rcDay.getTime() !== today.getTime()) {
-        return forbidden('Not allowed: You can only attempt today\'s RCs');
+        return next(forbidden("Not allowed: You can only attempt today's RCs"))
       }
     } else if (subscription === 'weekly' || subscription === '1 week plan') {
-      const sevenDaysAfterJoin = new Date(joinedDate);
-      sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7);
+      const sevenDaysAfterJoin = new Date(joinedDate)
+      sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7)
       if (rc.createdAt < joinedDate || rc.createdAt > sevenDaysAfterJoin) {
-        return forbidden('Not allowed: RC not in your subscription window');
+        return next(forbidden('Not allowed: RC not in your subscription window'))
       }
     } // else for till CAT, allow all
 
     // Prevent official attempts on future-dated content not yet live
     if ((!attemptType || attemptType === 'official') && rc.scheduledDate) {
-      const todayStart = startOfIST();
-      const rcDay = startOfIST(rc.scheduledDate);
+      const todayStart = startOfIST()
+      const rcDay = startOfIST(rc.scheduledDate)
       if (rcDay > todayStart && rc.status !== 'live' && rc.status !== 'archived') {
-        return badRequest('Cannot submit attempt before RC date');
+        return next(badRequest('Cannot submit attempt before RC date'))
       }
     }
 
@@ -365,13 +364,13 @@ export async function listUserAttempts(req, res, next) {
 
     const totalAttempts = await Attempt.countDocuments({ userId: req.user.id })
     const attempts = await Attempt.find({ userId: req.user.id })
-       .populate({
-    path: 'rcPassageId',
-    select: 'title topicTags',
-  })
+      .populate({
+        path: 'rcPassageId',
+        select: 'title topicTags',
+      })
       .sort({ attemptedAt: -1 })
       .skip(skip)
-      .limit(limit) 
+      .limit(limit)
       .lean()
 
     const formatted = attempts.map((a) => {
@@ -396,7 +395,11 @@ export async function listUserAttempts(req, res, next) {
             : 0,
         wrongCount,
         taggedWrong: tagged,
-        attemptedAt: a.attemptedAt ? new Date(a.attemptedAt) : (a.createdAt ? new Date(a.createdAt) : null),
+        attemptedAt: a.attemptedAt
+          ? new Date(a.attemptedAt)
+          : a.createdAt
+          ? new Date(a.createdAt)
+          : null,
         isPersonalBest: a.isPersonalBest || false,
         attemptType: a.attemptType || 'official',
       }

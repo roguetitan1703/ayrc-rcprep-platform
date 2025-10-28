@@ -42,8 +42,8 @@ export default function Profile() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#273043]">My Profile</h1>
-          <p className="text-[#5C6784] mt-1">Manage your account and track your progress</p>
+          <h1 className="text-3xl font-bold text-text-primary">My Profile</h1>
+          <p className="text-text-secondary mt-1">Manage your account and track your progress</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -77,8 +77,8 @@ export default function Profile() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#273043]">My Profile</h1>
-        <p className="text-[#5C6784] mt-1">Manage your account and track your progress</p>
+        <h1 className="text-3xl font-bold text-text-primary">My Profile</h1>
+        <p className="text-text-secondary mt-1">Manage your account and track your progress</p>
       </div>
 
       {/* Two Column Layout */}
@@ -86,41 +86,41 @@ export default function Profile() {
         {/* Left Column - Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* User Info Card */}
-          <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="p-4 border-b border-[#D8DEE9]">
+          <Card className="bg-white border border-border-soft hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="p-4 border-b border-border-soft">
               <div className="flex items-center gap-4">
                 <div className="bg-gradient-to-br from-[#D33F49] to-[#E4572E] p-4 rounded-2xl shadow-md">
                   <User className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#273043]">Account Information</h2>
-                  <p className="text-sm text-[#5C6784] mt-0.5">Your personal details</p>
+                  <h2 className="text-xl font-bold text-text-primary">Account Information</h2>
+                  <p className="text-sm text-text-secondary mt-0.5">Your personal details</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Email - Read Only */}
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-[#273043]">
-                  <Mail className="h-4 w-4 text-[#5C6784]" />
+                <label className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <Mail className="h-4 w-4 text-text-secondary" />
                   Email Address
                 </label>
-                <div className="px-4 py-3 bg-[#EEF1FA]/50 border border-[#D8DEE9] rounded-lg text-sm text-[#5C6784]">
+                <div className="px-4 py-3 bg-surface-muted/50 border border-border-soft rounded-lg text-sm text-text-secondary">
                   {me.email}
                 </div>
               </div>
 
               {/* Name - Editable */}
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-[#273043]">
-                  <User className="h-4 w-4 text-[#5C6784]" />
+                <label className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <User className="h-4 w-4 text-text-secondary" />
                   Display Name
                 </label>
                 <Input 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
-                  className="border-[#D8DEE9] focus:border-[#3B82F6] focus:ring-[#3B82F6]/20"
+                  className="border-border-soft focus:border-[#3B82F6] focus:ring-[#3B82F6]/20"
                 />
               </div>
 
@@ -139,7 +139,7 @@ export default function Profile() {
               )}
 
               {/* Actions */}
-              <div className="flex items-center gap-3 pt-4 border-t border-[#D8DEE9]">
+              <div className="flex items-center gap-3 pt-4 border-t border-border-soft">
                 <Button 
                   onClick={save}
                   className="bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold px-6"
@@ -157,10 +157,10 @@ export default function Profile() {
           </Card>
 
           {/* Performance Stats Grid */}
-          <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="p-6 border-b border-[#D8DEE9]">
-              <h2 className="text-lg font-semibold text-[#273043]">Performance Overview</h2>
-              <p className="text-sm text-[#5C6784] mt-1">Your practice statistics at a glance</p>
+          <Card className="bg-white border border-border-soft hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="p-6 border-b border-border-soft">
+              <h2 className="text-lg font-semibold text-text-primary">Performance Overview</h2>
+              <p className="text-sm text-text-secondary mt-1">Your practice statistics at a glance</p>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -169,7 +169,7 @@ export default function Profile() {
                   return (
                     <div
                       key={idx}
-                      className="p-4 bg-[#EEF1FA]/30 border border-[#D8DEE9] rounded-xl hover:shadow-md hover:border-[#3B82F6]/40 hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
+                      className="p-4 bg-surface-muted/30 border border-border-soft rounded-xl hover:shadow-md hover:border-[#3B82F6]/40 hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div
@@ -179,10 +179,10 @@ export default function Profile() {
                           <Icon className="h-5 w-5" style={{ color: stat.color }} />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-[#273043] mb-1 group-hover:text-[#3B82F6] transition-colors duration-200">
+                      <div className="text-2xl font-bold text-text-primary mb-1 group-hover:text-[#3B82F6] transition-colors duration-200">
                         {stat.value}
                       </div>
-                      <div className="text-xs text-[#5C6784] font-medium">
+                      <div className="text-xs text-text-secondary font-medium">
                         {stat.label}
                       </div>
                     </div>
@@ -201,10 +201,10 @@ export default function Profile() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <div className="text-sm font-semibold text-[#273043] mb-1">Current Streak</div>
-                    <div className="text-4xl font-bold text-[#273043]">
+                    <div className="text-sm font-semibold text-text-primary mb-1">Current Streak</div>
+                    <div className="text-4xl font-bold text-text-primary">
                       {me.dailyStreak}
-                      <span className="text-xl text-[#5C6784] ml-1">
+                      <span className="text-xl text-text-secondary ml-1">
                         {me.dailyStreak === 1 ? 'day' : 'days'}
                       </span>
                     </div>
@@ -213,7 +213,7 @@ export default function Profile() {
                     <Award className="h-6 w-6 text-white" />
                   </div>
                 </div>
-                <div className="text-xs text-[#5C6784] font-medium">
+                <div className="text-xs text-text-secondary font-medium">
                   Keep practicing daily to maintain your streak! 🔥
                 </div>
               </CardContent>
@@ -221,29 +221,29 @@ export default function Profile() {
           )}
 
           {/* Subscription Card */}
-          <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="p-6 border-b border-[#D8DEE9]">
+          <Card className="bg-white border border-border-soft hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="p-6 border-b border-border-soft">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="bg-[#D33F49]/10 p-2 rounded-lg">
                     <Crown className="h-5 w-5 text-[#D33F49]" />
                   </div>
-                  <h2 className="text-lg font-semibold text-[#273043]">Subscription</h2>
+                  <h2 className="text-lg font-semibold text-text-primary">Subscription</h2>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {/* Plan Type */}
-              <div className="flex items-center justify-between py-3 border-b border-[#D8DEE9]">
-                <span className="text-sm text-[#5C6784] font-medium">Plan</span>
-                <span className="text-sm font-bold text-[#273043] uppercase tracking-wide">
+              <div className="flex items-center justify-between py-3 border-b border-border-soft">
+                <span className="text-sm text-text-secondary font-medium">Plan</span>
+                <span className="text-sm font-bold text-text-primary uppercase tracking-wide">
                   {me.subscription || 'Free'}
                 </span>
               </div>
 
               {/* Status */}
-              <div className="flex items-center justify-between py-3 border-b border-[#D8DEE9]">
-                <span className="text-sm text-[#5C6784] font-medium">Status</span>
+              <div className="flex items-center justify-between py-3 border-b border-border-soft">
+                <span className="text-sm text-text-secondary font-medium">Status</span>
                 <span
                   className={`text-sm font-bold ${
                     me.issubexp ? 'text-[#E4572E]' : 'text-[#23A094]'
@@ -254,20 +254,20 @@ export default function Profile() {
               </div>
 
               {/* Started */}
-              <div className="flex items-center justify-between py-3 border-b border-[#D8DEE9]">
-                <span className="text-sm text-[#5C6784] font-medium">Started</span>
+              <div className="flex items-center justify-between py-3 border-b border-border-soft">
+                <span className="text-sm text-text-secondary font-medium">Started</span>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5 text-[#5C6784]" />
-                  <span className="text-sm text-[#273043]">{formatDate(me.subon)}</span>
+                  <Calendar className="h-3.5 w-3.5 text-text-secondary" />
+                  <span className="text-sm text-text-primary">{formatDate(me.subon)}</span>
                 </div>
               </div>
 
               {/* Expires */}
               <div className="flex items-center justify-between py-3">
-                <span className="text-sm text-[#5C6784] font-medium">Expires</span>
+                <span className="text-sm text-text-secondary font-medium">Expires</span>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5 text-[#5C6784]" />
-                  <span className="text-sm text-[#273043]">{formatDate(me.subexp)}</span>
+                  <Calendar className="h-3.5 w-3.5 text-text-secondary" />
+                  <span className="text-sm text-text-primary">{formatDate(me.subexp)}</span>
                 </div>
               </div>
 

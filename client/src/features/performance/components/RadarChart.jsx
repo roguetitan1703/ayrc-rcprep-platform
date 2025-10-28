@@ -13,10 +13,10 @@ export function RadarChart({ data }) {
   }, [data])
 
   return (
-    <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="p-6 border-b border-[#D8DEE9]">
-        <h3 className="text-lg font-semibold text-[#273043]">Skill Assessment</h3>
-        <p className="text-sm text-[#5C6784] mt-1">
+    <Card className="bg-white border border-border-soft hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="p-6 border-b border-border-soft">
+        <h3 className="text-lg font-semibold text-text-primary">Skill Assessment</h3>
+        <p className="text-sm text-text-secondary mt-1">
           Your accuracy vs 80% target across question types
         </p>
       </CardHeader>

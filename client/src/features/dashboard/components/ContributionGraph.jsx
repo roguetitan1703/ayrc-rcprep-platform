@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 /**
  * Tooltip component (placeholder - replace with your actual Tooltip)
@@ -16,62 +16,99 @@ function Tooltip({ content, children }) {
 
 /**
  * GitHub-style contribution graph showing daily activity
- * Shows full year starting from October 1, 2025 (365 days forward)
+ * Hybrid behavior: default to last 365 days, but auto-zoom to a tighter
+ * window when user's activity only spans a smaller range (e.g., <= 90 days).
  */
-export function ContributionGraph({ attempts = [] }) {
+export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomThreshold = 90 }) {
+  // Box sizing - use constants so sizing is applied everywhere
+  const CELL = 16 // px (increased for visibility)
+  const GAP = 4 // px
+  const WEEK_WIDTH = CELL + GAP
+  const DAY_LABEL_WIDTH = 44 // px - fixed width for the weekday labels column
+
+  // Compute earliest valid attempt date
+  const earliestDate = useMemo(() => {
+    let min = null
+    attempts.forEach((a) => {
+      const d = new Date(a.createdAt)
+      if (isNaN(d)) return
+      if (!min || d < min) min = d
+    })
+    return min
+  }, [attempts])
+
+  // Determine initial numDays: if user's activity span <= autoZoomThreshold, zoom to span+padding
+  const initialNumDays = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (!earliestDate) return defaultDays
+    const spanMs = today.getTime() - (new Date(earliestDate)).getTime()
+    const spanDays = Math.ceil(spanMs / (1000 * 60 * 60 * 24)) + 1
+    if (spanDays <= autoZoomThreshold) {
+      // keep zoomed view but not too tiny — use 90 days minimum for readability
+      const padded = Math.max(90, spanDays + 7)
+      return Math.min(defaultDays, padded)
+    }
+    return defaultDays
+  }, [earliestDate, defaultDays, autoZoomThreshold])
+
+  const [numDays, setNumDays] = useState(initialNumDays)
+  const [showAll, setShowAll] = useState(numDays === defaultDays)
+
+  // If attempts change and we are not in explicit 'showAll' mode, update zoom
+  useEffect(() => {
+    if (!showAll) setNumDays(initialNumDays)
+  }, [initialNumDays, showAll])
+
   const weeks = useMemo(() => {
-    // Start date: October 1, 2025
-    const startDate = new Date('2025-10-01')
+    // End date: today (local midnight)
+    const endDate = new Date()
+    endDate.setHours(0, 0, 0, 0)
+    const startDate = new Date(endDate)
+    startDate.setDate(startDate.getDate() - (numDays - 1))
+
     const daysData = {}
-    
-    // Initialize 365 days starting from Oct 1, 2025
-    const NUM_DAYS = 365
-    for (let i = 0; i < NUM_DAYS; i++) {
+    for (let i = 0; i < numDays; i++) {
       const date = new Date(startDate)
       date.setDate(date.getDate() + i)
       const key = date.toISOString().split('T')[0]
       daysData[key] = { date, count: 0 }
     }
-    
-    // Fill in actual attempt counts
+
+    // Fill attempt counts into daysData
     if (attempts && attempts.length > 0) {
-      attempts.forEach(attempt => {
+      attempts.forEach((attempt) => {
         const date = new Date(attempt.createdAt)
+        if (isNaN(date)) return
         const key = date.toISOString().split('T')[0]
-        if (daysData[key]) {
-          daysData[key].count++
-        }
+        if (daysData[key]) daysData[key].count++
       })
     }
-    
+
     // Group into weeks (Sunday start)
     const weeksArray = []
     const sortedDays = Object.values(daysData).sort((a, b) => a.date - b.date)
-    
+
     // Pad start to align with Sunday
-    const firstDay = sortedDays[0].date.getDay()
+    const firstDay = sortedDays[0]?.date?.getDay() || 0
     if (firstDay !== 0) {
-      // Add empty days before the start
       for (let i = firstDay - 1; i >= 0; i--) {
         const paddingDate = new Date(sortedDays[0].date)
         paddingDate.setDate(paddingDate.getDate() - (firstDay - i))
-        sortedDays.unshift({ date: paddingDate, count: null }) // null = no data
+        sortedDays.unshift({ date: paddingDate, count: null })
       }
     }
-    
-    // Group into weeks
+
     let currentWeek = []
-    sortedDays.forEach((day, idx) => {
+    sortedDays.forEach((day) => {
       currentWeek.push(day)
       if (currentWeek.length === 7) {
         weeksArray.push(currentWeek)
         currentWeek = []
       }
     })
-    
-    // Add remaining days
+
     if (currentWeek.length > 0) {
-      // Pad end to complete the week
       while (currentWeek.length < 7) {
         const lastDate = currentWeek[currentWeek.length - 1].date
         const paddingDate = new Date(lastDate)
@@ -80,52 +117,55 @@ export function ContributionGraph({ attempts = [] }) {
       }
       weeksArray.push(currentWeek)
     }
-    
+
     return weeksArray
-  }, [attempts])
+  }, [attempts, numDays])
   
   const getColorClass = (count) => {
     if (count === null) return 'bg-transparent border-transparent cursor-default'
-    if (count === 0) return 'bg-[#EEF1FA] border-[#D8DEE9]'
+    if (count === 0) return 'bg-surface-muted border-border-soft'
     if (count === 1) return 'bg-[#D33F49]/30 border-[#D33F49]/40'
     if (count === 2) return 'bg-[#D33F49]/60 border-[#D33F49]/70'
     return 'bg-[#D33F49] border-[#D33F49]' // 3+
   }
   
+  // Generate month labels based on the computed weeks and startDate so labels align
   const monthLabels = useMemo(() => {
-    const startDate = new Date('2025-10-01')
+    // If there are no weeks yet, return empty
+    if (!weeks || weeks.length === 0) return []
+
     const labels = []
-    const seenMonths = new Set()
-    
-    // Generate month labels for all 365 days
-    for (let i = 0; i < 365; i++) {
-      const date = new Date(startDate)
-      date.setDate(date.getDate() + i)
-      const monthYear = `${date.getFullYear()}-${date.getMonth()}`
-      
-      // Only add label on first occurrence of month
-      if (!seenMonths.has(monthYear) && date.getDate() <= 7) {
+    const seen = new Set()
+
+    // For each week, pick the first real day and use its month if not seen
+    weeks.forEach((week, weekIdx) => {
+      const firstRealDay = week.find((d) => d && d.date && d.count !== null)
+      const labelDate = firstRealDay ? firstRealDay.date : week[0].date
+      if (!labelDate) return
+      const monthKey = `${labelDate.getFullYear()}-${labelDate.getMonth()}`
+      if (!seen.has(monthKey)) {
+        seen.add(monthKey)
         labels.push({
-          month: date.toLocaleString('default', { month: 'short' }),
-          weekIndex: Math.floor(i / 7)
+          month: labelDate.toLocaleString('default', { month: 'short' }),
+          weekIndex: weekIdx,
         })
-        seenMonths.add(monthYear)
       }
-    }
-    
+    })
+
     return labels
-  }, [])
+  }, [weeks])
   
   return (
-    <div className="space-y-3 w-full overflow-x-auto pb-4">
+    // allow horizontal scrolling but keep vertical overflow visible so tooltips don't get clipped
+    <div className="space-y-3 w-full overflow-x-auto overflow-y-visible pb-4">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-[#273043]">
+        <div className="text-sm font-semibold text-text-primary">
           Activity (Oct 2025 - Sep 2026)
         </div>
-        <div className="flex items-center gap-2 text-xs text-[#5C6784]">
+        <div className="flex items-center gap-2 text-xs text-text-secondary">
           <span>Less</span>
           <div className="flex gap-1">
-            <div className="w-3 h-3 rounded-sm bg-[#EEF1FA] border border-[#D8DEE9]" />
+            <div className="w-3 h-3 rounded-sm bg-surface-muted border border-border-soft" />
             <div className="w-3 h-3 rounded-sm bg-[#D33F49]/30 border border-[#D33F49]/40" />
             <div className="w-3 h-3 rounded-sm bg-[#D33F49]/60 border border-[#D33F49]/70" />
             <div className="w-3 h-3 rounded-sm bg-[#D33F49] border border-[#D33F49]" />
@@ -134,26 +174,10 @@ export function ContributionGraph({ attempts = [] }) {
         </div>
       </div>
       
-      <div className="relative min-w-max">
-        {/* Month labels */}
-        <div className="flex gap-[3px] mb-5 pl-8">
-          {monthLabels.map((label, idx) => (
-            <div
-              key={idx}
-              className="text-[10px] text-[#5C6784] font-medium"
-              style={{ 
-                position: 'absolute',
-                left: `${label.weekIndex * 14 + 32}px`
-              }}
-            >
-              {label.month}
-            </div>
-          ))}
-        </div>
-        
-        {/* Day labels and grid */}
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-[3px] text-[10px] text-[#5C6784] font-medium justify-between py-1">
+      <div className="relative">
+        <div className="flex">
+          {/* Fixed-width weekday labels column */}
+          <div style={{ width: DAY_LABEL_WIDTH }} className="flex flex-col gap-[3px] text-[10px] text-text-secondary font-medium justify-between py-1">
             <div className="h-[11px] leading-[11px]">Sun</div>
             <div className="h-[11px] leading-[11px]">Mon</div>
             <div className="h-[11px] leading-[11px]">Tue</div>
@@ -162,36 +186,67 @@ export function ContributionGraph({ attempts = [] }) {
             <div className="h-[11px] leading-[11px]">Fri</div>
             <div className="h-[11px] leading-[11px]">Sat</div>
           </div>
-          
-          {/* Contribution grid */}
-          <div className="flex gap-[3px] flex-1">
-            {weeks.map((week, weekIdx) => (
-              <div key={weekIdx} className="flex flex-col gap-[3px]">
-                {week.map((day, dayIdx) => {
-                  if (day.count === null) {
-                    return <div key={dayIdx} className="w-[11px] h-[11px]" />
-                  }
-                  
-                  const dateStr = day.date.toLocaleDateString('default', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric'
-                  })
-                  
-                  return (
-                    <Tooltip
-                      key={dayIdx}
-                      content={`${day.count} ${day.count === 1 ? 'attempt' : 'attempts'} on ${dateStr}`}
-                    >
-                      <div
-                        className={`w-[11px] h-[11px] rounded-sm border transition-all cursor-pointer hover:ring-2 hover:ring-[#D33F49]/30 ${getColorClass(day.count)}`}
-                        aria-label={`${day.count} contributions on ${dateStr}`}
-                      />
-                    </Tooltip>
-                  )
-                })}
+
+          {/* Centered grid wrapper sized to the number of weeks so month labels and boxes align */}
+          <div
+            className="relative"
+            style={{
+              minWidth: Math.max(1, weeks.length) * WEEK_WIDTH,
+              margin: '0 auto',
+              paddingTop: 20, // space for month labels
+            }}
+          >
+            {/* Month labels placed absolutely inside this wrapper so left positions line up with columns */}
+            {monthLabels.map((label, idx) => (
+              <div
+                key={idx}
+                className="text-[11px] text-text-secondary font-medium absolute"
+                style={{
+                  left: `${label.weekIndex * WEEK_WIDTH}px`,
+                  top: 0,
+                }}
+              >
+                {label.month}
               </div>
             ))}
+
+            {/* The grid itself */}
+            <div className="flex gap-[3px]" style={{ alignItems: 'flex-start' }}>
+              {weeks.map((week, weekIdx) => (
+                <div key={weekIdx} className="flex flex-col" style={{ gap: `${GAP}px` }}>
+                  {week.map((day, dayIdx) => {
+                    if (day.count === null) {
+                      return (
+                        <div
+                          key={dayIdx}
+                          style={{ width: CELL, height: CELL }}
+                          className="rounded-sm"
+                        />
+                      )
+                    }
+
+                    const dateStr = day.date.toLocaleDateString('default', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+
+                    return (
+                      <Tooltip
+                        key={dayIdx}
+                        content={`${day.count} ${day.count === 1 ? 'attempt' : 'attempts'} on ${dateStr}`}
+                      >
+                        <div
+                          className={`rounded-sm border transition-all cursor-pointer hover:ring-2 hover:ring-[#D33F49]/30 ${getColorClass(day.count)}`}
+                          style={{ width: CELL, height: CELL }}
+                          aria-label={`${day.count} contributions on ${dateStr}`}
+                        />
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -220,8 +275,8 @@ export default function App() {
   return (
     <div className="p-8 bg-[#F7F8FC] min-h-screen">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl border border-[#D8DEE9] p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-[#273043] mb-4">
+        <div className="bg-white rounded-xl border border-border-soft p-6 shadow-sm">
+          <h1 className="text-xl font-bold text-text-primary mb-4">
             Yearly Performance Activity
           </h1>
           <ContributionGraph attempts={sampleAttempts} />

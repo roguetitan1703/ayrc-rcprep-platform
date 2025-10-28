@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Please provide a password'],
       minlength: 8,
       select: false,
-    },   
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -33,10 +33,11 @@ const userSchema = new mongoose.Schema(
     lastActiveDate: { type: Date },
     // Personal best score (out of 4)
     personalBest: { type: Number, default: 0, min: 0, max: 4 },
-    // Subscription fields
+    // Legacy subscription string (deprecated).
+    // Keep as a free-form string to avoid validation failures while migrating to plan-based subscriptions.
+    // New canonical field is `subscriptionPlan` (ObjectId) and `subscriptionSnapshot`.
     subscription: {
       type: String,
-      enum: ['free', 'weekly', 'cat2026'],
       default: 'free',
     },
     subon: Date,
@@ -45,6 +46,28 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // New plan-based subscription fields
+    subscriptionPlan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plan',
+      default: null,
+    },
+    // Recent order identifiers from payment provider for reconciliation and admin review
+    orderids: {
+      type: [
+        {
+          razorpay_order_id: { type: String },
+          razorpay_payment_id: { type: String },
+          addedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+    // NOTE: subscriptionSnapshot was intentionally removed to ensure all feature
+    // and entitlement data are read from the canonical Plan document. We keep
+    // only the canonical pointers and expiration dates on the user (subscriptionPlan,
+    // subon, subexp, issubexp). This ensures updates to Plan.features are applied
+    // immediately to existing users.
     // Referral fields
     referralCode: { type: String, unique: true, sparse: true }, // Added sparse for better handling of index
     parentrefCode: {

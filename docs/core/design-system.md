@@ -1399,7 +1399,7 @@ useEffect(() => {
 **❌ DON'T:**
 
 ```jsx
-<div className="bg-[#D33F49] text-[#FFFFFF] border-[#D8DEE9]">
+<div className="bg-[#D33F49] text-[#FFFFFF] border-border-soft">
 ```
 
 **Exception:** Only use raw hex in `tailwind.config.js` for token definitions.
