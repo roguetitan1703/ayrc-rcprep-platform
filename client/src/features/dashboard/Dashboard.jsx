@@ -40,10 +40,30 @@ export default function Dashboard() {
         
         // Fetch attempts for contribution graph
         try {
-          const { data: attemptsData } = await api.get('/attempts/me?limit=100')
-          setAttempts(attemptsData.attempts || [])
+          // The backend exposes user attempts at GET /attempts with auth; not /attempts/me
+          const { data: attemptsData } = await api.get('/attempts?limit=100')
+          // Ensure each attempt has a createdAt timestamp (server returns attemptedAt)
+          const normalized = (attemptsData.attempts || []).map((a) => ({
+            ...a,
+            createdAt: a.createdAt || a.attemptedAt || a.attemptedAt || null,
+          }))
+          setAttempts(normalized)
         } catch (err) {
           console.warn('Could not load attempts for activity graph:', err)
+          // Fallback: use analytics.trend (if available) to synthesize attempts for ContributionGraph
+          try {
+            const trend = data.analytics?.trend || []
+            const synthetic = []
+            trend.forEach(t => {
+              const count = Number(t.attempts || 0)
+              for (let i = 0; i < count; i++) {
+                synthetic.push({ createdAt: new Date(t.date).toISOString() })
+              }
+            })
+            if (synthetic.length > 0) setAttempts(synthetic)
+          } catch (e) {
+            console.warn('Could not synthesize attempts from analytics.trend', e)
+          }
         }
 
         const hasSub = user?.subscription && user.subscription !== 'none'

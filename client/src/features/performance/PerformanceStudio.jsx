@@ -54,8 +54,8 @@ export default function PerformanceStudio() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#273043] mb-1">Performance Studio</h1>
-          <p className="text-sm text-[#5C6784]">
+          <h1 className="text-3xl font-bold text-text-primary mb-1">Performance Studio</h1>
+          <p className="text-sm text-text-secondary">
             Deep insights into your reading comprehension skills
           </p>
         </div>

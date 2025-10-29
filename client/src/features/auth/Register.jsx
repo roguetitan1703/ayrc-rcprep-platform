@@ -33,6 +33,7 @@ export default function Register() {
     city: '',
     state: '',
     pincode: '',
+    password: '',
   })
   const cityDropdownRef = useRef(null)
 
@@ -199,6 +200,16 @@ export default function Register() {
 
     if (!name || !email || !password || !phoneNumber || !city || !state || !pincode) {
       setError('All fields are required.')
+      setLoading(false)
+      return
+    }
+
+    // Client-side enforce minimum password length to match server (8+)
+    if (password.length < 8) {
+      const msg = 'Password must be at least 8 characters.'
+      // set inline field error and show toast; avoid setting global error to prevent duplicate messages
+      setValidationErrors((prev) => ({ ...prev, password: msg }))
+      toast.show(msg, { variant: 'error' })
       setLoading(false)
       return
     }
@@ -480,11 +491,23 @@ export default function Register() {
             <label className="block text-sm font-medium text-text-primary mb-2">Password</label>
             <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value
+                setPassword(v)
+                if (validationErrors.password && v.length >= 8) {
+                  setValidationErrors((prev) => ({ ...prev, password: '' }))
+                }
+              }}
               placeholder="••••••••"
               required
             />
             <PasswordStrength password={password} />
+            {validationErrors.password && (
+              <p className="text-error-red text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {validationErrors.password}
+              </p>
+            )}
           </div>
           <Button
             className="w-full h-12 bg-primary hover:bg-primary-light active:bg-primary-dark text-white font-semibold rounded-xl transition-colors"

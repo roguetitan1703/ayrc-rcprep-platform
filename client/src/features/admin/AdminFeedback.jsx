@@ -9,8 +9,8 @@ import {
 } from '../../lib/feedback'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
-import { Skeleton } from '../../components/ui/Skeleton'
-import { Search, ChevronUp, ChevronDown } from 'lucide-react'
+import { Search } from 'lucide-react'
+import Table from '../../components/ui/Table'
 
 export default function AdminFeedback() {
   const [questions, setQuestions] = useState([])
@@ -113,30 +113,7 @@ export default function AdminFeedback() {
     }
   }
 
-  const SortIcon = ({ field }) => {
-    if (sortBy !== field) return <div className="w-4 h-4" />
-    return sortDir === 'asc' ? (
-      <ChevronUp size={16} className="text-primary" />
-    ) : (
-      <ChevronDown size={16} className="text-primary" />
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="w-full p-6 md:p-8">
-        <Skeleton className="h-10 w-1/3" />
-        <Skeleton className="h-12 w-full" />
-        <div className="space-y-3">
-          {Array(5)
-            .fill(0)
-            .map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-        </div>
-      </div>
-    )
-  }
+  // Table will render skeleton rows when loading; keep showing filters/controls while loading
 
   return (
     <div className="w-full p-6 md:p-8">
@@ -198,144 +175,38 @@ export default function AdminFeedback() {
           </div>
         </div>
       ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/5">
-              <thead className="bg-card-surface/30">
-                <tr>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => toggleSort('label')}
-                      className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider hover:text-text-primary transition-colors"
-                    >
-                      Label
-                      <SortIcon field="label" />
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => toggleSort('date')}
-                      className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider hover:text-text-primary transition-colors"
-                    >
-                      Date
-                      <SortIcon field="date" />
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => toggleSort('type')}
-                      className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider hover:text-text-primary transition-colors"
-                    >
-                      Type
-                      <SortIcon field="type" />
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left">
-                    <button
-                      onClick={() => toggleSort('status')}
-                      className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider hover:text-text-primary transition-colors"
-                    >
-                      Status
-                      <SortIcon field="status" />
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-background divide-y divide-white/5">
-                {paged.map((q) => (
-                  <tr key={q._id} className="hover:bg-card-surface/20 transition-colors">
-                    <td className="px-6 py-4">{q.label}</td>
-                    <td className="px-6 py-4">
-                      {q.date ? new Date(q.date).toLocaleDateString('en-US') : 'N/A'}
-                    </td>
-                    <td className="px-6 py-4">{q.type}</td>
-                    <td className="px-6 py-4">
-                      <Badge
-                        color={
-                          q.status === 'archived'
-                            ? 'default'
-                            : q.status === 'live'
-                            ? 'success'
-                            : 'warning'
-                        }
-                      >
-                        {q.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        {q.status === 'archived' ? (
-                          <Button
-                            size="sm"
-                            variant="success"
-                            onClick={() => republishQuestion(q._id)}
-                          >
-                            Republish
-                          </Button>
-                        ) : (
-                          <Button size="sm" variant="danger" onClick={() => archiveQuestion(q._id)}>
-                            Archive
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={() => handleDelete(q._id)}>
-                          Delete
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingQuestion(q)
-                            setModalOpen(true)
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-              <div className="text-sm text-text-secondary">
-                Showing{' '}
-                <span className="font-semibold text-text-primary">{(page - 1) * pageSize + 1}</span>{' '}
-                to{' '}
-                <span className="font-semibold text-text-primary">
-                  {Math.min(page * pageSize, filtered.length)}
-                </span>{' '}
-                of <span className="font-semibold text-text-primary">{filtered.length}</span>{' '}
-                results
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  Previous
-                </Button>
-                <div className="text-sm text-text-secondary px-3">
-                  Page {page} of {totalPages}
+        <Table
+          columns={[
+            { header: 'Label', field: 'label', sortable: true, render: (q) => q.label },
+            { header: 'Date', field: 'date', sortable: true, render: (q) => (q.date ? new Date(q.date).toLocaleDateString('en-US') : 'N/A') },
+            { header: 'Type', field: 'type', sortable: true, render: (q) => q.type },
+            { header: 'Status', field: 'status', sortable: true, render: (q) => (
+                <Badge color={q.status === 'archived' ? 'default' : q.status === 'live' ? 'success' : 'warning'}>
+                  {q.status}
+                </Badge>
+              ) },
+            { header: 'Actions', field: 'actions', render: (q) => (
+                <div className="inline-flex items-center justify-center gap-1">
+                  {q.status === 'archived' ? (
+                    <Button size="sm" variant="success" onClick={() => republishQuestion(q._id)}>Republish</Button>
+                  ) : (
+                    <Button size="sm" variant="danger" onClick={() => archiveQuestion(q._id)}>Archive</Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(q._id)}>Delete</Button>
+                  <Button size="sm" variant="outline" onClick={() => { setEditingQuestion(q); setModalOpen(true); }}>Edit</Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+              ), cellClassName: 'px-2 py-2 text-center whitespace-nowrap' },
+          ]}
+          data={paged}
+          loading={loading}
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={(p) => setPage(p)}
+          onSort={(field) => toggleSort(field)}
+          sortField={sortBy}
+          sortOrder={sortDir}
+        />
       )}
 
 {/* modal to add and edit feedback questions */}

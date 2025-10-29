@@ -4,6 +4,8 @@ import AdminLogin from './features/admin/AdminLogin'
 import AdminDashboard from './features/admin/AdminDashboard'
 import RcForm from './features/admin/RcForm'
 import AdminSchedule from './features/admin/Schedule'
+import PlansPage from './features/admin/PlansPage'
+import TransactionsPage from './features/admin/TransactionsPage'
 import Login from './features/auth/Login'
 import Register from './features/auth/Register'
 import Forgot from './features/auth/Forgot'
@@ -82,6 +84,8 @@ export const routeConfig = [
   { path: '/admin/schedule' },
   { path: '/admin/subscriptions' },
   { path: '/admin/feedback' },
+  { path: '/admin/plans' },
+  { path: '/admin/transactions' },
 ]
 
 export default function AppRoutes() {
@@ -154,6 +158,8 @@ export default function AppRoutes() {
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/feedback" element={<AdminFeedback />} />
         <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+        <Route path="/admin/plans" element={<PlansPage />} />
+        <Route path="/admin/transactions" element={<TransactionsPage />} />
       </Route>
 
       {/* 404 */}

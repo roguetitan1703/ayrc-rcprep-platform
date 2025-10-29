@@ -1,8 +1,8 @@
 import React from 'react'
 import { CoverageMeter } from './CoverageMeter'
-import { Target, Clock3, Activity } from 'lucide-react'
+import { Target, Clock3, Activity, ListChecks } from 'lucide-react'
 
-export function StatsPanel({ stats, loading }) {
+export function StatsPanel({ stats, loading, totalAttempts = 0 }) {
   if (loading) {
     return (
       <div className="relative overflow-hidden rounded-xl p-6 lg:p-8 border border-soft bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 space-y-6">
@@ -24,7 +24,6 @@ export function StatsPanel({ stats, loading }) {
     totalWrong = 0,
   } = stats || {}
   const coveragePercent = totalWrong > 0 ? taggedWrong / totalWrong : 0
-console.log('StatsPanel stats:', stats)
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -33,7 +32,8 @@ console.log('StatsPanel stats:', stats)
 
   return (
     <div className="relative overflow-hidden rounded-xl p-6 lg:p-8 border border-soft bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+  <StatTile label="Total attempts" value={totalAttempts} icon={ListChecks} />
         <StatTile label="Attempts (7d)" value={attempts7d} icon={Activity} />
         <StatTile label="Accuracy (7d)" value={`${Math.round(accuracy7d * 100)}%`} icon={Target} />
         <StatTile label="Avg Duration" value={formatDuration(avgDuration)} icon={Clock3} />

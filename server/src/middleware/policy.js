@@ -3,6 +3,7 @@ import { Feedback } from '../models/Feedback.js'
 import { RcPassage } from '../models/RcPassage.js'
 import { startOfIST, endOfIST } from '../utils/date.js'
 import { forbidden } from '../utils/http.js'
+import planAccess from '../lib/planAccess.js'
 
 // Determines if user has completed yesterday's RC set (2 attempts) but not yet submitted feedback.
 export async function feedbackLockInfo(userId) {
@@ -30,6 +31,15 @@ export async function feedbackLockInfo(userId) {
 
 export async function enforceFeedbackLock(req, res, next) {
   try {
+    // Enforce lock for free users (no plan) or if the user's plan explicitly enables feedbackLock
+    const plan = await planAccess.resolvePlanForUser(req.user)
+    const isFree = !plan
+    const planEnablesLock =
+      plan && plan.features && plan.features.feedbackLock && plan.features.feedbackLock.enabled
+
+    // If neither free user nor plan enables lock, skip enforcement
+    if (!isFree && !planEnablesLock) return next()
+
     const info = await feedbackLockInfo(req.user.id)
     if (info.lock) return next(forbidden('Daily feedback required to continue'))
     next()

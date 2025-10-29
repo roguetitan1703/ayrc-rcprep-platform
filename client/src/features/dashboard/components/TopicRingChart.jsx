@@ -8,7 +8,7 @@ import { ResponsivePie } from '@nivo/pie'
 export function TopicRingChart({ topics = [] }) {
   if (!topics || topics.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-[#5C6784] text-sm bg-[#EEF1FA]/30 rounded-xl border border-[#D8DEE9]">
+      <div className="h-64 flex items-center justify-center text-text-secondary text-sm bg-surface-muted/30 rounded-xl border border-border-soft">
         No topic data available
       </div>
     )
@@ -42,7 +42,8 @@ function TopicRing({ topic, color }) {
         <ResponsivePie
           data={chartData}
           margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
-          innerRadius={0.65}
+          // Slightly larger inner radius creates breathing room for the center label
+          innerRadius={0.72}
           padAngle={2}
           cornerRadius={3}
           colors={{ datum: 'data.color' }}
@@ -56,7 +57,7 @@ function TopicRing({ topic, color }) {
         {/* Center Label */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
-            <div className="text-2xl font-bold text-[#273043]" style={{ color }}>
+            <div className="text-2xl font-bold text-text-primary" style={{ color }}>
               {topic.accuracy}%
             </div>
           </div>
@@ -65,10 +66,10 @@ function TopicRing({ topic, color }) {
       
       {/* Topic Info */}
       <div className="text-center space-y-1">
-        <div className="font-semibold text-[#273043] text-sm truncate" title={topic.tag}>
+        <div className="font-semibold text-text-primary text-sm truncate" title={topic.tag}>
           {topic.tag}
         </div>
-        <div className="text-xs text-[#5C6784]">
+        <div className="text-xs text-text-secondary">
           {topic.totalQuestions} question{topic.totalQuestions !== 1 ? 's' : ''}
         </div>
         

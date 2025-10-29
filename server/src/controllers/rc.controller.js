@@ -2,6 +2,7 @@ import { RcPassage } from '../models/RcPassage.js'
 import { Attempt } from '../models/Attempt.js'
 import { success, notFoundErr, forbidden as forbiddenErr } from '../utils/http.js'
 import { startOfIST, endOfIST } from '../utils/date.js'
+import planAccess from '../lib/planAccess.js'
 
 export async function getTodayRcs(req, res, next) {
   try {
@@ -35,46 +36,30 @@ export async function getTodayRcs(req, res, next) {
 
 export async function getArchive(req, res, next) {
   try {
-    const page = Math.max(1, parseInt(req.query.page || '1', 10));
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)));
-    const skip = (page - 1) * limit;
-    const user = req.user;
+    const page = Math.max(1, parseInt(req.query.page || '1', 10))
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)))
+    const skip = (page - 1) * limit
+    const user = req.user
 
-    // Normalize subscription: treat missing, null, undefined, empty string, or 'none' as no subscription
-    let subscription = user.subscription;
-    if (!subscription || typeof subscription !== 'string' || !subscription.trim()) {
-      subscription = 'none';
-    } else {
-      subscription = subscription.toLowerCase();
-    }
+    const joinedDate = user.subon || user.createdAt
+    const now = new Date()
 
-    const joinedDate = user.subon || user.createdAt;
-    const now = new Date();
+    // Determine archive access rule for this user
+    const rule = await planAccess.archiveRuleForUser(user)
 
-    let rcQuery = { status: { $in: ['scheduled', 'live', 'archived'] } };
-
-    // ✅ Updated logic for free/unsubscribed users
-    if (subscription === 'none' || subscription === 'free') {
-      console.log('[getArchive] Free or unsubscribed user — showing only attempted RCs');
-
-      // 1️⃣ Find all attempts made by this user
+    // If attempted-only: return only attempted RCs
+    if (rule.type === 'attempted-only') {
       const attempts = await Attempt.find({ userId: user.id })
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
-
-      // 2️⃣ Extract RC IDs from those attempts
-      const rcIds = attempts.map((a) => a.rcPassageId);
-
-      // 3️⃣ Fetch the RC details for those attempted passages
-      const rcs = await RcPassage.find({ _id: { $in: rcIds } })
-        .select('title scheduledDate topicTags createdAt');
-
-      // 4️⃣ Map attempts to RC data
-      const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]));
-
+        .limit(limit)
+      const rcIds = attempts.map((a) => a.rcPassageId)
+      const rcs = await RcPassage.find({ _id: { $in: rcIds } }).select(
+        'title scheduledDate topicTags createdAt'
+      )
+      const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]))
       const data = rcs.map((rc) => {
-        const a = attemptMap.get(rc._id.toString());
+        const a = attemptMap.get(rc._id.toString())
         return {
           id: rc._id,
           title: rc.title,
@@ -82,37 +67,33 @@ export async function getArchive(req, res, next) {
           topicTags: rc.topicTags,
           attempted: true,
           score: a?.score ?? null,
-        };
-      });
-
-      console.log('[getArchive] free user result:', data);
-      return success(res, { data });
+        }
+      })
+      return success(res, { data })
     }
 
-    // ✅ Paid plans — same logic as before
-    if (subscription === 'weekly' || subscription === '1 week plan') {
-      const sevenDaysAfterJoin = new Date(joinedDate);
-      sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7);
-      rcQuery.createdAt = { $gte: joinedDate, $lte: sevenDaysAfterJoin };
+    // For window or all: construct rcQuery accordingly
+    let rcQuery = { status: { $in: ['scheduled', 'live', 'archived'] } }
+    if (rule.type === 'window') {
+      const windowDays = Number(rule.windowDays || 0)
+      const start = joinedDate
+      const end = new Date(start)
+      end.setDate(end.getDate() + windowDays)
+      rcQuery.createdAt = { $gte: start, $lte: end }
     }
-
-    console.log('[getArchive] user:', { id: user.id, subscription, joinedDate }, 'rcQuery:', rcQuery);
 
     const rcs = await RcPassage.find(rcQuery)
       .sort({ scheduledDate: -1 })
       .skip(skip)
       .limit(limit)
-      .select('title scheduledDate topicTags createdAt');
-
+      .select('title scheduledDate topicTags createdAt')
     const attempts = await Attempt.find({
       userId: user.id,
       rcPassageId: { $in: rcs.map((r) => r._id) },
-    });
-
-    const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]));
-
+    })
+    const attemptMap = new Map(attempts.map((a) => [a.rcPassageId.toString(), a]))
     const data = rcs.map((rc) => {
-      const a = attemptMap.get(rc._id.toString());
+      const a = attemptMap.get(rc._id.toString())
       return {
         id: rc._id,
         title: rc.title,
@@ -120,67 +101,57 @@ export async function getArchive(req, res, next) {
         topicTags: rc.topicTags,
         attempted: !!a,
         score: a?.score ?? null,
-      };
-    });
-
-    console.log('[getArchive] result:', data);
-    return success(res, { data });
+      }
+    })
+    return success(res, { data })
   } catch (e) {
-    next(e);
+    next(e)
   }
 }
 
-
 export async function getRcById(req, res, next) {
   try {
-    const rc = await RcPassage.findById(req.params.id);
+    const rc = await RcPassage.findById(req.params.id)
     if (!rc) {
-      console.error('[getRcById] RC not found for id:', req.params.id);
-      throw notFoundErr('RC not found');
+      console.error('[getRcById] RC not found for id:', req.params.id)
+      throw notFoundErr('RC not found')
     }
 
-    const user = req.user;
-    const subscription = (user.subscription || 'free').toLowerCase();
-    const joinedDate = user.subon || user.createdAt;
-    const now = new Date();
+    const user = req.user
+    const plan = await planAccess.resolvePlanForUser(user)
+    const subscription = plan ? String(plan.slug).toLowerCase() : 'free'
+    const joinedDate = user.subon || user.createdAt
+    const now = new Date()
 
     // Debug: log user and RC after rc is defined
-    console.log('[getRcById] user:', { id: user.id, subscription, joinedDate }, 'rc:', rc._id);
+    console.log('[getRcById] user:', { id: user.id, subscription, joinedDate }, 'rc:', rc._id)
 
-    const preview = String(req.query.preview || '') === '1' || String(req.query.mode || '') === 'preview';
-    const practice = String(req.query.practice || '') === '1' || String(req.query.mode || '') === 'practice';
+    const preview =
+      String(req.query.preview || '') === '1' || String(req.query.mode || '') === 'preview'
+    const practice =
+      String(req.query.practice || '') === '1' || String(req.query.mode || '') === 'practice'
 
     // Restrict access to future scheduled content (unless admin preview)
     if (!preview) {
       if (rc.scheduledDate) {
-        const nowDay = startOfIST();
-        const rcDayStart = startOfIST(rc.scheduledDate);
+        const nowDay = startOfIST()
+        const rcDayStart = startOfIST(rc.scheduledDate)
         if (rcDayStart > nowDay && rc.status !== 'live' && rc.status !== 'archived') {
-          throw notFoundErr('RC not available yet');
+          throw notFoundErr('RC not available yet')
         }
       }
 
-      // Subscription-based access control
-      if (subscription === 'free') {
-        // Only RCs uploaded after user joined, and only if user has attempted (for archive), or if it's today's RC
-        if (rc.createdAt < joinedDate) throw forbiddenErr('Not allowed: RC uploaded before you joined');
-        // For archive, only allow if user has attempted
-        // (For today, allow if scheduledDate is today)
-        const today = startOfIST();
-        const rcDay = startOfIST(rc.scheduledDate);
-        const isToday = rcDay.getTime() === today.getTime();
-        if (!isToday) {
-          const attempt = await Attempt.findOne({ userId: user.id, rcPassageId: rc._id });
-          if (!attempt) throw forbiddenErr('Not allowed: You can only view RCs you have attempted');
-        }
-      } else if (subscription === 'weekly' || subscription === '1 week plan') {
-        // Only RCs uploaded after user joined, and only those within 7 days of joining
-        const sevenDaysAfterJoin = new Date(joinedDate);
-        sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7);
-        if (rc.createdAt < joinedDate || rc.createdAt > sevenDaysAfterJoin) {
-          throw forbiddenErr('Not allowed: RC not in your subscription window');
-        }
-      } // else for till CAT, allow all
+      // Subscription/Plan-based access control
+      // Use planAccess helper to determine if this user may view the RC.
+      // It will always allow today's RCs and evaluate attempted/window/all rules.
+      const attempt = await Attempt.findOne({ userId: user.id, rcPassageId: rc._id })
+      const attempted = !!attempt
+      const access = await planAccess.canAccessArchive(user, rc, attempted)
+      if (!access.allowed) {
+        // Map reason to a friendly message where possible
+        const reason = access.reason || 'access denied'
+        throw forbiddenErr(`Not allowed: ${reason}`)
+      }
     }
 
     const safe = rc.toObject()
@@ -203,7 +174,7 @@ export async function getRcById(req, res, next) {
     }))
     return success(res, safe)
   } catch (e) {
-    console.error('[getRcById] error:', e);
+    console.error('[getRcById] error:', e)
     next(e)
   }
 }

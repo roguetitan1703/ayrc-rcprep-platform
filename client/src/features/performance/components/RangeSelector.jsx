@@ -8,8 +8,8 @@ const RANGES = [
 
 export function RangeSelector({ value, onChange }) {
   return (
-    <div className="inline-flex items-center gap-2 bg-[#EEF1FA] rounded-lg p-1">
-      <Clock size={16} className="text-[#5C6784] ml-2" />
+    <div className="inline-flex items-center gap-2 bg-surface-muted rounded-lg p-1">
+      <Clock size={16} className="text-text-secondary ml-2" />
       {RANGES.map(range => (
         <button
           key={range.value}
@@ -17,7 +17,7 @@ export function RangeSelector({ value, onChange }) {
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
             value === range.value
               ? 'bg-[#D33F49] text-white shadow-sm'
-              : 'text-[#5C6784] hover:text-[#273043] hover:bg-white/50'
+              : 'text-text-secondary hover:text-text-primary hover:bg-white/50'
           }`}
         >
           {range.label}

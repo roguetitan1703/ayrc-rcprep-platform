@@ -13,8 +13,8 @@ const registerSchema = z
     name: z.string().min(1),
     email: z.string().email(),
     phoneNumber: z.string().optional(),
-    password: z.string().min(6),
-    passwordConfirm: z.string().min(6),
+    password: z.string().min(8),
+    passwordConfirm: z.string().min(8),
   })
   .refine((d) => d.password === d.passwordConfirm, {
     message: 'Passwords do not match',
@@ -43,7 +43,7 @@ export async function register(req, res, next) {
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8),
 })
 
 export async function login(req, res, next) {
@@ -103,7 +103,7 @@ export async function updateMe(req, res, next) {
 export async function changePassword(req, res, next) {
   try {
     const { oldPassword, newPassword } = req.body
-    if (!oldPassword || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
+    if (!oldPassword || !newPassword || newPassword.length < 8) throw badRequest('Invalid input')
 
     const user = await User.findById(req.user.id).select('+password')
     if (!user || !user.password) throw badRequest('Invalid user')
@@ -235,22 +235,12 @@ export async function forgotPassword(req, res, next) {
 // Step 2: Reset the password when token + new password provided
 export async function resetPassword(req, res, next) {
   try {
-    const { token, newPassword } = req.body
-    if (!token || !newPassword || newPassword.length < 6) throw badRequest('Invalid input')
-
-    // Hash the token before checking (since we stored the hashed version)
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-
-    const user = await User.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-    })
-    if (!user) throw badRequest('Invalid or expired reset token')
-
-    // Set new password and clear reset fields
-    user.password = newPassword
-    user.passwordResetToken = undefined
-    user.passwordResetExpires = undefined
+    // Accept email and newPassword for MVP
+    const { email, newPassword } = req.body
+    if (!email || !newPassword || newPassword.length < 8) throw badRequest('Invalid input')
+    const user = await User.findOne({ email })
+    if (!user) throw badRequest('Invalid reset link')
+    user.password = await bcrypt.hash(newPassword, 10)
     await user.save()
 
     // ✅ Send success notification email

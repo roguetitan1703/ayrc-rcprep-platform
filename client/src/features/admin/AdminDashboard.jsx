@@ -366,9 +366,9 @@ export default function AdminDashboard() {
 
         <div className="flex gap-2 ml-auto">
           <Button onClick={() => nav('/admin/rcs/new')}>Upload New RC</Button>
-          <Button variant="outline" onClick={() => nav('/admin/schedule')}>
-            Schedule RC
-          </Button>
+          <Button variant="outline" onClick={() => nav('/admin/schedule')}>Schedule RC</Button>
+          <Button variant="ghost" onClick={() => nav('/admin/plans')}>Plans</Button>
+          <Button variant="ghost" onClick={() => nav('/admin/transactions')}>Transactions</Button>
         </div>
       </div>
 

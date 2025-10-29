@@ -99,14 +99,14 @@ export default function Subscriptions() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#273043]">Subscriptions</h1>
-        <p className="text-sm text-[#5C6784] mt-1">
+        <h1 className="text-3xl font-bold text-text-primary">Subscriptions</h1>
+        <p className="text-sm text-text-secondary mt-1">
           Choose the plan that works best for your preparation journey
         </p>
       </div>
 
       {/* Current Usage Card */}
-      <Card className="bg-gradient-to-br from-[#D33F49]/10 via-[#3B82F6]/5 to-[#23A094]/10 border border-[#D8DEE9] hover:shadow-lg transition-shadow">
+      <Card className="bg-gradient-to-br from-[#D33F49]/10 via-[#3B82F6]/5 to-[#23A094]/10 border border-border-soft hover:shadow-lg transition-shadow">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Current Plan Info */}
@@ -122,7 +122,7 @@ export default function Subscriptions() {
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold text-[#273043]">
+                  <h2 className="text-2xl font-bold text-text-primary">
                     {currentPlan.name} Plan
                   </h2>
                   {currentPlan.recommended && (
@@ -131,18 +131,18 @@ export default function Subscriptions() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-[#5C6784] mb-4">
+                <p className="text-sm text-text-secondary mb-4">
                   {currentPlan.description}
                 </p>
                 <div className="flex items-center gap-6 text-sm">
                   {user?.subon && (
-                    <div className="flex items-center gap-2 text-[#5C6784]">
+                    <div className="flex items-center gap-2 text-text-secondary">
                       <Calendar size={14} />
                       <span>Started: {formatDate(user.subon)}</span>
                     </div>
                   )}
                   {user?.subexp && (
-                    <div className="flex items-center gap-2 text-[#5C6784]">
+                    <div className="flex items-center gap-2 text-text-secondary">
                       <Calendar size={14} />
                       <span 
                         className={user.issubexp ? 'text-[#E4572E] font-semibold' : ''}
@@ -188,12 +188,12 @@ export default function Subscriptions() {
       {/* Subscription Selector */}
       {showSelector && (
         <Card className="bg-white border-2 border-[#3B82F6] shadow-xl">
-          <CardHeader className="p-6 border-b border-[#D8DEE9] bg-[#3B82F6]/5">
+          <CardHeader className="p-6 border-b border-border-soft bg-[#3B82F6]/5">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#273043]">Select Your Plan</h3>
+              <h3 className="text-lg font-semibold text-text-primary">Select Your Plan</h3>
               <button
                 onClick={() => setShowSelector(false)}
-                className="text-[#5C6784] hover:text-[#273043] transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors"
               >
                 ✕
               </button>
@@ -213,7 +213,7 @@ export default function Subscriptions() {
 
       {/* Pricing Cards */}
       <div>
-        <h2 className="text-2xl font-bold text-[#273043] mb-6">Available Plans</h2>
+        <h2 className="text-2xl font-bold text-text-primary mb-6">Available Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan, idx) => {
             const Icon = plan.icon
@@ -226,7 +226,7 @@ export default function Subscriptions() {
                   relative bg-white border-2 transition-all duration-200
                   ${plan.recommended 
                     ? 'border-[#3B82F6] shadow-xl scale-105' 
-                    : 'border-[#D8DEE9] hover:border-[#3B82F6]/40 hover:shadow-lg'
+                    : 'border-border-soft hover:border-[#3B82F6]/40 hover:shadow-lg'
                   }
                   ${isCurrent ? 'ring-2 ring-[#23A094] ring-offset-2' : ''}
                 `}
@@ -250,7 +250,7 @@ export default function Subscriptions() {
                   </div>
                 )}
 
-                <CardHeader className="p-6 border-b border-[#D8DEE9]">
+                <CardHeader className="p-6 border-b border-border-soft">
                   <div className="flex items-start justify-between mb-4">
                     <div
                       className="p-3 rounded-xl shadow-md"
@@ -260,19 +260,19 @@ export default function Subscriptions() {
                     </div>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-[#273043] mb-2">
+                  <h3 className="text-xl font-bold text-text-primary mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-sm text-[#5C6784] mb-4">
+                  <p className="text-sm text-text-secondary mb-4">
                     {plan.description}
                   </p>
 
                   {/* Price */}
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-[#273043]">
+                    <span className="text-4xl font-bold text-text-primary">
                       ₹{plan.price}
                     </span>
-                    <span className="text-sm text-[#5C6784]">
+                    <span className="text-sm text-text-secondary">
                       /{plan.period}
                     </span>
                   </div>
@@ -292,18 +292,18 @@ export default function Subscriptions() {
                     {plan.features.map((feature, fIdx) => (
                       <div key={fIdx} className="flex items-start gap-3">
                         <Check size={18} className="text-[#23A094] flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-[#273043]">{feature}</span>
+                        <span className="text-sm text-text-primary">{feature}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* Limitations (for free plan) */}
                   {plan.limitations && (
-                    <div className="pt-4 border-t border-[#D8DEE9] space-y-2">
+                    <div className="pt-4 border-t border-border-soft space-y-2">
                       {plan.limitations.map((limitation, lIdx) => (
                         <div key={lIdx} className="flex items-start gap-3">
                           <span className="text-[#E4572E] text-sm flex-shrink-0">✕</span>
-                          <span className="text-sm text-[#5C6784]">{limitation}</span>
+                          <span className="text-sm text-text-secondary">{limitation}</span>
                         </div>
                       ))}
                     </div>
@@ -342,61 +342,61 @@ export default function Subscriptions() {
       </div>
 
       {/* Feature Comparison Table */}
-      <Card className="bg-white border border-[#D8DEE9]">
-        <CardHeader className="p-6 border-b border-[#D8DEE9]">
-          <h2 className="text-xl font-bold text-[#273043]">Feature Comparison</h2>
-          <p className="text-sm text-[#5C6784] mt-1">Compare all features across plans</p>
+      <Card className="bg-white border border-border-soft">
+        <CardHeader className="p-6 border-b border-border-soft">
+          <h2 className="text-xl font-bold text-text-primary">Feature Comparison</h2>
+          <p className="text-sm text-text-secondary mt-1">Compare all features across plans</p>
         </CardHeader>
         <CardContent className="p-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b-2 border-[#D8DEE9]">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-[#273043]">Feature</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-[#273043]">Free</th>
+                <tr className="border-b-2 border-border-soft">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">Feature</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-text-primary">Free</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-[#3B82F6]">Premium</th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-[#D33F49]">Annual</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Daily RCs</td>
-                  <td className="text-center py-3 px-4 text-[#5C6784]">2 per day</td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Daily RCs</td>
+                  <td className="text-center py-3 px-4 text-text-secondary">2 per day</td>
                   <td className="text-center py-3 px-4 text-[#23A094] font-semibold">Unlimited</td>
                   <td className="text-center py-3 px-4 text-[#23A094] font-semibold">Unlimited</td>
                 </tr>
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Performance Analytics</td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#5C6784] mx-auto" /></td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Performance Analytics</td>
+                  <td className="text-center py-3 px-4"><Check size={18} className="text-text-secondary mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                 </tr>
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Personalized Insights</td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Personalized Insights</td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                 </tr>
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Mistake Analysis</td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Mistake Analysis</td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                 </tr>
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Download Materials</td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Download Materials</td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                 </tr>
-                <tr className="border-b border-[#D8DEE9]">
-                  <td className="py-3 px-4 text-[#273043]">Priority Support</td>
+                <tr className="border-b border-border-soft">
+                  <td className="py-3 px-4 text-text-primary">Priority Support</td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4 text-[#273043]">1-on-1 Strategy Session</td>
+                  <td className="py-3 px-4 text-text-primary">1-on-1 Strategy Session</td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
                   <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
@@ -408,13 +408,13 @@ export default function Subscriptions() {
       </Card>
 
       {/* FAQ or Additional Info */}
-      <Card className="bg-gradient-to-br from-[#3B82F6]/5 to-[#D33F49]/5 border border-[#D8DEE9]">
+      <Card className="bg-gradient-to-br from-[#3B82F6]/5 to-[#D33F49]/5 border border-border-soft">
         <CardContent className="p-6">
           <div className="text-center">
-            <h3 className="text-lg font-bold text-[#273043] mb-2">
+            <h3 className="text-lg font-bold text-text-primary mb-2">
               Have questions about our plans?
             </h3>
-            <p className="text-sm text-[#5C6784] mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               We're here to help you choose the right plan for your preparation journey
             </p>
             <div className="flex justify-center gap-3">

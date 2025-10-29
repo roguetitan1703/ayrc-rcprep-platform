@@ -12,8 +12,11 @@ export function Button({
   const variants = {
     primary: 'bg-[#D33F49] text-white hover:bg-[#E25C62] active:bg-[#B32F3A] shadow-sm',
     outline: 'border-2 border-[#D33F49] text-[#D33F49] hover:bg-[#D33F49]/10',
-    ghost: 'text-[#5C6784] hover:bg-[#EEF1FA] hover:text-[#273043]',
-    secondary: 'bg-[#EEF1FA] text-[#273043] hover:bg-[#D8DEE9] border border-[#D8DEE9]',
+    ghost: 'text-text-secondary hover:bg-surface-muted hover:text-text-primary',
+    danger: 'text-error-red hover:bg-error-red/10',
+    destructive: 'bg-error-red text-white hover:bg-red-600 active:bg-red-700 shadow-sm',
+    success: 'bg-success-green text-white hover:bg-green-600 active:bg-green-700 shadow-sm',
+    secondary: 'bg-surface-muted text-text-primary hover:bg-[#D8DEE9] border border-border-soft',
   }
   const sizes = {
     sm: 'text-xs px-2.5 py-1.5',

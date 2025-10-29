@@ -51,21 +51,21 @@ export function QuestionTypeTable({ data }) {
   }
 
   return (
-    <Card className="bg-white border border-[#D8DEE9] hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="p-6 border-b border-[#D8DEE9]">
-        <h3 className="text-lg font-semibold text-[#273043]">Question Type Breakdown</h3>
-        <p className="text-sm text-[#5C6784] mt-1">
+    <Card className="bg-white border border-border-soft hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="p-6 border-b border-border-soft">
+        <h3 className="text-lg font-semibold text-text-primary">Question Type Breakdown</h3>
+        <p className="text-sm text-text-secondary mt-1">
           Click column headers to sort • Color-coded by performance
         </p>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#EEF1FA]">
+            <thead className="bg-surface-muted">
               <tr>
                 <th 
                   onClick={() => toggleSort('type')}
-                  className="px-6 py-4 text-left text-xs font-bold text-[#273043] uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
+                  className="px-6 py-4 text-left text-xs font-bold text-text-primary uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
                 >
                   <div className="flex items-center gap-2">
                     Type
@@ -74,7 +74,7 @@ export function QuestionTypeTable({ data }) {
                 </th>
                 <th 
                   onClick={() => toggleSort('totalQuestions')}
-                  className="px-6 py-4 text-right text-xs font-bold text-[#273043] uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
+                  className="px-6 py-4 text-right text-xs font-bold text-text-primary uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
                 >
                   <div className="flex items-center justify-end gap-2">
                     Questions
@@ -83,7 +83,7 @@ export function QuestionTypeTable({ data }) {
                 </th>
                 <th 
                   onClick={() => toggleSort('accuracy')}
-                  className="px-6 py-4 text-right text-xs font-bold text-[#273043] uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
+                  className="px-6 py-4 text-right text-xs font-bold text-text-primary uppercase tracking-wider cursor-pointer hover:bg-[#D8DEE9]/30 transition"
                 >
                   <div className="flex items-center justify-end gap-2">
                     Accuracy
@@ -94,18 +94,18 @@ export function QuestionTypeTable({ data }) {
             </thead>
             <tbody className="divide-y divide-[#D8DEE9]">
               {sortedData.map((row) => (
-                <tr key={row.type} className="hover:bg-[#EEF1FA]/30 transition">
+                <tr key={row.type} className="hover:bg-surface-muted/30 transition">
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#EEF1FA] text-[#273043] capitalize border border-[#D8DEE9]">
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-muted text-text-primary capitalize border border-border-soft">
                       {row.type.replace('-', ' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium text-[#5C6784]">
+                  <td className="px-6 py-4 text-right text-sm font-medium text-text-secondary">
                     {row.totalQuestions}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <div className={`h-2 w-20 bg-[#EEF1FA] rounded-full overflow-hidden`}>
+                      <div className={`h-2 w-20 bg-surface-muted rounded-full overflow-hidden`}>
                         <div 
                           className={`h-full ${getAccuracyBg(row.accuracy)} transition-all duration-500`}
                           style={{ width: `${row.accuracy}%` }}

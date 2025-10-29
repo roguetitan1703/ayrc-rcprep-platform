@@ -29,7 +29,9 @@ export default function TopBar() {
   const handleBack = () => {
     // If a caller set an explicit from location in navigation state, prefer that
     const from = location?.state?.from
-    if (from) {
+    // If `from` is a list/overview route (top-level), prefer breadcrumbs instead of returning there.
+    const listParents = ['/attempts', '/leaderboard', '/dashboard', '/test', '/archive']
+    if (from && !listParents.includes(from)) {
       navigate(from)
       return
     }

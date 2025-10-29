@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 import { getTodaysFeedback, submitFeedback, getTodaysQuestions } from '../../lib/feedback'
@@ -147,7 +148,24 @@ export default function Feedback() {
   // Normal feedback form
 
   if (!dailyQuestions.length && !submittedToday) {
-    return <div className="flex items-center justify-center px-4">Loading questions...</div>
+    return (
+      <div className="flex items-center justify-center px-4">
+        <div className="max-w-xl w-full bg-card-surface rounded p-6 space-y-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-3/4" />
+          <div className="grid grid-cols-3 gap-3 mt-2">
+            <Skeleton className="h-10 rounded-full" />
+            <Skeleton className="h-10 rounded-full" />
+            <Skeleton className="h-10 rounded-full" />
+          </div>
+          <Skeleton className="h-24 w-full mt-2" />
+          <div className="flex justify-between mt-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!dailyQuestions.length && submittedToday) {
