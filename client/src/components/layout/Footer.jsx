@@ -143,7 +143,7 @@ export default function Footer() {
 
             {/* Made with love by Delpat */}
             <div className="text-text-secondary text-xs sm:text-sm flex items-center justify-center md:justify-end gap-2 order-1 md:order-2">
-              Made with <span className="text-error-red animate-pulse">❤️</span> by <a className="hover:text-primary ml-1" href="https://delpat.in" target="_blank" rel="noreferrer">Delpat</a>
+              Made with <span className="text-error-red animate-pulse">❤️</span>by<Link className="hover:text-primary" href="https://delpat.in" target="_blank" rel="noreferrer">Delpat</Link>
             </div>
           </div>
         </div>
