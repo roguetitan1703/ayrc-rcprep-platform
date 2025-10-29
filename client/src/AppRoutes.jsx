@@ -57,8 +57,9 @@ export const routeConfig = [
   { path: '/register' },
   { path: '/forgot' },
   { path: '/admin/login' },
+  { path: '/reset-password' },
   // Authenticated routes
-  { path: '/reset' },
+
   { path: '/dashboard' },
   { path: '/archive' },
   { path: '/test/:id' },
@@ -66,7 +67,7 @@ export const routeConfig = [
   { path: '/attempts' },
   { path: '/attempts/:id' },
   { path: '/attempts/:id/analysis' },
-  
+
   { path: '/feedback' },
   { path: '/leaderboard' },
   { path: '/dashboard/help' },
@@ -93,25 +94,18 @@ export default function AppRoutes() {
       {/* Static routes - No auth, no Shell */}
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<About />} />
-  <Route path="/contact" element={<Contact />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
-  <Route path="/shipping-policy" element={<Shipping />} />
-  <Route path="/help" element={<Help />} />
+      <Route path="/shipping-policy" element={<Shipping />} />
+      <Route path="/help" element={<Help />} />
       <Route path="/refund-policy" element={<Refund />} />
 
       {/* Auth routes - No Shell */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot" element={<Forgot />} />
-      <Route
-        path="/reset"
-        element={
-          <RequireAuth>
-            <Reset />
-          </RequireAuth>
-        }
-      />
+      <Route path="/reset-password" element={<Reset />} />
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Test routes - RequireAuth but no Shell (full-screen test experience) */}
@@ -134,13 +128,13 @@ export default function AppRoutes() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/archive" element={<Archive />} />
-  <Route path="/test/today" element={<TestToday />} />
-  <Route path="/attempts" element={<ResultsPage />} />
-  <Route path="/attempts/:id" element={<AttemptDetail />} />
-  <Route path="/attempts/:id/analysis" element={<Analysis />} />
+        <Route path="/test/today" element={<TestToday />} />
+        <Route path="/attempts" element={<ResultsPage />} />
+        <Route path="/attempts/:id" element={<AttemptDetail />} />
+        <Route path="/attempts/:id/analysis" element={<Analysis />} />
         <Route path="/feedback" element={<Feedback />} />
-  <Route path="/leaderboard" element={<Leaderboard />} />
-  <Route path="/dashboard/help" element={<Help />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/dashboard/help" element={<Help />} />
         <Route path="/performance" element={<Performance />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/profile" element={<Profile />} />

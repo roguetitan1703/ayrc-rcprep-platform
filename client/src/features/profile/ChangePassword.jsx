@@ -15,17 +15,27 @@ export default function ChangePassword(){
   const toast = useToast()
   const strong = next.length >= 8
 
-  async function submit(){
-    if(next!==confirm){ setError('Passwords do not match'); return }
-    try{
-      setLoading(true)
-      await api.post('/users/me/change-password', { oldPassword: current, newPassword: next })
-      setMsg('Password updated')
-      setError('')
-      setCurrent(''); setNext(''); setConfirm('')
-  }catch(e){ const msg = extractErrorMessage(e,'Update failed'); setError(msg); toast.show(msg,{ variant:'error'}) }
-    finally{ setLoading(false) }
+ async function submit() {
+  if(next !== confirm){ setError('Passwords do not match'); return }
+  try {
+    setLoading(true)
+    const { data } = await api.post('/users/me/change-password', { oldPassword: current, newPassword: next })
+    
+    // Send password changed email
+    await api.post('/auth/send-password-changed-email', { email: me.email, name: me.name })
+
+    setMsg('Password updated')
+    setError('')
+    setCurrent(''); setNext(''); setConfirm('')
+  } catch (e) {
+    const msg = extractErrorMessage(e,'Update failed')
+    setError(msg)
+    toast.show(msg,{ variant:'error'})
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className='min-h-screen'>

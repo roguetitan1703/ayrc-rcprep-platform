@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import crypto from 'crypto'
 import { User } from '../models/User.js'
 import { signJwt } from '../utils/jwt.js'
 import { success, badRequest } from '../utils/http.js'
 import { Attempt } from '../models/Attempt.js'
 import { startOfIST, endOfIST } from '../utils/date.js'
+import { sendEmail } from '../services/mailer.service.js'
 
 const registerSchema = z
   .object({
@@ -27,6 +29,12 @@ export async function register(req, res, next) {
     // Let the User model pre-save middleware hash the password and remove passwordConfirm
     const user = await User.create({ ...data })
     await user.updateDailyStreak()
+
+    // ✅ Send onboarding email (async, non-blocking)
+    sendEmail('onboarding', { name: user.name, email: user.email }).catch((err) =>
+      console.error('Failed to send onboarding email:', err)
+    )
+
     return success(res, { id: user._id })
   } catch (e) {
     next(e)
@@ -193,16 +201,38 @@ export async function analytics(req, res, next) {
   }
 }
 
-// Minimal email-less reset flow stubs for MVP (can be wired to email service later)
+// Step 1: Send password reset link
 export async function forgotPassword(req, res, next) {
   try {
-    // Normally generate token and email it; for MVP, respond OK to avoid blocking
-    return success(res, { ok: true })
-  } catch (e) {
-    next(e)
+    const { email } = req.body
+    if (!email) throw badRequest('Email is required')
+
+    const user = await User.findOne({ email })
+    if (!user) {
+      console.warn(`Forgot password attempted for non-existent email: ${email}`)
+      throw badRequest('User or email not found')
+    }
+
+    // Generate token and expiry
+    const resetToken = user.createPasswordResetToken()
+    await user.save({ validateBeforeSave: false })
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
+
+    // Send email asynchronously
+    sendEmail('passwordReset', {
+      name: user.name,
+      email: user.email,
+      resetLink,
+    }).catch((err) => console.error('Failed to send password reset email:', err))
+
+    return success(res, { message: 'Password reset link sent to your email' })
+  } catch (err) {
+    next(err)
   }
 }
 
+// Step 2: Reset the password when token + new password provided
 export async function resetPassword(req, res, next) {
   try {
     // Accept email and newPassword for MVP
@@ -212,9 +242,16 @@ export async function resetPassword(req, res, next) {
     if (!user) throw badRequest('Invalid reset link')
     user.password = await bcrypt.hash(newPassword, 10)
     await user.save()
-    return success(res, { ok: true })
-  } catch (e) {
-    next(e)
+
+    // ✅ Send success notification email
+    await sendEmail('passwordResetSuccess', {
+      name: user.name,
+      email: user.email,
+    })
+
+    return success(res, { message: 'Password successfully reset' })
+  } catch (err) {
+    next(err)
   }
 }
 

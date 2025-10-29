@@ -5,6 +5,8 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import mongoose from 'mongoose'
 import { success, badRequest } from '../utils/http.js'
+import { sendEmail } from '../services/mailer.service.js'
+
 // Initialize Razorpay instance if keys are present. In dev, keys may be absent.
 let razorpay = null
 try {
@@ -16,9 +18,17 @@ try {
     process.env.NODE_ENV === 'production'
       ? process.env.RAZORPAY_KEY_SECRET_PROD
       : process.env.RAZORPAY_KEY_SECRET
+  const keyId =
+    process.env.NODE_ENV === 'production'
+      ? process.env.RAZORPAY_KEY_ID_PROD
+      : process.env.RAZORPAY_KEY_ID
+  const keySecret =
+    process.env.NODE_ENV === 'production'
+      ? process.env.RAZORPAY_KEY_SECRET_PROD
+      : process.env.RAZORPAY_KEY_SECRET
   if (keyId && keySecret) {
     razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
-    console.log('Razorpay initialized')
+    console.log('Razorpay initialized', keyId)
   } else {
     console.warn('Razorpay not configured - skipping initialization')
   }
@@ -31,6 +41,7 @@ try {
 const SUBSCRIPTION_PRICES = {
   Monthly: 150,
   Yearly: 1700,
+}
 }
 
 // Create Razorpay order
@@ -59,7 +70,9 @@ export const createOrder = async (req, res, next) => {
         userid: req.user.id,
       },
     }
+    }
 
+    const order = await razorpay.orders.create(options)
     const order = await razorpay.orders.create(options)
     if (!order) {
       return res.status(400).json({
@@ -88,7 +101,10 @@ export const createOrder = async (req, res, next) => {
   } catch (error) {
     console.error('Error creating order:', error)
     res.status(500).json({ error: 'Error creating order' })
+    console.error('Error creating order:', error)
+    res.status(500).json({ error: 'Error creating order' })
   }
+}
 }
 
 // Verify payment and update subscription
@@ -365,7 +381,9 @@ export const verifyPayment = async (req, res, next) => {
     }
   } catch (error) {
     next(error)
+    next(error)
   }
+}
 }
 
 // Get all users' subscription data (admin only)
@@ -567,6 +585,8 @@ export async function extendSubscription(req, res, next) {
     const { id } = req.params
     const { days, type } = req.body // type optional, e.g., "Monthly"
     console.log(id, days, type)
+    const { days, type } = req.body // type optional, e.g., "Monthly"
+    console.log(id, days, type)
 
     const user = await User.findById(id)
     if (!user) return next(badRequest('User not found'))
@@ -584,6 +604,7 @@ export async function extendSubscription(req, res, next) {
     }
 
     const now = new Date()
+    const start = !user.subexp || user.issubexp ? now : new Date(user.subexp)
     const start = !user.subexp || user.issubexp ? now : new Date(user.subexp)
     const newExp = new Date(start)
     newExp.setDate(newExp.getDate() + days)
@@ -619,5 +640,44 @@ export async function extendSubscription(req, res, next) {
     return success(res, { ok: true, user })
   } catch (e) {
     next(e)
+  }
+}
+
+// Auto-nullify expired subscriptions
+export const nullifyExpiredSubscriptions = async () => {
+  console.log('[nullifyExpiredSubscriptions] Started')
+  try {
+    const now = new Date()
+
+    const expiredUsers = await User.find({
+      subexp: { $lt: now },
+      issubexp: false,
+      subscription: { $ne: 'none' },
+    })
+
+    if (expiredUsers.length === 0) {
+      console.log('No expired subscriptions found.')
+      return
+    }
+
+    const userIds = expiredUsers.map((u) => u._id)
+
+    // Update all expired users in bulk
+    await User.updateMany(
+      { _id: { $in: userIds } },
+      { $set: { subscription: 'none', issubexp: true } }
+    )
+
+    expiredUsers.forEach((u) => {
+      sendEmail('subscriptionExpired', {
+        name: u.name,
+        email: u.email,
+        subscription: u.subscription,
+      })
+    })
+
+    console.log(`✅ Revoked ${expiredUsers.length} expired subscriptions`)
+  } catch (err) {
+    console.error('Error nullifying expired subscriptions:', err)
   }
 }

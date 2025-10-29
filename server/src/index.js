@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cron from 'node-cron'
 import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
@@ -13,6 +14,7 @@ import adminRoutes from './routes/admin.js'
 import attemptRoutes from './routes/attempts.js'
 import feedbackRoutes from './routes/feedback.js'
 import { notFound, errorHandler } from './middleware/errors.js'
+import { nullifyExpiredSubscriptions } from './controllers/sub.Controller.js'
 
 const app = express()
 
@@ -22,6 +24,7 @@ const ORIGINS = (process.env.CORS_ORIGINS || process.env.CLIENT_URL || 'http://l
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
+console.log('Allowed CORS origins:', ORIGINS)
 app.use(
   cors({
     origin: (origin, cb) => {
@@ -61,8 +64,35 @@ app.use(notFound)
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 4000
-connectDB().then(() => {
-  app.listen(PORT, '0.0.0.0', () => console.log(`API listening on :${PORT}`))
-})
+connectDB().then(async() => {
+   app.listen(PORT, '0.0.0.0', () => console.log(`API listening on :${PORT}`))
 
+  // Run once immediately
+  try {
+    await nullifyExpiredSubscriptions()
+    console.log('✅ Initial subscription nullification completed')
+  } catch (err) {
+    console.error('Error in initial nullification:', err)
+  }
+
+  // Daily at midnight
+  cron.schedule('0 0 * * *', async () => {
+    console.log(`[CRON] Running daily subscription nullification at ${new Date().toISOString()}`)
+    try {
+      await nullifyExpiredSubscriptions()
+    } catch (err) {
+      console.error('[CRON] Error nullifying subscriptions:', err)
+    }
+  })
+
+  // Every minute for testing
+  // cron.schedule('*/1 * * * *', async () => {
+  //   console.log(`[TEST CRON] Running subscription nullification at ${new Date().toISOString()}`)
+  //   try {
+  //     await nullifyExpiredSubscriptions()
+  //   } catch (err) {
+  //     console.error('[TEST CRON] Error nullifying subscriptions:', err)
+  //   }
+  // })
+})
 export default app

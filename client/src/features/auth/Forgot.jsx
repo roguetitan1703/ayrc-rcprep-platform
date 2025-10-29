@@ -5,19 +5,25 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import AuthShell from '../../components/layout/AuthShell'
 import { Mail, CheckCircle } from 'lucide-react'
+import { useToast } from '../../components/ui/Toast'
 
 export default function Forgot(){
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const toast = useToast()
 
   async function onSubmit(e){
     e.preventDefault(); setLoading(true); setError('')
     try{
       await api.post('/auth/forgot-password', { email })
       setSent(true)
-    }catch(err){ setError(err?.response?.data?.error || err.message) }
+      toast.show('Check your email for the reset link', { variant: 'success' })
+    }catch(err){ setError(err?.response?.data?.error || err.message) 
+     toast.show(err?.response?.data?.error || err.message, { variant: 'error' })
+
+    }
     finally{ setLoading(false) }
   }
 
