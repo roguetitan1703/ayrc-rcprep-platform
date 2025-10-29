@@ -12,7 +12,8 @@ function validateFeatures(features) {
     if (!a.type || !allowed.includes(a.type)) throw new Error('Invalid archive.type')
     if (a.type === 'window') {
       const wd = Number(a.windowDays)
-      if (!Number.isInteger(wd) || wd < 0) throw new Error('archive.windowDays must be a non-negative integer')
+      if (!Number.isInteger(wd) || wd < 0)
+        throw new Error('archive.windowDays must be a non-negative integer')
       out.archive = { type: a.type, windowDays: wd, includeAttempted: a.includeAttempted !== false }
     } else {
       out.archive = { type: a.type, includeAttempted: a.includeAttempted !== false }
@@ -33,12 +34,14 @@ function validateFeatures(features) {
     const outDL = {}
     if (d.dailyRcs != null) {
       const dr = Number(d.dailyRcs)
-      if (!Number.isInteger(dr) || dr < 0) throw new Error('dailyLimits.dailyRcs must be a non-negative integer')
+      if (!Number.isInteger(dr) || dr < 0)
+        throw new Error('dailyLimits.dailyRcs must be a non-negative integer')
       outDL.dailyRcs = dr
     }
     if (d.dailyAttempts != null) {
       const da = Number(d.dailyAttempts)
-      if (!Number.isInteger(da) || da < 0) throw new Error('dailyLimits.dailyAttempts must be a non-negative integer')
+      if (!Number.isInteger(da) || da < 0)
+        throw new Error('dailyLimits.dailyAttempts must be a non-negative integer')
       outDL.dailyAttempts = da
     }
     out.dailyLimits = outDL
@@ -174,7 +177,7 @@ export async function createPlan(req, res, next) {
 export async function updatePlan(req, res, next) {
   try {
     const { id } = req.params
-  const updates = { ...req.body }
+    const updates = { ...req.body }
     // Prevent editing slug to 'free'
     if (updates.slug && String(updates.slug).toLowerCase() === 'free') {
       return next(badRequest('Cannot set slug to reserved value `free`'))

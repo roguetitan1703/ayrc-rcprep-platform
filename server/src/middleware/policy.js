@@ -34,7 +34,8 @@ export async function enforceFeedbackLock(req, res, next) {
     // Enforce lock for free users (no plan) or if the user's plan explicitly enables feedbackLock
     const plan = await planAccess.resolvePlanForUser(req.user)
     const isFree = !plan
-    const planEnablesLock = plan && plan.features && plan.features.feedbackLock && plan.features.feedbackLock.enabled
+    const planEnablesLock =
+      plan && plan.features && plan.features.feedbackLock && plan.features.feedbackLock.enabled
 
     // If neither free user nor plan enables lock, skip enforcement
     if (!isFree && !planEnablesLock) return next()

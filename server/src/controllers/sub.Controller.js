@@ -18,14 +18,6 @@ try {
     process.env.NODE_ENV === 'production'
       ? process.env.RAZORPAY_KEY_SECRET_PROD
       : process.env.RAZORPAY_KEY_SECRET
-  const keyId =
-    process.env.NODE_ENV === 'production'
-      ? process.env.RAZORPAY_KEY_ID_PROD
-      : process.env.RAZORPAY_KEY_ID
-  const keySecret =
-    process.env.NODE_ENV === 'production'
-      ? process.env.RAZORPAY_KEY_SECRET_PROD
-      : process.env.RAZORPAY_KEY_SECRET
   if (keyId && keySecret) {
     razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
     console.log('Razorpay initialized', keyId)
@@ -41,7 +33,6 @@ try {
 const SUBSCRIPTION_PRICES = {
   Monthly: 150,
   Yearly: 1700,
-}
 }
 
 // Create Razorpay order
@@ -70,9 +61,11 @@ export const createOrder = async (req, res, next) => {
         userid: req.user.id,
       },
     }
-    }
+    //   } catch (err) {
+    //   console.error('Error creating Razorpay order:', err)
+    //   return res.status(500).json({ status: 'fail', message: 'Error creating Razorpay order' })
+    // }
 
-    const order = await razorpay.orders.create(options)
     const order = await razorpay.orders.create(options)
     if (!order) {
       return res.status(400).json({
@@ -94,17 +87,14 @@ export const createOrder = async (req, res, next) => {
       })
     } catch (txErr) {
       console.error('Error creating Transaction record:', txErr)
-      // proceed even if transaction persistence failed - client still has order
+      // proceed even if transaction persistence failed - client still has orde
     }
 
     res.status(200).json({ status: 'success', message: 'Order created successfully', order })
   } catch (error) {
     console.error('Error creating order:', error)
     res.status(500).json({ error: 'Error creating order' })
-    console.error('Error creating order:', error)
-    res.status(500).json({ error: 'Error creating order' })
   }
-}
 }
 
 // Verify payment and update subscription
@@ -384,7 +374,6 @@ export const verifyPayment = async (req, res, next) => {
     next(error)
   }
 }
-}
 
 // Get all users' subscription data (admin only)
 export async function getAllSubscriptions(req, res, next) {
@@ -585,8 +574,6 @@ export async function extendSubscription(req, res, next) {
     const { id } = req.params
     const { days, type } = req.body // type optional, e.g., "Monthly"
     console.log(id, days, type)
-    const { days, type } = req.body // type optional, e.g., "Monthly"
-    console.log(id, days, type)
 
     const user = await User.findById(id)
     if (!user) return next(badRequest('User not found'))
@@ -604,7 +591,6 @@ export async function extendSubscription(req, res, next) {
     }
 
     const now = new Date()
-    const start = !user.subexp || user.issubexp ? now : new Date(user.subexp)
     const start = !user.subexp || user.issubexp ? now : new Date(user.subexp)
     const newExp = new Date(start)
     newExp.setDate(newExp.getDate() + days)

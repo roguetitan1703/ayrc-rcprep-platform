@@ -33,7 +33,11 @@ const planSchema = new mongoose.Schema(
           archive: {
             type: new mongoose.Schema(
               {
-                type: { type: String, enum: ['attempted-only', 'window', 'all'], default: 'attempted-only' },
+                type: {
+                  type: String,
+                  enum: ['attempted-only', 'window', 'all'],
+                  default: 'attempted-only',
+                },
                 windowDays: { type: Number, default: null },
                 includeAttempted: { type: Boolean, default: true },
               },
