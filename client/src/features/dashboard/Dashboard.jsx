@@ -12,6 +12,7 @@ import { useToast } from '../../components/ui/Toast'
 import { extractErrorMessage } from '../../lib/utils'
 import { useAuth } from '../../components/auth/AuthContext'
 import SubFeedbackBlocker from '../../components/ui/SubFeedbackWall'
+import { hasEffectiveSubscription } from '../../lib/subscription'
 export default function Dashboard() {
   const { user } = useAuth()
   const [today, setToday] = useState([])
@@ -66,7 +67,7 @@ export default function Dashboard() {
           }
         }
 
-        const hasSub = user?.subscription && user.subscription !== 'none'
+        const hasSub = hasEffectiveSubscription(user)
         const feedbackPending = !data.feedback?.submitted
 
         console.log({
@@ -76,7 +77,7 @@ export default function Dashboard() {
         feedbackData: data.feedback
       })
 
-        setFeedbackRequired(!hasSub && feedbackPending)
+  setFeedbackRequired(!hasSub && feedbackPending)
       } catch (e) {
         const msg = extractErrorMessage(e)
         setError(msg)
@@ -120,7 +121,8 @@ export default function Dashboard() {
         )}
 
         {today.map(rc => {
-          const blocked = feedbackRequired && (!user?.subscription || user.subscription === 'none')
+          const hasSubLocal = hasEffectiveSubscription(user)
+          const blocked = feedbackRequired && !hasSubLocal
 
           return (
             <Card key={rc.id} className={blocked ? 'opacity-60 pointer-events-none' : ''}>

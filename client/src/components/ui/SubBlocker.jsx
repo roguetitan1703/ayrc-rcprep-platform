@@ -3,6 +3,7 @@ import { useAuth } from '../../components/auth/AuthContext'
 import { useFeedbackStatus } from '../../hooks/useFeedbackStatus'
 import { Button } from './Button'
 import { FaLock, FaGift } from 'react-icons/fa'
+import { hasEffectiveSubscription } from '../../lib/subscription'
 
 export default function SubBlocker({ children, fallback }) {
   const { user, loading } = useAuth()
@@ -10,7 +11,7 @@ export default function SubBlocker({ children, fallback }) {
 
   if (loading || fbLoading) return null
 
-  const hasSub = user && user.subscription && user.subscription !== 'none'
+  const hasSub = hasEffectiveSubscription(user)
   const unlockedByFeedback = status && status.submitted === true
 
   if (hasSub || unlockedByFeedback) return children

@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../../components/auth/AuthContext'
+import { getEffectiveSubscriptionSlug } from '../../lib/subscription'
 import { Link } from 'react-router-dom'
 import rcApi from '../../lib/rcs'
 import { Card, CardHeader, CardContent } from '../../components/ui/Card'
@@ -27,7 +28,10 @@ const [hasMore, setHasMore] = useState(false)
 const [searchQuery, setSearchQuery] = useState('')
 const [sortBy, setSortBy] = useState('date') // date, score, title
 
-const isFreePlan = user && (user.subscription || '').toLowerCase() === 'free'
+const isFreePlan = (() => {
+  const slug = getEffectiveSubscriptionSlug(user)
+  return !!slug && String(slug).toLowerCase() === 'free'
+})()
 
 useEffect(() => {
 ;(async () => {

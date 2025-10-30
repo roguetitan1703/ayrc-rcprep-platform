@@ -13,7 +13,8 @@ export default function PlansPage(){
   const [openModal, setOpenModal] = useState(false)
   const [editing, setEditing] = useState(null)
   // default billingType should match server enum: 'duration_days' or 'till_date'
-  const [form, setForm] = useState({ name: '', slug: '', description: '', finalPriceCents: 0, markupPriceCents: null, billingType: 'duration_days', durationDays: 30, accessUntil: '' , active: true })
+  const defaultFeatures = { archive: { type: 'attempted-only', windowDays: null, includeAttempted: true }, feedbackLock: { enabled: false }, dailyLimits: { dailyRcs: null, dailyAttempts: null } }
+  const [form, setForm] = useState({ name: '', slug: '', description: '', finalPriceCents: 0, markupPriceCents: null, billingType: 'duration_days', durationDays: 30, accessUntil: '' , active: true, features: defaultFeatures })
   const toast = useToast()
 
   async function load(){
@@ -28,8 +29,10 @@ export default function PlansPage(){
 
   useEffect(()=>{ load() }, [])
 
-  function openCreate(){ setEditing(null); setForm({ name:'', slug:'', description:'', finalPriceCents:0, markupPriceCents:null, billingType:'duration_days', durationDays:30, accessUntil:'', active:true }); setOpenModal(true) }
-  function openEdit(p){ setEditing(p); setForm({ name:p.name, slug:p.slug, description:p.description || '', finalPriceCents:p.finalPriceCents, markupPriceCents:p.markupPriceCents || null, billingType:p.billingType, durationDays:p.durationDays || 30, accessUntil: p.accessUntil ? new Date(p.accessUntil).toISOString().slice(0,10) : '', active: p.active }) ; setOpenModal(true) }
+  function openCreate(){ setEditing(null); setForm({ name:'', slug:'', description:'', finalPriceCents:0, markupPriceCents:null, billingType:'duration_days', durationDays:30, accessUntil:'', active:true, features: defaultFeatures }); setOpenModal(true) }
+  function openEdit(p){ setEditing(p); const features = p.features || defaultFeatures; // ensure feedbackLock exists
+    if (!features.feedbackLock) features.feedbackLock = { enabled: false }
+    setForm({ name:p.name, slug:p.slug, description:p.description || '', finalPriceCents:p.finalPriceCents, markupPriceCents:p.markupPriceCents || null, billingType:p.billingType, durationDays:p.durationDays || 30, accessUntil: p.accessUntil ? new Date(p.accessUntil).toISOString().slice(0,10) : '', active: p.active, features }) ; setOpenModal(true) }
 
   async function submit(){
     try{
@@ -57,6 +60,7 @@ export default function PlansPage(){
         durationDays: form.billingType === 'duration_days' ? Number(form.durationDays) : null,
         accessUntil: form.billingType === 'till_date' ? (form.accessUntil ? new Date(form.accessUntil) : null) : null,
         active: !!form.active,
+        features: form.features || {},
       }
 
       if(editing){
@@ -89,13 +93,19 @@ export default function PlansPage(){
       </div>
 
       {loading ? <div>Loading...</div> : error ? <div className="text-error-red">{error}</div> : (
-        <Table
+      <Table
           columns={[
             { header: 'Name', field: 'name', sortable: true, render: r => r.name },
             { header: 'Slug', field: 'slug', sortable: true, render: r => r.slug },
             { header: 'Price', field: 'finalPriceCents', render: r => `₹${(r.finalPriceCents/100).toFixed(2)}` },
             { header: 'Billing', field: 'billingType', render: r => r.billingType },
             { header: 'Active', field: 'active', render: r => r.active ? 'Yes' : 'No' },
+            { header: 'Features', field: 'features', render: r => (
+                <div className="text-sm">
+                  <div className="truncate">Archive: <strong>{(r.features && r.features.archive && r.features.archive.type) || 'attempted-only'}</strong>{r.features && r.features.archive && r.features.archive.type === 'window' && r.features.archive.windowDays ? ` (${r.features.archive.windowDays}d)` : ''}</div>
+                  <div>FeedbackLock: <strong>{r.features && r.features.feedbackLock && r.features.feedbackLock.enabled ? 'On' : 'Off'}</strong></div>
+                </div>
+              ) },
             { header: 'Actions', field: 'actions', render: r => (
                 <div className="inline-flex items-center justify-center gap-1">
                   <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>Edit</Button>
@@ -130,17 +140,17 @@ export default function PlansPage(){
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-text-secondary">Price (cents)</label>
-              <Input type="number" value={form.finalPriceCents} onChange={e => setForm({...form, finalPriceCents: Number(e.target.value)})} />
+              <Input type="number" value={form.finalPriceCents} onChange={e => setForm({...form, finalPriceCents: Number(e.target.value)})} disabled={editing && String(editing.slug).toLowerCase() === 'free'} />
             </div>
             <div>
               <label className="block text-sm text-text-secondary">Markup Price (cents)</label>
-              <Input type="number" value={form.markupPriceCents ?? ''} onChange={e => setForm({...form, markupPriceCents: e.target.value === '' ? null : Number(e.target.value)})} />
+              <Input type="number" value={form.markupPriceCents ?? ''} onChange={e => setForm({...form, markupPriceCents: e.target.value === '' ? null : Number(e.target.value)})} disabled={editing && String(editing.slug).toLowerCase() === 'free'} />
             </div>
           </div>
 
           <div>
             <label className="block text-sm text-text-secondary">Billing Type</label>
-            <select className="w-full p-2 border border-soft rounded-md" value={form.billingType} onChange={e => setForm({...form, billingType: e.target.value})}>
+            <select className="w-full p-2 border border-soft rounded-md" value={form.billingType} onChange={e => setForm({...form, billingType: e.target.value})} disabled={editing && String(editing.slug).toLowerCase() === 'free'}>
               <option value="duration_days">Duration (days)</option>
               <option value="till_date">Access until date</option>
             </select>
@@ -149,15 +159,19 @@ export default function PlansPage(){
           {form.billingType === 'duration_days' && (
             <div>
               <label className="block text-sm text-text-secondary">Duration (days)</label>
-              <Input type="number" value={form.durationDays} onChange={e => setForm({...form, durationDays: Number(e.target.value)})} />
+              <Input type="number" value={form.durationDays} onChange={e => setForm({...form, durationDays: Number(e.target.value)})} disabled={editing && String(editing.slug).toLowerCase() === 'free'} />
             </div>
           )}
 
           {form.billingType === 'till_date' && (
             <div>
               <label className="block text-sm text-text-secondary">Access Until</label>
-              <Input type="date" value={form.accessUntil} onChange={e => setForm({...form, accessUntil: e.target.value})} />
+              <Input type="date" value={form.accessUntil} onChange={e => setForm({...form, accessUntil: e.target.value})} disabled={editing && String(editing.slug).toLowerCase() === 'free'} />
             </div>
+          )}
+
+          {editing && String(editing.slug).toLowerCase() === 'free' && (
+            <div className="text-sm text-text-secondary mt-1">Note: billing fields for the Free plan are protected and cannot be changed.</div>
           )}
 
           <div className="flex items-center gap-4">
@@ -165,6 +179,60 @@ export default function PlansPage(){
               <input type="checkbox" checked={!!form.active} onChange={e => setForm({...form, active: e.target.checked})} />
               <span className="text-sm text-text-secondary">Active</span>
             </label>
+          </div>
+
+          {/* Features panel */}
+          <div className="border-t pt-3 space-y-3">
+            <h3 className="text-sm font-semibold">Features</h3>
+
+            {/* Archive controls */}
+            <div>
+              <label className="block text-sm text-text-secondary mb-1">Archive access</label>
+              <div className="flex items-center gap-3 mb-2">
+                <label className="inline-flex items-center gap-2"><input type="radio" name="archiveType" value="attempted-only" checked={form.features?.archive?.type === 'attempted-only'} onChange={() => setForm({...form, features: {...form.features, archive: {...form.features.archive, type: 'attempted-only'}}})} /> Attempted-only</label>
+                <label className="inline-flex items-center gap-2"><input type="radio" name="archiveType" value="window" checked={form.features?.archive?.type === 'window'} onChange={() => setForm({...form, features: {...form.features, archive: {...form.features.archive, type: 'window'}}})} /> Window</label>
+                <label className="inline-flex items-center gap-2"><input type="radio" name="archiveType" value="all" checked={form.features?.archive?.type === 'all'} onChange={() => setForm({...form, features: {...form.features, archive: {...form.features.archive, type: 'all'}}})} /> All</label>
+              </div>
+              {form.features?.archive?.type === 'window' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-sm text-text-secondary">Window (days)</label>
+                    <Input type="number" value={form.features.archive.windowDays ?? ''} onChange={e => setForm({...form, features: {...form.features, archive: {...form.features.archive, windowDays: e.target.value === '' ? null : Number(e.target.value)}}})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-text-secondary">Include attempted</label>
+                    <div>
+                      <label className="inline-flex items-center gap-2"><input type="checkbox" checked={!!form.features.archive.includeAttempted} onChange={e => setForm({...form, features: {...form.features, archive: {...form.features.archive, includeAttempted: e.target.checked}}})} /> Include attempted RCs</label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Feedback lock */}
+            <div>
+              <label className="block text-sm text-text-secondary mb-1">Feedback lock</label>
+              <div className="flex items-center gap-4">
+                <label className="inline-flex items-center gap-2"><input type="checkbox" checked={!!form.features?.feedbackLock?.enabled} onChange={e => setForm({...form, features: {...form.features, feedbackLock: {...form.features.feedbackLock, enabled: e.target.checked}}})} /> Enabled</label>
+              </div>
+            </div>
+
+            {/* Daily limits (temporarily hidden) */}
+            {/*
+            <div>
+              <label className="block text-sm text-text-secondary mb-1">Daily limits (optional)</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-text-secondary">Daily RCs</label>
+                  <Input type="number" value={form.features?.dailyLimits?.dailyRcs ?? ''} onChange={e => setForm({...form, features: {...form.features, dailyLimits: {...form.features.dailyLimits, dailyRcs: e.target.value === '' ? null : Number(e.target.value)}}})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-text-secondary">Daily Attempts</label>
+                  <Input type="number" value={form.features?.dailyLimits?.dailyAttempts ?? ''} onChange={e => setForm({...form, features: {...form.features, dailyLimits: {...form.features.dailyLimits, dailyAttempts: e.target.value === '' ? null : Number(e.target.value)}}})} />
+                </div>
+              </div>
+            </div>
+            */}
           </div>
 
           <div className="flex justify-end gap-2">

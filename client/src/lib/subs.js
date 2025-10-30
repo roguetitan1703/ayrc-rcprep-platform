@@ -1,8 +1,12 @@
 import { api } from './api'
 
 // Create a new order (already existing)
-export async function createOrder(subtype) {
-  const { data } = await api.post('/sub/create-order', { subtype })
+export async function createOrder({ planId, subtype } = {}) {
+  // server expects planId in body; subtype retained for backward compat if needed
+  const payload = {}
+  if (planId) payload.planId = planId
+  if (subtype) payload.subtype = subtype
+  const { data } = await api.post('/sub/create-order', payload)
   return data.order
 }
 

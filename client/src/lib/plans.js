@@ -5,6 +5,10 @@ export default {
     const { data } = await api.get('/admin/plans')
     return data
   },
+  publicListPlans: async () => {
+    const { data } = await api.get('/sub/plans')
+    return data
+  },
   createPlan: async (payload) => {
     const { data } = await api.post('/admin/plans', payload)
     return data

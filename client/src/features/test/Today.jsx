@@ -9,6 +9,7 @@ import { useToast } from '../../components/ui/Toast'
 import { useAuth } from '../../components/auth/AuthContext'
 import { useFeedbackStatus } from '../../hooks/useFeedbackStatus'
 import SubFeedbackBlocker from '../../components/ui/SubFeedbackWall'
+import { hasEffectiveSubscription } from '../../lib/subscription'
 export default function TestToday() {
   const nav = useNavigate()
   const toast = useToast()
@@ -20,7 +21,7 @@ export default function TestToday() {
   const [error, setError] = useState('')
 
   const feedbackRequired = !fbLoading && !status?.submitted && rcs.length > 0 && rcs.every(r => r.status !== 'attempted')
-  const hasSub = user?.subscription && user.subscription !== 'none'
+  const hasSub = hasEffectiveSubscription(user)
   const blocked = !hasSub && feedbackRequired
 
   useEffect(() => {

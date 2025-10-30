@@ -27,8 +27,9 @@ export async function archiveRuleForUser(user) {
 
   const f = plan.features && plan.features.archive
   if (!f) {
-    // default: if plan exists but no archive feature, allow all
-    return { type: 'all' }
+    // default: if plan exists but no archive feature, be conservative and deny wide access
+    // returning attempted-only makes plan authors opt-in for permissive archive behaviour.
+    return { type: 'attempted-only' }
   }
 
   if (f.type === 'attempted-only') return { type: 'attempted-only' }

@@ -85,24 +85,27 @@ app.use('/api/v1/transactions', transactionsRoutes)
 app.use('/api/v1/all', aggregationRoutes)
 
 // Scheduler: always-on subscription maintenance (run once at startup and daily at midnight)
-;(async () => {
-  try {
-    await nullifyExpiredSubscriptions({ dryRun: false })
-    console.log('✅ Initial subscription nullification completed')
-  } catch (err) {
-    console.error('Error in initial nullification:', err)
-  }
-})()
+// Skip background jobs when running tests to avoid open handles and flakiness.
+if (process.env.NODE_ENV !== 'test') {
+  ;(async () => {
+    try {
+      await nullifyExpiredSubscriptions({ dryRun: false })
+      console.log('✅ Initial subscription nullification completed')
+    } catch (err) {
+      console.error('Error in initial nullification:', err)
+    }
+  })()
 
-// Daily at midnight
-cron.schedule('0 0 * * *', async () => {
-  console.log(`[CRON] Running daily subscription nullification at ${new Date().toISOString()}`)
-  try {
-    await nullifyExpiredSubscriptions({ dryRun: false })
-  } catch (err) {
-    console.error('[CRON] Error nullifying subscriptions:', err)
-  }
-})
+  // Daily at midnight
+  cron.schedule('0 0 * * *', async () => {
+    console.log(`[CRON] Running daily subscription nullification at ${new Date().toISOString()}`)
+    try {
+      await nullifyExpiredSubscriptions({ dryRun: false })
+    } catch (err) {
+      console.error('[CRON] Error nullifying subscriptions:', err)
+    }
+  })
+}
 
 // Error handlers
 app.use(notFound)

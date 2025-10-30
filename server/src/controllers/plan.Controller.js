@@ -178,6 +178,18 @@ export async function updatePlan(req, res, next) {
   try {
     const { id } = req.params
     const updates = { ...req.body }
+    // Protect billing fields for the canonical Free plan
+    try {
+      const existingPlan = await Plan.findById(id)
+      if (existingPlan && String(existingPlan.slug).toLowerCase() === 'free') {
+        const prohibited = ['billingType', 'durationDays', 'accessUntil', 'finalPriceCents', 'markupPriceCents']
+        if (prohibited.some((p) => Object.prototype.hasOwnProperty.call(updates, p))) {
+          return next(badRequest('Cannot modify billing fields of the Free plan'))
+        }
+      }
+    } catch (e) {
+      // ignore lookup errors and continue; validations below will catch invalid ids
+    }
     // Prevent editing slug to 'free'
     if (updates.slug && String(updates.slug).toLowerCase() === 'free') {
       return next(badRequest('Cannot set slug to reserved value `free`'))

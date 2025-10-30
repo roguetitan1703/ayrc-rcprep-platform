@@ -1,0 +1,104 @@
+import React, { useEffect, useState } from 'react'
+import plansApi from '../../lib/plans'
+
+export default function Subscriptions() {
+  const [plans, setPlans] = useState([])
+
+  useEffect(() => {
+    let mounted = true
+
+    ;(async () => {
+      try {
+        const data = await plansApi.publicListPlans()
+        if (mounted && Array.isArray(data)) setPlans(data)
+      } catch (err) {
+        // fallback minimal plan when fetch fails
+        if (mounted) setPlans([{ id: 'free', name: 'Free', price: 0, period: 'forever' }])
+        // log for debugging
+        // eslint-disable-next-line no-console
+        console.warn('Could not fetch public plans', err)
+      }
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  return (
+    <div style={{ padding: 16 }}>
+      <h1>Subscriptions</h1>
+      <p>Available plans (fetched from server):</p>
+      <ul>
+        {plans.map((p) => (
+          <li key={p.id}>
+            {p.name} — {p.price != null ? `₹${p.price}/${p.period || ''}` : 'Free'}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const data = await plansApi.publicListPlans()
+        if (mounted && Array.isArray(data)) setPlans(data)
+      } catch (e) {
+        console.warn('Could not fetch public plans', e)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
+
+  const userPlanSlug = getEffectiveSubscriptionSlug(user)
+  const userPlanId = userPlanSlug ? String(userPlanSlug).toLowerCase() : 'free'
+  const currentPlan = plans.find(p => p.id === userPlanId) || plans[0]
+  
+  return (
+
+    <div className="space-y-6">
+      
+      <Card className="bg-gradient-to-br from-[#D33F49]/10 via-[#3B82F6]/5 to-[#23A094]/10 border border-border-soft hover:shadow-lg transition-shadow">
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex flex-col gap-3">
+              {currentPlan.id === 'free' && (
+                <Button 
+                  onClick={() => setShowSelector(!showSelector)}
+                  className="bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
+                >
+                  Upgrade Now
+                </Button>
+              )}
+              {currentPlan.id !== 'free' && !user?.issubexp && (
+                <Link to="/profile">
+                  <Button variant="secondary" className="w-full">
+                    Manage Subscription
+                  </Button>
+                </Link>
+              )}
+              {user?.issubexp && (
+                <Button 
+                  onClick={() => setShowSelector(!showSelector)}
+
+
+                        {/* FAQ or Additional Info */}
+                        <Card className="bg-gradient-to-br from-[#3B82F6]/5 to-[#D33F49]/5 border border-border-soft">
+                          <CardContent className="p-6">
+                            <div className="text-center">
+                              <h3 className="text-lg font-bold text-text-primary mb-2">Have questions about our plans?</h3>
+                              <p className="text-sm text-text-secondary mb-4">We're here to help you choose the right plan for your preparation journey</p>
+                              <div className="flex justify-center gap-3">
+                                <Link to="/dashboard/help"><Button variant="secondary">Visit Help Center</Button></Link>
+                                <Link to="/feedback"><Button variant="primary">Contact Support</Button></Link>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )
+                  }

@@ -1,11 +1,12 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from './Button'
+import { hasEffectiveSubscription } from '../../lib/subscription'
 
 export default function SubFeedbackWall({ user, feedbackStatus }) {
     const nav = useNavigate()
 
-    const hasSub = user?.subscription && user.subscription !== 'none'
+    const hasSub = hasEffectiveSubscription(user)
     const feedbackRequired = feedbackStatus && feedbackStatus.submitted === false
     const blocked = !hasSub && feedbackRequired
 

@@ -1,12 +1,26 @@
 #!/usr/bin/env node
+/**
+ * migrateToFreePlan.js
+ *
+ * Consolidated migration script.
+ *
+ * Purpose:
+ *  - Find candidate users (legacy `subscription` values that indicate no paid plan,
+ *    or missing/null `subscriptionPlan`) and assign them the canonical Free plan
+ *    (slug: 'free').
+ *  - On --apply: set `subscriptionPlan` to free plan id, unset `subscription`, set
+ *    `issubexp=false`, and set `subon` if missing.
+ *  - On --dry: show candidate count and a small sample (no writes).
+ *
+ * Usage examples (PowerShell):
+ *  $env:MONGO_URI="<uri>"; node .\server\scripts\migrateToFreePlan.js --dry
+ *  node .\server\scripts\migrateToFreePlan.js --mongo "<uri>" --apply --batch-size 500
+ */
+
 import 'dotenv/config'
 import mongoose from 'mongoose'
 import { Plan } from '../src/models/Plan.js'
 import { User } from '../src/models/User.js'
-
-async function connect(uri) {
-  await mongoose.connect(uri, { dbName: process.env.MONGO_DB_NAME || undefined })
-}
 
 function parseArgs() {
   const argv = process.argv.slice(2)
@@ -16,9 +30,9 @@ function parseArgs() {
     onlyExpired: argv.includes('--only-expired'),
     batchSize: (() => {
       const i = argv.indexOf('--batch-size')
-      if (i === -1) return 1000
+      if (i === -1) return 500
       const val = Number(argv[i + 1])
-      return Number.isInteger(val) && val > 0 ? val : 1000
+      return Number.isInteger(val) && val > 0 ? val : 500
     })(),
     mongoUri: (() => {
       const i = argv.indexOf('--mongo')
@@ -29,7 +43,7 @@ function parseArgs() {
 }
 
 function buildQuery(onlyExpired) {
-  // Candidates: legacy subscription == 'none' OR missing subscriptionPlan
+  // Candidates: legacy subscription values that indicate no paid plan OR missing/null subscriptionPlan
   const base = [
     { subscription: 'none' },
     { subscription: null },
@@ -38,9 +52,7 @@ function buildQuery(onlyExpired) {
   ]
 
   const q = { $or: base }
-  if (onlyExpired) {
-    q.issubexp = true
-  }
+  if (onlyExpired) q.issubexp = true
   return q
 }
 
@@ -54,6 +66,27 @@ async function dryRun(freePlanId, query, limit = 20) {
   return { count, sample }
 }
 
+async function applyBatch(ids, freePlanId) {
+  if (!ids || ids.length === 0) return { matched: 0, modified: 0 }
+  const now = new Date()
+  // We'll build bulk ops so we can set subon only when missing per-user.
+  const users = await User.find({ _id: { $in: ids } }).select('subon').lean()
+  const bulkOps = users.map((u) => {
+    const set = { subscriptionPlan: freePlanId, issubexp: false }
+    if (!u.subon) set.subon = now
+    return {
+      updateOne: {
+        filter: { _id: u._id },
+        update: { $set: set, $unset: { subscription: '' } },
+      },
+    }
+  })
+  if (bulkOps.length === 0) return { matched: 0, modified: 0 }
+  const res = await User.bulkWrite(bulkOps)
+  // bulkWrite returns an object with ok/modifiedCount on modern drivers; return summary
+  return { result: res }
+}
+
 async function applyMigration(freePlanId, query, batchSize) {
   console.log('Applying migration in batches of', batchSize)
   const cursor = User.find(query).cursor()
@@ -62,21 +95,15 @@ async function applyMigration(freePlanId, query, batchSize) {
   for await (const user of cursor) {
     batch.push(user._id)
     if (batch.length >= batchSize) {
-      const res = await User.updateMany(
-        { _id: { $in: batch } },
-        { $set: { subscriptionPlan: freePlanId, issubexp: true } }
-      )
-      processed += res.modifiedCount || batch.length
+      await applyBatch(batch, freePlanId)
+      processed += batch.length
       console.log(`Updated batch: ${processed} users (last batch size ${batch.length})`)
       batch = []
     }
   }
   if (batch.length > 0) {
-    const res = await User.updateMany(
-      { _id: { $in: batch } },
-      { $set: { subscriptionPlan: freePlanId, issubexp: true } }
-    )
-    processed += res.modifiedCount || batch.length
+    await applyBatch(batch, freePlanId)
+    processed += batch.length
     console.log(`Updated final batch: total processed ${processed}`)
   }
   return processed
@@ -84,6 +111,11 @@ async function applyMigration(freePlanId, query, batchSize) {
 
 async function main() {
   const args = parseArgs()
+  if (!args.dry && !args.apply) {
+    console.log('Please provide --dry or --apply')
+    process.exit(1)
+  }
+
   const uri = args.mongoUri
   if (!uri) {
     console.error('No Mongo URI provided. Set MONGO_URI or pass --mongo <uri>')
@@ -91,10 +123,9 @@ async function main() {
   }
 
   console.log('Connecting to Mongo...')
-  await connect(uri)
+  await mongoose.connect(uri, { dbName: process.env.MONGO_DB_NAME || undefined })
   console.log('Connected to Mongo')
 
-  // find free plan
   const freePlan = await Plan.findOne({ slug: 'free' })
   if (!freePlan) {
     console.error('Free plan (slug="free") not found in plans collection. Aborting.')
@@ -108,13 +139,15 @@ async function main() {
   if (args.dry && !args.apply) {
     await dryRun(freePlanId, query, 20)
     console.log('\nDRY RUN complete. To apply, re-run with --apply (and optionally --batch-size N).')
+    await mongoose.disconnect()
     process.exit(0)
   }
 
-  // If apply present, perform dry-run first and ask interactive confirmation
+  // If apply present, do a small dry-run first to show counts
   const { count } = await dryRun(freePlanId, query, 5)
   if (!args.apply) {
     console.log('No --apply flag provided. Exiting after dry-run.')
+    await mongoose.disconnect()
     process.exit(0)
   }
 

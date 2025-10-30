@@ -1,99 +1,212 @@
 import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import SubscriptionSelector from "../../components/ui/SubscriptionSelector"
+// SubscriptionSelector modal removed — direct checkout is used from plan cards
 import { Card, CardHeader, CardContent } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
 import { Badge } from "../../components/ui/Badge"
 import { useAuth } from "../../components/auth/AuthContext"
-import { Crown, Check, Zap, TrendingUp, Target, Award, Calendar, CreditCard } from "lucide-react"
+import { Crown, Check, Zap, Target, Calendar } from "lucide-react"
+import plansApi from '../../lib/plans'
+import { startCheckout } from '../../lib/checkout'
+import { useToast } from '../../components/ui/Toast'
+import { getEffectiveSubscriptionSlug } from '../../lib/subscription'
+import { Skeleton, SkeletonText } from '../../components/ui/Skeleton'
 
 export default function Subscriptions() {
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
+  const toast = useToast()
+  // modal & selector removed; direct checkout from plan cards
+  // null = loading, array = loaded
+  const [plans, setPlans] = useState(null)
+  // local UI for the (removed) selector fallback
+  const [selectedPlan, setSelectedPlan] = useState(null)
   const [showSelector, setShowSelector] = useState(false)
 
   const formatDate = (date) =>
     date
       ? new Date(date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
       : 'Not set'
 
-  // Pricing plans
- const plans = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    period: 'forever',
-    description: 'Get started and practice daily',
-    icon: Target,
-    color: '#5C6784',
-    features: [
-      'Access 2 RCs per day',
-      'View RCs only after attempting and giving feedback',
-      'Cannot see RCs uploaded before joining',
-      'Question explanations after attempt',
-      'Basic performance tracking',
-      'Community support'
-    ],
-    limitations: [
-      'Must provide feedback to attempt RC',
-      'RCs missed cannot be accessed later',
-      'No advanced analytics',
-      'No personalized insights'
-    ]
-  },
-  {
-    id: 'weekly',
-    name: '1 Week Plan',
-    price: 199, // demo price
-    period: 'week',
-    description: 'Practice daily with limited archive access',
-    icon: Zap,
-    color: '#3B82F6',
-    recommended: true,
-    features: [
-      'Access 2 RCs per day',
-      'RCs uploaded from the day of joining are accessible for 7 days',
-      'Question explanations',
-      'Performance tracking with recent 7-day history',
-      'Community support'
-    ],
-    limitations: [
-      'RCs uploaded before joining are not visible',
-      'Access to RCs expires after 7 days',
-      'No extended analytics',
-      'Limited personalized insights'
-    ]
-  },
-  {
-    id: 'till-cat',
-    name: 'Till CAT 2025',
-    price: 499, // demo price
-    period: 'until CAT 2025',
-    description: 'Unlimited access to all RCs till CAT 2025',
-    icon: Crown,
-    color: '#D33F49',
-    features: [
-      'Access 2 RCs per day',
-      'Full archive access including RCs uploaded before joining',
-      'Question explanations',
-      'Advanced performance analytics',
-      'Extended history of attempts',
-      'Personalized insights and recommendations',
-      'Priority community support',
-      'Download practice materials'
-    ],
-    limitations: [
-      'None – full access till CAT 2025'
-    ]
+  // fallback plans (used when API fails)
+  const fallbackPlans = [
+    {
+      id: 'free',
+      name: 'Free',
+      price: 0,
+      period: 'forever',
+      description: 'Get started and practice daily',
+      icon: Target,
+      color: '#5C6784',
+      features: [
+        'Access 2 RCs per day',
+        'View RCs only after attempting and giving feedback',
+        'Cannot see RCs uploaded before joining',
+        'Question explanations after attempt',
+        'Basic performance tracking',
+        'Community support'
+      ],
+      limitations: [
+        'Must provide feedback to attempt RC',
+        'RCs missed cannot be accessed later',
+        'No advanced analytics',
+        'No personalized insights'
+      ]
+    },
+    {
+      id: 'weekly',
+      name: '1 Week Plan',
+      price: 199,
+      period: 'week',
+      description: 'Practice daily with limited archive access',
+      icon: Zap,
+      color: '#3B82F6',
+      recommended: true,
+      features: [
+        'Access 2 RCs per day',
+        'RCs uploaded from the day of joining are accessible for 7 days',
+        'Question explanations',
+        'Performance tracking with recent 7-day history',
+        'Community support'
+      ],
+      limitations: [
+        'RCs uploaded before joining are not visible',
+        'Access to RCs expires after 7 days',
+        'No extended analytics',
+        'Limited personalized insights'
+      ]
+    },
+    {
+      id: 'till-cat',
+      name: 'Till CAT 2025',
+      price: 499,
+      period: 'until CAT 2025',
+      description: 'Unlimited access to all RCs till CAT 2025',
+      icon: Crown,
+      color: '#D33F49',
+      features: [
+        'Access 2 RCs per day',
+        'Full archive access including RCs uploaded before joining',
+        'Question explanations',
+        'Advanced performance analytics',
+        'Extended history of attempts',
+        'Personalized insights and recommendations',
+        'Priority community support',
+        'Download practice materials'
+      ],
+      limitations: [
+        'None – full access till CAT 2025'
+      ]
+    }
+  ]
+
+  function normalizePlan(p) {
+    if (!p) return null
+    // Keep fallback intact
+    const slug = p.slug || p.id || (p._id ? String(p._id) : undefined) || 'unknown'
+    // price normalization: server uses finalPriceCents
+    const price = p.finalPriceCents != null ? Number(p.finalPriceCents) / 100 : (p.price != null ? p.price : 0)
+    // period normalization
+    let period = 'forever'
+    if (p.durationDays) period = `${p.durationDays}d`
+    else if (p.period) period = p.period
+    else if (p.accessUntil) period = 'until'
+
+    // Normalize features: server returns object (features.archive, feedbackLock, dailyLimits)
+    let featuresArr = []
+    if (Array.isArray(p.features)) {
+      featuresArr = p.features
+    } else if (p.features && typeof p.features === 'object') {
+      const f = p.features
+      // archive description
+      if (f.archive) {
+        if (f.archive.type === 'all') featuresArr.push('Full archive access')
+        else if (f.archive.type === 'window') featuresArr.push(`Archive window: ${f.archive.windowDays ?? p.durationDays ?? 0} days`)
+        else featuresArr.push('Archive: attempted-only')
+      }
+      // feedback lock
+      if (f.feedbackLock && f.feedbackLock.enabled) featuresArr.push('Require daily feedback')
+      // daily limits
+      if (f.dailyLimits) {
+        if (f.dailyLimits.dailyRcs != null) featuresArr.push(`Daily RCs: ${f.dailyLimits.dailyRcs}`)
+        if (f.dailyLimits.dailyAttempts != null) featuresArr.push(`Daily Attempts: ${f.dailyLimits.dailyAttempts}`)
+      }
+    }
+
+    // icon/color mapping for known slugs
+    const slugKey = String(slug).toLowerCase()
+    const iconMap = { free: Target, weekly: Zap, 'till-cat': Crown, 'till-cat-2026': Crown }
+    const colorMap = { free: '#5C6784', weekly: '#3B82F6', 'till-cat': '#D33F49', 'till-cat-2026': '#D33F49' }
+
+    return {
+      id: slugKey,
+      name: p.name || slugKey,
+      description: p.description || '',
+      price,
+      period,
+      icon: iconMap[slugKey] || Target,
+      color: colorMap[slugKey] || '#5C6784',
+      features: featuresArr.length ? featuresArr : (p.featuresList || []),
+      limitations: p.limitations || [],
+      recommended: !!p.recommended,
+      savings: p.savings || null,
+      // copy through any raw fields for debugging
+      raw: p,
+    }
   }
-]
 
+  useEffect(() => {
+    let mounted = true
 
-  const currentPlan = plans.find(p => p.id === (user?.subscription || 'free')?.toLowerCase()) || plans[0]
+    ;(async () => {
+      try {
+        const data = await plansApi.publicListPlans()
+        if (mounted && Array.isArray(data) && data.length) {
+          // prefer server-provided plans; normalize minimal fields into UI-friendly shape
+          const normalized = data.map(normalizePlan).filter(Boolean)
+          setPlans(normalized)
+        } else if (mounted) {
+          setPlans(fallbackPlans)
+        }
+      } catch (err) {
+        // fallback
+        if (mounted) setPlans(fallbackPlans)
+        // eslint-disable-next-line no-console
+        console.warn('Could not fetch public plans', err)
+      }
+    })()
+
+    return () => { mounted = false }
+  }, [])
+
+  // helper to poll /users/me until subscriptionPlan appears (used after checkout)
+  async function refreshUserUntilUpdated(attempts = 6) {
+    try {
+      const { api } = await import('../../lib/api')
+      const res = await api.get('/users/me')
+      if (res && res.data) {
+        setUser(res.data)
+        if (res.data.subscriptionPlan || attempts <= 1) return
+      }
+      if (attempts > 1) {
+        await new Promise((r) => setTimeout(r, 1000))
+        return refreshUserUntilUpdated(attempts - 1)
+      }
+    } catch (err) {
+      // swallow — caller will log if needed
+      return
+    }
+  }
+
+  // pick a sensible default for quick-upgrade actions (guard when plans are loading)
+  const recommendedPlan = plans ? (plans.find(p => p.recommended) || plans.find(p => p.id !== 'free') || plans[0]) : null
+
+  const userPlanSlug = getEffectiveSubscriptionSlug(user)
+  const userPlanId = userPlanSlug ? String(userPlanSlug).toLowerCase() : 'free'
+  const currentPlan = plans ? (plans.find(p => p.id === userPlanId) || plans[0]) : fallbackPlans[0]
 
   return (
     <div className="space-y-6">
@@ -159,7 +272,34 @@ export default function Subscriptions() {
             <div className="flex flex-col gap-3">
               {currentPlan.id === 'free' && (
                 <Button 
-                  onClick={() => setShowSelector(!showSelector)}
+                  onClick={async () => {
+                    const fallbackChoice = recommendedPlan || fallbackPlans.find(p => p.id !== 'free') || fallbackPlans[0]
+                    // If server-provided plan metadata exists, start direct checkout.
+                    if (recommendedPlan && recommendedPlan.raw && recommendedPlan.raw._id) {
+                      try {
+                        await startCheckout({ plan: recommendedPlan, user, onSuccess: async () => {
+                          // refresh user (poll until updated)
+                          try {
+                            await refreshUserUntilUpdated()
+                          } catch (err) {
+                            console.warn('Could not refresh user after payment', err)
+                          }
+                          toast.show(`Subscription active — ${recommendedPlan.name}`, { variant: 'success' })
+                        }, onError: (err) => {
+                          console.warn('Payment error', err)
+                          toast.show('Payment failed. Please try again.', { variant: 'error' })
+                        } })
+                      } catch (err) {
+                        console.error(err)
+                        toast.show('Could not start checkout. Try again later.', { variant: 'error' })
+                      }
+                    } else {
+                      // plans not loaded from server yet — open selector so user can pick when available
+                      setSelectedPlan(fallbackChoice)
+                      setShowSelector(true)
+                      toast.show('Loading plans — please select a plan to continue', { variant: 'default' })
+                    }
+                  }}
                   className="bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
                 >
                   Upgrade Now
@@ -172,6 +312,8 @@ export default function Subscriptions() {
                   </Button>
                 </Link>
               )}
+              {/** Renew button temporarily removed per product request. */}
+              {/*
               {user?.issubexp && (
                 <Button 
                   onClick={() => setShowSelector(!showSelector)}
@@ -180,55 +322,49 @@ export default function Subscriptions() {
                   Renew Subscription
                 </Button>
               )}
+              */}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Subscription Selector */}
-      {showSelector && (
-        <Card className="bg-white border-2 border-[#3B82F6] shadow-xl">
-          <CardHeader className="p-6 border-b border-border-soft bg-[#3B82F6]/5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-text-primary">Select Your Plan</h3>
-              <button
-                onClick={() => setShowSelector(false)}
-                className="text-text-secondary hover:text-text-primary transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <SubscriptionSelector
-              onSuccess={(data) => {
-                alert("Payment successful! Your subscription is now active.")
-                console.log(data)
-                window.location.reload()
-              }}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {/* The legacy selector modal has been removed. Purchases start directly from plan cards or the header. */}
 
       {/* Pricing Cards */}
       <div>
         <h2 className="text-2xl font-bold text-text-primary mb-6">Available Plans</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan, idx) => {
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {plans === null ? (
+            // show skeletons while plans load
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={`skeleton-${i}`} className="min-h-[120px]">
+                <CardHeader className="p-3 border-b border-border-soft">
+                  <div className="flex items-start justify-between mb-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                  </div>
+                  <Skeleton className="h-4 w-1/3 mb-2" />
+                  <Skeleton className="h-3 w-2/3" />
+                </CardHeader>
+                <CardContent className="p-3">
+                  <Skeleton className="h-6 w-1/4 mb-3" />
+                  <SkeletonText lines={3} />
+                </CardContent>
+              </Card>
+            ))
+          ) : plans.map((plan, idx) => {
             const Icon = plan.icon
-            const isCurrent = plan.id === (user?.subscription || 'free')?.toLowerCase()
+            const isCurrent = plan.id === userPlanId
 
             return (
               <Card
                 key={plan.id}
                 className={`
-                  relative bg-white border-2 transition-all duration-200
+                  relative bg-white border transition-all duration-200 text-sm rounded-lg
                   ${plan.recommended 
-                    ? 'border-[#3B82F6] shadow-xl scale-105' 
-                    : 'border-border-soft hover:border-[#3B82F6]/40 hover:shadow-lg'
+                    ? 'border-[#3B82F6] shadow-md' 
+                    : 'border-border-soft hover:border-[#3B82F6]/40 hover:shadow-sm'
                   }
-                  ${isCurrent ? 'ring-2 ring-[#23A094] ring-offset-2' : ''}
+                  ${isCurrent ? 'ring-1 ring-[#23A094] ring-offset-1' : ''}
                 `}
               >
                 {/* Recommended Badge */}
@@ -250,91 +386,65 @@ export default function Subscriptions() {
                   </div>
                 )}
 
-                <CardHeader className="p-6 border-b border-border-soft">
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className="p-3 rounded-xl shadow-md"
-                      style={{ backgroundColor: `${plan.color}15` }}
-                    >
-                      <Icon className="h-6 w-6" style={{ color: plan.color }} />
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-text-primary mb-2">
-                    {plan.name}
-                  </h3>
-                  <p className="text-sm text-text-secondary mb-4">
-                    {plan.description}
-                  </p>
-
-                  {/* Price */}
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-text-primary">
-                      ₹{plan.price}
-                    </span>
-                    <span className="text-sm text-text-secondary">
-                      /{plan.period}
-                    </span>
+                <div className="flex items-center p-3 gap-3">
+                  <div className="flex-shrink-0 p-2 rounded-md" style={{ backgroundColor: `${plan.color}15` }}>
+                    <Icon className="h-5 w-5" style={{ color: plan.color }} />
                   </div>
 
-                  {plan.savings && (
-                    <div className="mt-2">
-                      <Badge className="bg-[#23A094]/10 text-[#23A094] border-[#23A094]/30">
-                        Save ₹{plan.savings}
-                      </Badge>
-                    </div>
-                  )}
-                </CardHeader>
-
-                <CardContent className="p-6 space-y-4">
-                  {/* Features */}
-                  <div className="space-y-3">
-                    {plan.features.map((feature, fIdx) => (
-                      <div key={fIdx} className="flex items-start gap-3">
-                        <Check size={18} className="text-[#23A094] flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-text-primary">{feature}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-sm font-semibold text-text-primary truncate">{plan.name}</h3>
+                      <div className="text-right">
+                        <div className="text-sm font-bold">₹{plan.price}</div>
+                        <div className="text-xs text-text-secondary">/{plan.period}</div>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Limitations (for free plan) */}
-                  {plan.limitations && (
-                    <div className="pt-4 border-t border-border-soft space-y-2">
-                      {plan.limitations.map((limitation, lIdx) => (
-                        <div key={lIdx} className="flex items-start gap-3">
-                          <span className="text-[#E4572E] text-sm flex-shrink-0">✕</span>
-                          <span className="text-sm text-text-secondary">{limitation}</span>
-                        </div>
-                      ))}
                     </div>
-                  )}
-
-                  {/* CTA */}
-                  <div className="pt-4">
-                    {isCurrent ? (
-                      <Button 
-                        variant="secondary" 
-                        className="w-full cursor-default"
-                        disabled
-                      >
-                        Current Plan
-                      </Button>
-                    ) : plan.id === 'free' ? (
-                      <Link to="/profile">
-                        <Button variant="secondary" className="w-full">
-                          Manage Account
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        onClick={() => setShowSelector(true)}
-                        className="w-full bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold"
-                      >
-                        Upgrade to {plan.name}
-                      </Button>
-                    )}
+                    <p className="text-xs text-text-secondary truncate mt-1">{plan.description}</p>
+                    <div className="mt-2 text-xs text-text-secondary">
+                      {plan.features && plan.features[0] && (
+                        <div className="flex items-center gap-2">
+                          <Check size={12} className="text-[#23A094]" />
+                          <span className="truncate">{plan.features[0]}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </CardContent>
+                </div>
+
+                <div className="p-3 pt-0">
+                  {isCurrent ? (
+                    <Button variant="secondary" className="w-full cursor-default py-2" disabled>
+                      Current Plan
+                    </Button>
+                  ) : plan.id === 'free' ? (
+                    <Link to="/profile">
+                      <Button variant="secondary" className="w-full py-2">Manage Account</Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      onClick={async () => {
+                        if (plan && plan.raw && plan.raw._id) {
+                          try {
+                            await startCheckout({ plan, user, onSuccess: async () => {
+                              try { await refreshUserUntilUpdated() } catch (err) { console.warn('Could not refresh user after payment', err) }
+                              toast.show(`Subscription active — ${plan.name}`, { variant: 'success' })
+                            }, onError: (err) => { console.warn('Payment error', err); toast.show('Payment failed. Please try again.', { variant: 'error' }) } })
+                          } catch (err) {
+                            console.error(err)
+                            toast.show('Could not start checkout. Try again later.', { variant: 'error' })
+                          }
+                        } else {
+                          setSelectedPlan(plan)
+                          setShowSelector(true)
+                          toast.show('Select a plan to continue', { variant: 'default' })
+                        }
+                      }}
+                      className="w-full bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold py-2"
+                    >
+                      Upgrade
+                    </Button>
+                  )}
+                </div>
               </Card>
             )
           })}
@@ -343,67 +453,12 @@ export default function Subscriptions() {
 
       {/* Feature Comparison Table */}
       <Card className="bg-white border border-border-soft">
-        <CardHeader className="p-6 border-b border-border-soft">
-          <h2 className="text-xl font-bold text-text-primary">Feature Comparison</h2>
-          <p className="text-sm text-text-secondary mt-1">Compare all features across plans</p>
+        <CardHeader className="p-4 border-b border-border-soft">
+          <h2 className="text-lg font-semibold text-text-primary">Feature Comparison</h2>
+          <p className="text-sm text-text-secondary mt-1">Feature data is under review and will be published soon.</p>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-border-soft">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">Feature</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-text-primary">Free</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-[#3B82F6]">Premium</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-[#D33F49]">Annual</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Daily RCs</td>
-                  <td className="text-center py-3 px-4 text-text-secondary">2 per day</td>
-                  <td className="text-center py-3 px-4 text-[#23A094] font-semibold">Unlimited</td>
-                  <td className="text-center py-3 px-4 text-[#23A094] font-semibold">Unlimited</td>
-                </tr>
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Performance Analytics</td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-text-secondary mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Personalized Insights</td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Mistake Analysis</td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Download Materials</td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-                <tr className="border-b border-border-soft">
-                  <td className="py-3 px-4 text-text-primary">Priority Support</td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-text-primary">1-on-1 Strategy Session</td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><span className="text-[#E4572E]">✕</span></td>
-                  <td className="text-center py-3 px-4"><Check size={18} className="text-[#23A094] mx-auto" /></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <CardContent className="p-4">
+          <div className="text-sm text-text-secondary">We're reviewing feature mappings for accuracy. The comparison table has been temporarily hidden to prevent showing incorrect information.</div>
         </CardContent>
       </Card>
 

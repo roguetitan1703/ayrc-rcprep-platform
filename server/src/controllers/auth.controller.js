@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { User } from '../models/User.js'
+import { Plan } from '../models/Plan.js'
 import { signJwt } from '../utils/jwt.js'
 import { success, badRequest } from '../utils/http.js'
 import { Attempt } from '../models/Attempt.js'
@@ -29,6 +30,24 @@ export async function register(req, res, next) {
     // Let the User model pre-save middleware hash the password and remove passwordConfirm
     const user = await User.create({ ...data })
     await user.updateDailyStreak()
+
+    // Assign canonical Free plan at signup when available
+    try {
+      const freePlan = await Plan.findOne({ slug: 'free' })
+      if (freePlan) {
+        user.subscriptionPlan = freePlan._id
+        user.subon = new Date()
+        user.subexp = null
+        user.issubexp = false
+        // remove legacy subscription string at signup time
+        user.subscription = null
+        await user.save()
+      } else {
+        console.warn('[register] Free plan not found; new user created without subscriptionPlan')
+      }
+    } catch (planErr) {
+      console.error('[register] error assigning free plan to new user', planErr)
+    }
 
     // ✅ Send onboarding email (async, non-blocking)
     sendEmail('onboarding', { name: user.name, email: user.email }).catch((err) =>

@@ -16,8 +16,10 @@ function loadRazorpayScript() {
     })
 }
 
-export default function SubscriptionSelector({ onSuccess }) {
-    const [type, setType] = useState("Monthly")
+export default function SubscriptionSelector({ onSuccess, plan }) {
+    // Legacy selector removed: this component only renders a plan summary and
+    // a subscribe button when a server-backed `plan` is supplied. If `plan` is
+    // not provided, it renders an instructional message and disables purchase.
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const { user } = useAuth()
@@ -26,49 +28,42 @@ export default function SubscriptionSelector({ onSuccess }) {
         setError(null)
         setLoading(true)
         try {
-            const order = await createOrder(type)
-
-            // Load Razorpay
+            if (!plan || !plan.raw || !plan.raw._id) throw new Error('No valid plan selected')
+            const order = await createOrder({ planId: plan.raw._id })
             await loadRazorpayScript()
 
             const key =
-                import.meta.env.VITE_NODE_ENV === "production"
+                import.meta.env.VITE_NODE_ENV === 'production'
                     ? import.meta.env.VITE_RAZORPAY_KEY_PROD
                     : import.meta.env.VITE_RAZORPAY_KEY
 
             const options = {
                 key,
                 amount: order.amount,
-                currency: order.currency || "INR",
-                name: content.platformName || "AYRC",
-                description: `${order.notes?.subtype || type} Subscription`,
+                currency: order.currency || 'INR',
+                name: content.platformName || 'AYRC',
+                description: `${plan.name} Subscription`,
                 image: import.meta.env.VITE_APP_LOGO || undefined,
                 order_id: order.id,
                 handler: (response) => {
                     if (onSuccess) onSuccess(response)
-                    try {
-                        window.location.href = "/profile"
-                    } catch (e) { }
                 },
                 prefill: {
-                    name: user?.name || "",
-                    email: user?.username || "",
-                    contact: user?.phone || "",
+                    name: user?.name || '',
+                    email: user?.username || '',
+                    contact: user?.phone || '',
                 },
-                theme: { color: "#D33F49" }, // still OK since Razorpay requires a hex input
+                theme: { color: '#D33F49' },
             }
 
             const rzp = new window.Razorpay(options)
-            rzp.on("payment.failed", (response) => {
-                setError(
-                    "Payment failed: " +
-                    (response.error?.description || "An unknown error occurred")
-                )
+            rzp.on('payment.failed', (response) => {
+                setError('Payment failed: ' + (response.error?.description || 'An unknown error occurred'))
             })
             rzp.open()
         } catch (err) {
             console.error(err)
-            setError(err?.message || "Error creating order")
+            setError(err?.message || 'Error creating order')
         } finally {
             setLoading(false)
         }
@@ -77,57 +72,31 @@ export default function SubscriptionSelector({ onSuccess }) {
     return (
         <div className="bg-card-surface border border-soft rounded-xl shadow-card p-6 space-y-5 transition hover:shadow-card-hover">
             <h3 className="text-lg font-medium text-text-primary">
-                Choose a subscription
+                {plan ? `Subscribe to ${plan.name}` : 'Select a plan from the page to continue'}
             </h3>
 
-            <div className="space-y-3">
-                {["Monthly", "Yearly"].map((option) => (
-                    <label
-                        key={option}
-                        className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition ${type === option
-                            ? "border-primary bg-surface-muted"
-                            : "border-soft hover:bg-surface-muted"
-                            }`}
-                    >
-                        <div className="flex items-center space-x-3">
-                            <input
-                                type="radio"
-                                name="subtype"
-                                value={option}
-                                checked={type === option}
-                                onChange={() => setType(option)}
-                                className="h-4 w-4 text-primary focus:ring-focus-ring border-soft"
-                            />
-                            <div>
-                                <div className="font-medium text-text-primary">{option}</div>
-                                <div className="text-sm text-text-secondary">
-                                    {option === "Monthly"
-                                        ? "₹150 / month"
-                                        : "₹1700 / year (save 5%)"}
-                                </div>
-                            </div>
+            {plan ? (
+                <div className="p-4 rounded-md border border-soft bg-surface-muted">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <div className="font-medium text-text-primary">{plan.name}</div>
+                            <div className="text-sm text-text-secondary">{plan.description}</div>
                         </div>
-                        {type === option && (
-                            <span className="text-sm font-medium text-primary">Selected</span>
-                        )}
-                    </label>
-                ))}
-            </div>
-
-            {error && (
-                <div className="text-sm text-error-red bg-error-red/10 p-2 rounded-md">
-                    {error}
+                        <div className="text-right">
+                            <div className="text-2xl font-bold">₹{plan.price}</div>
+                            <div className="text-sm text-text-secondary">/{plan.period}</div>
+                        </div>
+                    </div>
                 </div>
+            ) : (
+                <div className="text-sm text-text-secondary">No plan selected. Choose a plan card or refresh the page.</div>
             )}
 
+            {error && <div className="text-sm text-error-red bg-error-red/10 p-2 rounded-md">{error}</div>}
+
             <div className="pt-2">
-                <Button
-                    onClick={handleSubscribe}
-                    disabled={loading}
-                    variant="primary"
-                    className="w-full"
-                >
-                    {loading ? "Creating Order..." : `Subscribe (${type})`}
+                <Button onClick={handleSubscribe} disabled={loading || !plan} variant="primary" className="w-full">
+                    {loading ? 'Creating Order...' : plan ? `Subscribe — ₹${plan.price} / ${plan.period}` : 'Select a plan'}
                 </Button>
             </div>
         </div>

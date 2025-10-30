@@ -1,5 +1,106 @@
 # Plan Feature Gating
 
+This document describes the feature-gating model used by the ARC platform. It focuses on the `archive` gating feature implemented initially, explains typed shapes for plan-level features, records product decisions, and lists operational next steps for engineers and admins. Treat this file as the canonical reference for plan-driven gating.
+
+## Principles
+
+- Plans are the single source of truth for pricing and entitlements.
+- Each Plan exposes a `features` object (typed) describing the plan's access rules.
+- Server-side helpers (e.g. `planAccess`) must interpret `features` and expose single-call helpers like `canAccessArchive(user, rc, attempted)`.
+- Admins configure plans via admin UI or seed scripts; `slug` and `finalPriceCents` are authoritative fields.
+- Use integer paise (cents) for prices (`finalPriceCents`) — do not use floats.
+
+## Archive feature (supported types)
+
+The `features.archive` key supports three typed shapes. Each Plan's `features` object should follow one of these canonical shapes for the archive key; server-side validation (see `validateFeatures()`) enforces types.
+
+1) attempted-only
+
+- Shape: `{ type: 'attempted-only' }`
+- Semantics: the user may view only RCs they attempted. RCs scheduled for "today" (IST calendar day) are always accessible.
+- Use case: Free / trial plans.
+
+2) window
+
+- Shape: `{ type: 'window', windowDays: <number>, includeAttempted: true|false }`
+- Semantics: the user may view RCs created between `subon` (inclusive) and `subon + windowDays` (inclusive). If `includeAttempted` is true, attempted RCs are visible regardless of createdAt.
+- Use case: short-term access plans (e.g. weekly preview windows).
+
+3) all
+
+- Shape: `{ type: 'all' }`
+- Semantics: unrestricted archive access.
+- Use case: full-access / Till-CAT plans.
+
+## How the server evaluates archive access
+
+Resolution of the user's plan
+
+1. Prefer `user.subscriptionPlan` (ObjectId) and load that Plan.
+2. If missing, fall back to legacy `user.subscription` string only for read-compatibility; migration scripts should populate `subscriptionPlan`.
+
+Evaluation pipeline (summary)
+
+- If RC is scheduled for today (IST day) — grant access.
+- Else evaluate Plan rule:
+  - `all` => grant
+  - `attempted-only` => grant only if an `Attempt` exists for that RC and user
+  - `window` => if `includeAttempted === true` and user attempted => grant; otherwise check RC.createdAt is within `[subon, subon + windowDays]` (use IST day boundaries)
+
+- Implement a single helper `canAccessArchive(user, rc, attempted)` returning `{ allowed: boolean, reason: string }`. Replace ad-hoc controller checks and ensure all codepaths use this helper for consistency.
+
+## Adding a new feature key
+
+Pattern to follow for new plan-level features:
+
+1. Define a compact typed JSON shape (document it here).
+2. Add simple, direct UI controls in the Plan editor that produce that shape and submit it via the existing admin API.
+3. Add server-side validation in `validateFeatures()` to reject malformed shapes.
+4. Implement runtime interpretation in `server/src/lib/planAccess.js` (or equivalent) and use a single helper for any runtime check.
+
+Examples of other plan-level features and their shapes: see `docs/pg/SUBS_PLANNING.md`.
+
+## Notes
+
+- All dates are stored in UTC. For day-level logic, convert to IST using `startOfIST`/`endOfIST` utilities. This keeps calendar semantics consistent across UI and server.
+- Use `finalPriceCents` (integer paise) as the authoritative amount for payment orders — do not compute client-side prices from floats.
+- `markupPriceCents` is optional and used for UI only.
+
+## Migration guidance
+
+- Seed canonical plans (use `server/scripts/seedPlans.js`). Confirm a canonical Free plan with slug `free` exists before running migration.
+- Provide a migration script `server/scripts/migrateToFreePlan.js` that supports `--dry` and `--apply`; the script must:
+  - lookup canonical plans (free, weekly, till-cat)
+  - enumerate users with legacy `subscription` values (or missing `subscriptionPlan`)
+  - attempt to map to a Plan (by slug or rules) and output a reconciliation report
+  - when `--apply` is provided, update users in controlled batches and log results
+
+Recommended decision defaults (tuned for conservative rollout)
+
+- Free plan: represent the Free tier by a real Plan document with slug `free`. Recommended fields:
+  - `slug: 'free'`, `finalPriceCents: 0`, `active: true`, `features.archive: { type: 'attempted-only' }`, and optionally `features.feedbackLock.enabled: true` (if you want feedback lock enforced for free users).
+- Default archive behavior when a Plan lacks `features.archive`: product recommendation is to treat absence as `{ type: 'attempted-only' }` (conservative). Note: current runtime code treats missing `archive` as permissive `all`. Changing this requires a small server PR and a staged rollout — do not change until approved.
+- Feedback lock: use a plan-level boolean `features.feedbackLock.enabled` (default false). To enforce feedback lock for free users, enable it on the Free plan.
+
+## Decisions to confirm (before changing server logic)
+
+Please confirm these choices so the team can prepare a small, reviewable PR (no runtime change will be applied until you say GO):
+
+1. Change default for Plan-without-archive from `all` -> `attempted-only`. (yes/no)
+2. Confirm canonical Free plan slug is `free` and must be non-deletable and protected (yes/no)
+3. Confirm new users should be assigned the Free plan at signup (yes/no)
+4. Confirm migration approach: write `subscriptionPlan` and keep legacy `subscription` during a validation hold period, then unset after verification (yes/no)
+
+If you confirm, the PR will include:
+- planAccess default change (if requested),
+- Plan controller guards to protect free plan billing fields and delete path,
+- a migration script template `server/scripts/migrateToFreePlan.js --dry` and a staging run checklist.
+
+No change will be made without your explicit "go".
+
+*** End of Document
+# Plan Feature Gating
+
 This document describes the feature-gating model used by the ARC platform. It focuses on the `archive` gating feature implemented initially, explains data shapes, and gives examples for admins and developers. Use this as the canonical reference when adding new features.
 
 ## Principles
