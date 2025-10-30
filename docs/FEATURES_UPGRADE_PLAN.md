@@ -32,11 +32,13 @@ Status: planning (no code changes executed). This document records the plan and 
 Add a `Features` panel to the Plan create/edit modal. The panel should allow editing the following plan-level feature flags.
 
 - Feedback Lock
+
   - Field: `features.feedbackLock.enabled` (boolean)
   - Control: checkbox labeled "Require daily feedback"
   - Help text: "When enabled, users on this plan must submit feedback for yesterday's scheduled RCs before submitting new attempts."
 
 - Archive access
+
   - Field: `features.archive.type` (string: `attempted-only | window | all`)
   - Controls:
     - Radio group: Attempted-only / Window / All

@@ -81,6 +81,7 @@ Decisions & Deployment notes
 Admin UI guidance (Plan editor)
 
 - Add a `Features` panel to the Plan create / edit modal that exposes the following controls (client should submit the `features` object to the existing admin endpoints and rely on server validation):
+
   - Feedback Lock: checkbox (features.feedbackLock.enabled)
     - Help text: "Require users on this plan to submit yesterday's feedback before submitting new attempts."
   - Archive Access: radio (features.archive.type)

@@ -47,6 +47,7 @@ This is the canonical Plan document that will represent the Free tier in the sys
 ```
 
 Notes:
+
 - `features.feedbackLock.enabled` can be toggled by admin via the Plan editor to enable/disable feedback lock for users on the Free plan. The current product decision is to enforce feedback lock for free users; admin can set `enabled: true` when ready.
 - The Free plan must be protected: it should not be deletable, and billing fields should be read-only in the admin UI.
 
@@ -68,6 +69,7 @@ This approach ensures plan-driven gating always finds a valid `subscriptionPlan`
 ## Safe migration steps (dry-run first)
 
 1. Pre-flight checks (always run first):
+
    - Take a DB backup / snapshot for the target environment.
    - Confirm `free` plan exists and note its `_id` (freePlanId).
 
@@ -90,10 +92,19 @@ This approach ensures plan-driven gating always finds a valid `subscriptionPlan`
 
    ```js
    // Count candidates
-   db.users.countDocuments({ $or: [{ subscription: 'none' }, { subscription: null }, { subscriptionPlan: { $exists: false } }] })
+   db.users.countDocuments({
+     $or: [
+       { subscription: 'none' },
+       { subscription: null },
+       { subscriptionPlan: { $exists: false } },
+     ],
+   })
 
    // Show a small sample (replace limit 20 as needed)
-   db.users.find({ $or: [{ subscription: 'none' }, { subscriptionPlan: { $exists: false } }] }).limit(20).pretty()
+   db.users
+     .find({ $or: [{ subscription: 'none' }, { subscriptionPlan: { $exists: false } }] })
+     .limit(20)
+     .pretty()
    ```
 
    Inspect sample rows and verify `subon` / `subexp` values are present where expected.
@@ -105,9 +116,9 @@ This approach ensures plan-driven gating always finds a valid `subscriptionPlan`
    Example pseudo-script (Node):
 
    - connect to DB
-   - freePlanId = db.plans.findOne({ slug: 'free' })._id
+   - freePlanId = db.plans.findOne({ slug: 'free' }).\_id
    - cursor = db.users.find(criteria).batchSize(1000)
-   - for each user in cursor: print({ _id: user._id, subon: user.subon, subexp: user.subexp, oldSubscription: user.subscription, oldPlan: user.subscriptionPlan, newPlan: freePlanId })
+   - for each user in cursor: print({ \_id: user.\_id, subon: user.subon, subexp: user.subexp, oldSubscription: user.subscription, oldPlan: user.subscriptionPlan, newPlan: freePlanId })
 
 4. Apply (batched, small increments)
 
@@ -135,7 +146,10 @@ This approach ensures plan-driven gating always finds a valid `subscriptionPlan`
    - After a verification period (e.g., 48-72 hours), you may choose to unset legacy `subscription` field. Only do this once confident. Example:
 
    ```js
-   db.users.updateMany({ subscription: 'none', subscriptionPlan: freePlanId }, { $unset: { subscription: 1 } })
+   db.users.updateMany(
+     { subscription: 'none', subscriptionPlan: freePlanId },
+     { $unset: { subscription: 1 } }
+   )
    ```
 
    - Keep archives/backups of the field values before mass-unset.
@@ -151,6 +165,7 @@ This approach ensures plan-driven gating always finds a valid `subscriptionPlan`
 ## Implementation notes for when you say "go"
 
 - I can provide a ready-to-run script `server/scripts/migrateToFreePlan.js` with the following features:
+
   - `--dry` : prints a summary and does not write anything
   - `--apply` : performs updates in configurable batch sizes
   - safety checks: errors out if `free` plan not found
