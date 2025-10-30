@@ -72,4 +72,48 @@ The `features.archive` key supports three typed shapes:
 - Seed canonical plans first (`server/scripts/seedPlans.js`).
 - Migrate old `user.subscription` strings to `subscriptionPlan` references using a migration script (dry-run before write).
 
+Decisions & Deployment notes
+
+- Canonical Free plan: the Free tier will be represented by a real Plan document with slug `free` (see `docs/FREE_PLAN_MIGRATION.md` for canonical JSON). All new users should be assigned this plan at signup so runtime gating can read `subscriptionPlan` reliably.
+- Default archive behaviour when a plan does not declare `features.archive`: we will treat the absence as `attempted-only` (conservative default). The server currently treats missing `archive` as permissive `all`; that will be changed as a controlled follow-up once you approve.
+- Feedback lock: by product decision, feedback lock enforcement applies to free users by default. Admins may enable feedback lock on a plan to apply it to paid users, but the simplest rollout is to toggle the Free plan's `features.feedbackLock.enabled` to `true`.
+
+Admin UI guidance (Plan editor)
+
+- Add a `Features` panel to the Plan create / edit modal that exposes the following controls (client should submit the `features` object to the existing admin endpoints and rely on server validation):
+  - Feedback Lock: checkbox (features.feedbackLock.enabled)
+    - Help text: "Require users on this plan to submit yesterday's feedback before submitting new attempts."
+  - Archive Access: radio (features.archive.type)
+    - Attempted-only
+    - Window: when selected show `windowDays` (integer >= 0) and `includeAttempted` (checkbox)
+    - All
+  - (Do not show dailyLimits at this time)
+
+- When editing the Free plan in the UI, hide/disable billing fields (duration/accessUntil) and mark the plan as non-deletable.
+- In the plans list/table, add a compact "Features" column summarising each plan's gating (e.g., "Archive: window(7) · FeedbackLock: on").
+
+Migration & nullification policy (high-level)
+
+- When nullifying expired subscriptions we will: (1) mark Subscription documents `expired`, (2) preserve users' historical `subon` and `subexp` for audit, (3) set `user.subscriptionPlan` to the Free plan `_id`, and (4) set `user.issubexp = true`. The legacy `user.subscription` string will be preserved during the initial migration and can be removed later after verification.
+- See `docs/FREE_PLAN_MIGRATION.md` for the dry-run/apply migration script design and safe-run checklists.
+
+Questions you should confirm before changing server logic
+
+- Do you approve changing the `planAccess.archiveRuleForUser` default from `all` to `attempted-only` when a Plan document lacks `features.archive`? (This makes plan authors opt-in for permissive archive behaviour.)
+- Confirm that Free plan slug is `free` and must remain non-deletable.
+- Confirm whether new users should be assigned the Free plan at signup (recommended: yes).
+
+If you confirm these design points I will prepare a small, reviewable PR that: (1) updates `planAccess` default behavior, (2) adds defensive checks in the Plan controller to protect the Free plan billing fields, and (3) provides the client-side UI spec or patch for the admin Plan modal. No change will be applied without your explicit "go".
+
+Migration script (action item)
+
+- If a migration script does not already exist in `server/scripts`, create a planned script at
+  `server/scripts/migrateSubscriptions.js` which supports a `--dry` flag. It should:
+  - Read users with legacy `user.subscription` values.
+  - Attempt to resolve a matching `Plan` by slug and populate `subscriptionPlan` for those users.
+  - Preserve `subon`, `subexp`, and `issubexp` where present; log ambiguous records for manual review.
+  - When run without `--dry`, perform writes in small batches and produce a summary report.
+
+Note: migration scripts are intentionally not included here. Create and test the migration in staging first, and always run with `--dry` before writing to production.
+
 \*\*\* End of Document

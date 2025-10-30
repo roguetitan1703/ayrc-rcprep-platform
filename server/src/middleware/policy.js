@@ -20,8 +20,13 @@ export async function feedbackLockInfo(userId) {
   const rcIds = yRcs.map((r) => r._id)
   if (rcIds.length === 0) return { lock: false, reason: 'no_yesterday_rcs' }
 
-  const attempts = await Attempt.find({ userId, rcPassageId: { $in: rcIds } })
-  const allAttempted = attempts.length === rcIds.length && rcIds.length > 0
+  // Count unique RCs attempted yesterday by the user. Users may have multiple
+  // attempts per RC, so comparing raw attempt count is incorrect.
+  const attempts = await Attempt.find({ userId, rcPassageId: { $in: rcIds } }).select(
+    'rcPassageId'
+  )
+  const attemptedSet = new Set((attempts || []).map((a) => String(a.rcPassageId)))
+  const allAttempted = attemptedSet.size === rcIds.length && rcIds.length > 0
   if (!allAttempted) return { lock: false, reason: 'incomplete_yesterday' }
 
   const feedback = await Feedback.findOne({ userId, date: yesterdayStart })
@@ -32,13 +37,15 @@ export async function feedbackLockInfo(userId) {
 export async function enforceFeedbackLock(req, res, next) {
   try {
     // Enforce lock for free users (no plan) or if the user's plan explicitly enables feedbackLock
+    // Product decision: feedback lock applies only to free users (users without
+    // a `subscriptionPlan`). Paid subscribers are exempt. Keep this check simple
+    // so the behavior is predictable during the pilot. In future we can make
+    // this configurable via plan features and use the `featureGates` helper.
     const plan = await planAccess.resolvePlanForUser(req.user)
     const isFree = !plan
-    const planEnablesLock =
-      plan && plan.features && plan.features.feedbackLock && plan.features.feedbackLock.enabled
 
-    // If neither free user nor plan enables lock, skip enforcement
-    if (!isFree && !planEnablesLock) return next()
+    // Enforce only for free users right now
+    if (!isFree) return next()
 
     const info = await feedbackLockInfo(req.user.id)
     if (info.lock) return next(forbidden('Daily feedback required to continue'))
