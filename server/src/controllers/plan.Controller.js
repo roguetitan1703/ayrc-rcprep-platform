@@ -182,7 +182,13 @@ export async function updatePlan(req, res, next) {
     try {
       const existingPlan = await Plan.findById(id)
       if (existingPlan && String(existingPlan.slug).toLowerCase() === 'free') {
-        const prohibited = ['billingType', 'durationDays', 'accessUntil', 'finalPriceCents', 'markupPriceCents']
+        const prohibited = [
+          'billingType',
+          'durationDays',
+          'accessUntil',
+          'finalPriceCents',
+          'markupPriceCents',
+        ]
         if (prohibited.some((p) => Object.prototype.hasOwnProperty.call(updates, p))) {
           return next(badRequest('Cannot modify billing fields of the Free plan'))
         }

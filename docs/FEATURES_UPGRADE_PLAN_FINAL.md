@@ -37,13 +37,15 @@ Panel: Features (collapsible)
 
 Controls and bindings
 
-1) Feedback Lock
+1. Feedback Lock
+
 - UI: Checkbox / Toggle
 - Label: "Require daily feedback"
 - Binding: `features.feedbackLock.enabled` (boolean)
 - Help text: "When enabled, users on this plan must submit yesterday's feedback before submitting new attempts."
 
-2) Archive access
+2. Archive access
+
 - UI: Radio group (Attempted-only | Window | All)
 - Binding: `features.archive.type`
 - Window controls (only if Window selected):
@@ -73,20 +75,24 @@ Developer notes
 
 The following are small server changes to prepare once decisions are confirmed. They will be authored as a minimal PR and run through staging tests before deployment.
 
-1) planAccess default behaviour
+1. planAccess default behaviour
+
 - If you approve: change `planAccess.archiveRuleForUser` so that when a Plan exists but `features.archive` is missing, the helper returns `{ type: 'attempted-only' }` instead of `all` (conservative default).
 
-2) Plan controller guards
+2. Plan controller guards
+
 - Prevent editing of billing fields for `slug === 'free'` (billingType, durationDays, accessUntil).
 - Prevent deletion of the Free plan.
 
-3) Migration script
+3. Migration script
+
 - Add `server/scripts/migrateToFreePlan.js --dry|--apply` that:
   - Finds candidate users with legacy `subscription` or missing `subscriptionPlan`.
   - Attempts to resolve a Plan by slug (free/weekly/cat) and produces a reconciliation report.
   - On `--apply`, updates users in small batches (e.g., 500) and logs success/failure for manual review.
 
-4) Nullification behavior
+4. Nullification behavior
+
 - Update the expiry/nullification job so that when a paid subscription is nullified it sets `user.subscriptionPlan = freePlanId` (preserve `subon` and `subexp` for audit) and sets `user.issubexp = true`.
 
 Implementation note: changes above are small and defensive — the migration script must be dry-run first in staging before any production apply.
@@ -154,4 +160,4 @@ This file consolidates prior planning artifacts into a single, actionable plan i
 
 When you confirm the 4 decision items above and whether you want the client spec or client code, I will open a single PR (or two: server + client) with the changes and tests. Nothing will be merged or run in production without your explicit GO.
 
-*** End of Document
+\*\*\* End of Document

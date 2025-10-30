@@ -60,7 +60,10 @@ async function dryRun(freePlanId, query, limit = 20) {
   console.log('DRY RUN: Query sample (limit %s):', limit)
   const count = await User.countDocuments(query)
   console.log('Candidates count:', count)
-  const sample = await User.find(query).limit(limit).select('_id email subon subexp subscription subscriptionPlan issubexp').lean()
+  const sample = await User.find(query)
+    .limit(limit)
+    .select('_id email subon subexp subscription subscriptionPlan issubexp')
+    .lean()
   console.log('Sample results:')
   sample.forEach((u) => console.log(JSON.stringify(u)))
   return { count, sample }
@@ -70,7 +73,9 @@ async function applyBatch(ids, freePlanId) {
   if (!ids || ids.length === 0) return { matched: 0, modified: 0 }
   const now = new Date()
   // We'll build bulk ops so we can set subon only when missing per-user.
-  const users = await User.find({ _id: { $in: ids } }).select('subon').lean()
+  const users = await User.find({ _id: { $in: ids } })
+    .select('subon')
+    .lean()
   const bulkOps = users.map((u) => {
     const set = { subscriptionPlan: freePlanId, issubexp: false }
     if (!u.subon) set.subon = now
@@ -138,7 +143,9 @@ async function main() {
 
   if (args.dry && !args.apply) {
     await dryRun(freePlanId, query, 20)
-    console.log('\nDRY RUN complete. To apply, re-run with --apply (and optionally --batch-size N).')
+    console.log(
+      '\nDRY RUN complete. To apply, re-run with --apply (and optionally --batch-size N).'
+    )
     await mongoose.disconnect()
     process.exit(0)
   }

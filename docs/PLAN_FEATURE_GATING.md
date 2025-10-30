@@ -14,19 +14,19 @@ This document describes the feature-gating model used by the ARC platform. It fo
 
 The `features.archive` key supports three typed shapes. Each Plan's `features` object should follow one of these canonical shapes for the archive key; server-side validation (see `validateFeatures()`) enforces types.
 
-1) attempted-only
+1. attempted-only
 
 - Shape: `{ type: 'attempted-only' }`
 - Semantics: the user may view only RCs they attempted. RCs scheduled for "today" (IST calendar day) are always accessible.
 - Use case: Free / trial plans.
 
-2) window
+2. window
 
 - Shape: `{ type: 'window', windowDays: <number>, includeAttempted: true|false }`
 - Semantics: the user may view RCs created between `subon` (inclusive) and `subon + windowDays` (inclusive). If `includeAttempted` is true, attempted RCs are visible regardless of createdAt.
 - Use case: short-term access plans (e.g. weekly preview windows).
 
-3) all
+3. all
 
 - Shape: `{ type: 'all' }`
 - Semantics: unrestricted archive access.
@@ -43,6 +43,7 @@ Evaluation pipeline (summary)
 
 - If RC is scheduled for today (IST day) — grant access.
 - Else evaluate Plan rule:
+
   - `all` => grant
   - `attempted-only` => grant only if an `Attempt` exists for that RC and user
   - `window` => if `includeAttempted === true` and user attempted => grant; otherwise check RC.createdAt is within `[subon, subon + windowDays]` (use IST day boundaries)
@@ -92,13 +93,15 @@ Please confirm these choices so the team can prepare a small, reviewable PR (no 
 4. Confirm migration approach: write `subscriptionPlan` and keep legacy `subscription` during a validation hold period, then unset after verification (yes/no)
 
 If you confirm, the PR will include:
+
 - planAccess default change (if requested),
 - Plan controller guards to protect free plan billing fields and delete path,
 - a migration script template `server/scripts/migrateToFreePlan.js --dry` and a staging run checklist.
 
 No change will be made without your explicit "go".
 
-*** End of Document
+\*\*\* End of Document
+
 # Plan Feature Gating
 
 This document describes the feature-gating model used by the ARC platform. It focuses on the `archive` gating feature implemented initially, explains data shapes, and gives examples for admins and developers. Use this as the canonical reference when adding new features.

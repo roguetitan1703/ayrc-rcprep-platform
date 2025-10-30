@@ -15,7 +15,11 @@ describe('planAccess.archiveRuleForUser', () => {
   })
 
   test('returns window rule when plan.features.archive.type === window', async () => {
-    const fakePlan = { _id: '2', features: { archive: { type: 'window', windowDays: 7 } }, durationDays: 0 }
+    const fakePlan = {
+      _id: '2',
+      features: { archive: { type: 'window', windowDays: 7 } },
+      durationDays: 0,
+    }
     jest.spyOn(Plan, 'findById').mockResolvedValue(fakePlan)
     const rule = await archiveRuleForUser({ subscriptionPlan: '2' })
     expect(rule.type).toBe('window')
