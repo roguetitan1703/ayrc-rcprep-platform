@@ -1,3 +1,6 @@
+// Replace your existing AboutPage component with this version
+// It includes Framer Motion animations while keeping all your original styling
+
 import React from 'react'
 import {
   Heart,
@@ -74,7 +77,12 @@ export default function AboutPage() {
       <section className="relative py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero section */}
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+          <motion.div 
+            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-4 sm:mb-6">
               About{' '}
               <span className="bg-gradient-to-r from-primary via-accent-amber to-primary-light bg-clip-text text-transparent">
@@ -85,10 +93,16 @@ export default function AboutPage() {
               A clean, no-nonsense platform for mastering reading comprehension — built by
               aspirants, for aspirants.
             </p>
-          </div>
+          </motion.div>
 
           {/* Mission Statement */}
-          <AboutPreview/>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <AboutPreview/>
+          </motion.div>
      
           {/* What We Offer - Features Grid */}
           {/* <div className="mb-12 sm:mb-16 lg:mb-20">
@@ -123,7 +137,12 @@ export default function AboutPage() {
 
 
                {/* Technology & Methodology */}
-          <div className="my-12 sm:my-16 lg:my-20">
+          <motion.div 
+            className="my-12 sm:my-16 lg:my-20"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-center mb-8 sm:mb-12 font-bold text-text-primary px-4">
               Technology & Methodology
             </h2>
@@ -138,55 +157,56 @@ export default function AboutPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                <div className="bg-background bg-opacity-30 p-4 sm:p-5 rounded-xl">
-                  <h4 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                    <span>Scheduled Practice</span>
-                  </h4>
-                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                    Our platform delivers daily reading comprehension passages at scheduled
-                    intervals, helping you build consistency — the key to long-term improvement.
-                  </p>
-                </div>
-
-                <div className="bg-background bg-opacity-30 p-4 sm:p-5 rounded-xl">
-                  <h4 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary-light rounded-full flex-shrink-0"></div>
-                    <span>Smart Analytics</span>
-                  </h4>
-                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                    Track your performance across topics, difficulty levels, and time periods. Our
-                    analytics dashboard gives you actionable insights.
-                  </p>
-                </div>
-
-                <div className="bg-background bg-opacity-30 p-4 sm:p-5 rounded-xl">
-                  <h4 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-accent-amber rounded-full flex-shrink-0"></div>
-                    <span>Research-Backed Questions</span>
-                  </h4>
-                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                    Every passage and question is carefully curated to match exam-level difficulty.
-                    We follow proven methodologies used in standardized testing.
-                  </p>
-                </div>
-
-                <div className="bg-background bg-opacity-30 p-4 sm:p-5 rounded-xl">
-                  <h4 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-success-green rounded-full flex-shrink-0"></div>
-                    <span>Learning-Focused</span>
-                  </h4>
-                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
-                    Beyond just answering questions, we provide detailed explanations that help you
-                    understand reasoning patterns and improve critical thinking.
-                  </p>
-                </div>
+                {[
+                  {
+                    color: 'bg-primary',
+                    title: 'Scheduled Practice',
+                    description: 'Our platform delivers daily reading comprehension passages at scheduled intervals, helping you build consistency — the key to long-term improvement.'
+                  },
+                  {
+                    color: 'bg-primary-light',
+                    title: 'Smart Analytics',
+                    description: 'Track your performance across topics, difficulty levels, and time periods. Our analytics dashboard gives you actionable insights.'
+                  },
+                  {
+                    color: 'bg-accent-amber',
+                    title: 'Research-Backed Questions',
+                    description: 'Every passage and question is carefully curated to match exam-level difficulty. We follow proven methodologies used in standardized testing.'
+                  },
+                  {
+                    color: 'bg-success-green',
+                    title: 'Learning-Focused',
+                    description: 'Beyond just answering questions, we provide detailed explanations that help you understand reasoning patterns and improve critical thinking.'
+                  }
+                ].map((item, index) => (
+                  <motion.div 
+                    key={index}
+                    className="bg-background bg-opacity-30 p-4 sm:p-5 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+                  >
+                    <h4 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2">
+                      <div className={`w-2 h-2 ${item.color} rounded-full flex-shrink-0`}></div>
+                      <span>{item.title}</span>
+                    </h4>
+                    <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+                      {item.description}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Community Note */}
-          <div className="mb-12 sm:mb-16 lg:mb-20 flex justify-center px-4">
+          {/* Community Note  */}
+          <motion.div 
+            className="mb-12 sm:mb-16 lg:mb-20 flex justify-center px-4"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 1 }}
+          >
             <div className="bg-card-surface bg-opacity-50 backdrop-blur-sm p-6 sm:p-8 lg:p-12 rounded-2xl border border-white border-opacity-10 w-full max-w-3xl">
               <div className="flex justify-center mb-4 sm:mb-6">
                   <motion.div
@@ -206,10 +226,15 @@ export default function AboutPage() {
                 our commitment to providing the best RC practice platform.
               </p>
             </div>
-          </div>
+          </motion.div>
 
-          {/* CTA Section  */}
-          <div className="px-4">
+          {/* CTA Section - ANIMATED */}
+          <motion.div 
+            className="px-4"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
             <div className="bg-gradient-to-r from-primary via-primary-light to-accent-amber p-1 rounded-2xl">
               <div className="bg-background p-6 sm:p-8 lg:p-12 rounded-2xl text-center">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary mb-3 sm:mb-4">
@@ -219,17 +244,25 @@ export default function AboutPage() {
                   Join thousands of aspirants improving their reading skills daily
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md mx-auto">
-                  <button className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-primary text-white font-semibold rounded-lg text-base sm:text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                  <motion.button 
+                    className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-primary text-white font-semibold rounded-lg text-base sm:text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     Create Free Account
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white bg-opacity-5 backdrop-blur-sm text-text-primary font-semibold rounded-lg text-base sm:text-lg border border-white border-opacity-10 hover:bg-opacity-10 transition-all duration-200">
+                  </motion.button>
+                  <motion.button 
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white bg-opacity-5 backdrop-blur-sm text-text-primary font-semibold rounded-lg text-base sm:text-lg border border-white border-opacity-10 hover:bg-opacity-10 transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     Back to Home
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>

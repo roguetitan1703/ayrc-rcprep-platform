@@ -54,12 +54,16 @@ export default function TestToday() {
     </div>
   )
 
+  if (blocked) {
+  return <SubFeedbackBlocker user={user} feedbackStatus={status} />
+}
+
   return (
     <div className="p-6 space-y-4">
       <h2 className="text-2xl font-semibold">Today's RC</h2>
 
       {/* Subscription / Feedback Wall */}
-      <SubFeedbackBlocker user={user} feedbackStatus={status} />
+      {/* <SubFeedbackBlocker user={user} feedbackStatus={status} /> */}
 
       {rcs.length === 0 && !blocked && (
         <div className="text-text-secondary">

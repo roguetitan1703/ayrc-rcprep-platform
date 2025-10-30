@@ -35,18 +35,18 @@ function Item({
   const textClass = mobile ? 'text-base' : compact ? 'text-sm' : 'text-sm'
   const mobileNav = useContext(MobileNavContext)
   const mobileClose = mobileNav?.close
-  const location = useLocation();
+  const location = useLocation()
   // Custom isActive logic for Results
   const customIsActive = () => {
     if (to === '/attempts') {
-      return location.pathname.startsWith('/attempts') || location.pathname.startsWith('/analysis');
+      return location.pathname.startsWith('/attempts') || location.pathname.startsWith('/analysis')
     }
     // Treat leaderboard as active for any leaderboard subpath (e.g. /leaderboard/global)
     if (to === '/leaderboard') {
       return location.pathname.startsWith('/leaderboard')
     }
-    return location.pathname === to;
-  };
+    return location.pathname === to
+  }
   return (
     <NavLink
       to={to}
@@ -55,7 +55,7 @@ function Item({
         if (mobile) mobileClose?.()
       }}
       className={() => {
-        const isActive = customIsActive();
+        const isActive = customIsActive()
         const base = isActive
           ? 'text-primary bg-primary/15'
           : 'text-text-secondary hover:text-text-primary hover:bg-surface-muted'
@@ -302,11 +302,17 @@ function SidebarContent({
               >
                 {'Feedback'}
               </Item>
+              <Item
+                to="/dashboard/help"
+                icon={Archive}
+                expanded={expanded}
+                compact={compact}
+                mobile={mobile}
+              >
+                {'Help'}
+              </Item>
             </>
           ))}
-  <Item to="/dashboard/help" icon={Archive} expanded={expanded} compact={compact} mobile={mobile}>
-          {'Help'}
-        </Item>
       </div>
 
       {/* Footer */}

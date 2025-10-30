@@ -22,7 +22,7 @@ export default function StaticNavbar() {
   return (
     <>
       {/* Full Static Header */}
-      <div className="w-full px-6 h-14 flex items-center justify-between">
+      <header className="w-full px-6 h-14 flex items-center justify-between bg-background" style={{ position: 'relative', zIndex: 50 }}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
           <Logo className="h-6 w-6" />
@@ -66,24 +66,35 @@ export default function StaticNavbar() {
         <button
           onClick={() => setMobileOpen((prev) => !prev)}
           className="md:hidden inline-flex items-center justify-center p-2 rounded border border-white/10 hover:bg-white/5 text-text-primary"
+          style={{ position: 'relative', zIndex: 10001 }}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
-      </div>
+      </header>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - PORTAL-LIKE APPROACH */}
       {mobileOpen && (
-        <div>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000 }} className="md:hidden">
+                  
+          {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 bottom-0 w-64 border-l border-white/10 p-4 flex flex-col shadow-2xl bg-background"
+            style={{ 
+              position: 'absolute', 
+              right: 0, 
+              top: 0, 
+              bottom: 0, 
+              width: '16rem',
+              zIndex: 10001
+            }}
+            className="border-l border-white/10 shadow-2xl bg-background"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with Close Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end p-4">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="absolute top-4 right-4 inline-flex items-center justify-center p-2 rounded border border-white/10 hover:bg-white/5 text-text-primary"
+                className="inline-flex items-center justify-center p-2 rounded border border-white/10 hover:bg-white/5 text-text-primary"
                 aria-label="Close menu"
               >
                 <X size={20} />
@@ -91,7 +102,7 @@ export default function StaticNavbar() {
             </div>
 
             {/* Navigation Links */}
-            <div className="bg-background mt-10 p-4">
+            <div className="px-4 py-4 bg-white">
               <nav className="flex flex-col gap-1 mb-6">
                 {navLinks.map((link) => (
                   <Link
@@ -110,7 +121,7 @@ export default function StaticNavbar() {
               </nav>
 
               {/* Auth Buttons (Mobile) */}
-              <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-white/10">
+              <div className="flex flex-col gap-2 pt-4 border-t border-white/10">
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}

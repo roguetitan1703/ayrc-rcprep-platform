@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { UserPlus, BookOpen, TrendingUp, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -30,17 +31,68 @@ export default function HowItWorks() {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <section className="bg-background py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section className="bg-background py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ zIndex: 1 }}>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-20 w-64 h-64 bg-primary opacity-5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-primary-light opacity-5 rounded-full blur-3xl"></div>
+        <motion.div 
+          className="absolute top-1/4 -left-20 w-64 h-64 bg-primary opacity-5 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.1, 1],
+            opacity: [0.05, 0.1, 0.05]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 -right-20 w-64 h-64 bg-primary-light opacity-5 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.15, 1],
+            opacity: [0.05, 0.1, 0.05]
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.5
+          }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: -30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary mb-4">
             How It{' '}
             <span className="bg-gradient-accent bg-clip-text text-transparent">
@@ -50,35 +102,82 @@ export default function HowItWorks() {
           <p className="text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto">
             Get started in three simple steps and begin your journey to RC mastery
           </p>
-        </div>
+        </motion.div>
 
         {/* Steps Container */}
         <div className="relative">
           {/* Connecting line */}
-          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-accent opacity-20 z-0"></div>
+          <motion.div 
+            className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-accent opacity-20 z-0"
+            initial={{ width: 0 }}
+            whileInView={{ width: "100%" }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+          />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative z-10">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative z-10"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isLast = index === steps.length - 1;
 
               return (
-                <div key={index} className="relative">
+                <motion.div 
+                  key={index} 
+                  className="relative"
+                  variants={itemVariants}
+                >
                   {/* Step Card */}
-                  <div className="bg-card-surface rounded-xl p-8 border border-border-soft hover:border-primary-light transition-all duration-300 hover:shadow-card-hover group">
+                  <motion.div 
+                    className="bg-card-surface rounded-xl p-8 border border-border-soft hover:border-primary-light transition-all duration-300 hover:shadow-card-hover group"
+                    whileHover={{ y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     
                     {/* Step Number Badge */}
-                    <div className="absolute -top-4 left-8">
-                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-lg shadow-lg">
+                    <motion.div 
+                      className="absolute -top-4 left-8"
+                      initial={{ scale: 0, rotate: -180 }}
+                      whileInView={{ scale: 1, rotate: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ 
+                        duration: 0.6, 
+                        delay: index * 0.2 + 0.3,
+                        type: "spring",
+                        stiffness: 200
+                      }}
+                    >
+                      <motion.div 
+                        className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-lg shadow-lg"
+                        whileHover={{ scale: 1.1, rotate: 360 }}
+                        transition={{ duration: 0.5 }}
+                      >
                         {step.number}
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
 
                     {/* Icon */}
                     <div className="mt-4 mb-6">
-                      <div className={`w-16 h-16 rounded-2xl ${step.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                      <motion.div 
+                        className={`w-16 h-16 rounded-2xl ${step.bg} flex items-center justify-center`}
+                        animate={{ 
+                          y: [0, -8, 0],
+                        }}
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: index * 0.3
+                        }}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                      >
                         <Icon className={`w-8 h-8 ${step.iconColor}`} />
-                      </div>
+                      </motion.div>
                     </div>
 
                     {/* Content */}
@@ -90,43 +189,97 @@ export default function HowItWorks() {
                     </p>
 
                     {/* Hover indicator */}
-                    <div className="mt-6 flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <motion.div 
+                      className="mt-6 flex items-center text-primary"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileHover={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <span className="text-sm font-semibold mr-2">Learn more</span>
                       <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
 
                   {/* Arrows */}
                   {!isLast && (
                     <>
-                      <div className="hidden lg:block absolute top-24 -right-6 z-20">
+                      <motion.div 
+                        className="hidden lg:block absolute top-24 -right-6 z-20"
+                        animate={{ 
+                          x: [0, 5, 0],
+                          opacity: [0.4, 0.8, 0.4]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
                         <ArrowRight className="w-8 h-8 text-primary-light opacity-40" />
-                      </div>
+                      </motion.div>
                       <div className="lg:hidden flex justify-center my-4">
-                        <div className="transform rotate-90">
+                        <motion.div 
+                          className="transform rotate-90"
+                          animate={{ 
+                            y: [0, 5, 0],
+                            opacity: [0.4, 0.8, 0.4]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
                           <ArrowRight className="w-8 h-8 text-primary-light opacity-40" />
-                        </div>
+                        </motion.div>
                       </div>
                     </>
                   )}
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center">
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+        >
           <Link to="/register">
-            <button className="group inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-lg text-lg shadow-lg hover:bg-primary-dark transform hover:scale-105 transition-all duration-200">
+            <motion.button 
+              className="group inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-lg text-lg shadow-lg"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.4)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                boxShadow: [
+                  "0 10px 15px -3px rgba(59, 130, 246, 0.3)",
+                  "0 10px 25px -3px rgba(59, 130, 246, 0.5)",
+                  "0 10px 15px -3px rgba(59, 130, 246, 0.3)"
+                ]
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
+            >
               Get Started Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
           </Link>
           <p className="mt-4 text-text-secondary text-sm">
             Join thousands of aspirants already improving their skills
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
