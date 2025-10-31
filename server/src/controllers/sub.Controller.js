@@ -72,11 +72,12 @@ export const createOrder = async (req, res, next) => {
         status: 'fail',
         message: 'Error creating order',
       })
+
     }
 
     // Persist a Transaction record referencing this order
     try {
-      await Transaction.create({
+     const transaction =  await Transaction.create({
         user: req.user.id,
         plan: plan._id,
         amount_cents: options.amount,
@@ -85,11 +86,13 @@ export const createOrder = async (req, res, next) => {
         status: 'created',
         metadata: options.notes || {},
       })
+      console.log("trasaction", transaction )
     } catch (txErr) {
       console.error('Error creating Transaction record:', txErr)
       // proceed even if transaction persistence failed - client still has orde
     }
-
+    console.log('Created Razorpay order:', order)
+    
     res.status(200).json({ status: 'success', message: 'Order created successfully', order })
   } catch (error) {
     console.error('Error creating order:', error)
