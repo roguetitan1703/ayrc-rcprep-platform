@@ -144,6 +144,7 @@ export const verifyPayment = async (req, res, next) => {
       const planSlug = notes.planSlug || notes.planslug || null
       const userId = notes.userid || notes.userId || null
 
+      console.log('payemnt captured webhook received:', req.body.payload) // debug full payload
         console.log('[verifyPayment] webhook received for order', razorpay_order_id) // debug webhook
         console.log('[verifyPayment] payload notes:', notes) // debug notes
        
