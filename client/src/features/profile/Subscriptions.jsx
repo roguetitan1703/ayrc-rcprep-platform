@@ -206,6 +206,9 @@ export default function Subscriptions() {
   const userPlanSlug = getEffectiveSubscriptionSlug(user)
   const userPlanId = userPlanSlug ? String(userPlanSlug).toLowerCase() : 'free'
   const currentPlan = plans ? (plans.find(p => p.id === userPlanId) || plans[0]) : fallbackPlans[0]
+  console.log('Current Plan:', currentPlan);
+  console.log('userPlanSlug:', userPlanSlug);
+  console.log('p.id:', userPlanId);
 
   return (
     <div className="space-y-6">
