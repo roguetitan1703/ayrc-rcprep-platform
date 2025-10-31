@@ -1,6 +1,7 @@
 import { createOrder } from './subs'
 import content from '../content/static.json'
 
+
 function loadRazorpayScript() {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject(new Error('No window'))
@@ -22,11 +23,8 @@ export async function startCheckout({ plan, user, onSuccess, onError } = {}) {
     const order = await createOrder({ planId: plan.raw._id })
     await loadRazorpayScript()
 
-    const key =
-      import.meta.env.VITE_NODE_ENV === 'production'
-        ? import.meta.env.VITE_RAZORPAY_KEY_PROD
-        : import.meta.env.VITE_RAZORPAY_KEY
-
+    const key = import.meta.env.VITE_RAZORPAY_KEY_PROD
+       
     const options = {
       key,
       amount: order.amount,
@@ -46,8 +44,11 @@ export async function startCheckout({ plan, user, onSuccess, onError } = {}) {
       theme: { color: '#D33F49' },
     }
 
-    const rzp = new window.Razorpay(options)
+  console.log('key:', key)
+  const rzp = new window.Razorpay(options)
     rzp.on('payment.failed', (response) => {
+      console.log('razorpay response:', response)
+      console.log('razorpay key:', key)
       if (onError) onError(response)
     })
     rzp.open()

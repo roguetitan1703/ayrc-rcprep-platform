@@ -52,7 +52,7 @@ export default function PlansPage(){
 
       const payload = {
         name: form.name,
-        slug: form.slug,
+        slug: form.slug,  
         description: form.description || '',
         finalPriceCents: Number(form.finalPriceCents),
         markupPriceCents: form.markupPriceCents !== null ? Number(form.markupPriceCents) : null,
@@ -62,6 +62,16 @@ export default function PlansPage(){
         active: !!form.active,
         features: form.features || {},
       }
+
+      if(editing && String(editing.slug).toLowerCase() === 'free'){
+        // protect billing fields for Free plan
+        delete payload.finalPriceCents
+        delete payload.markupPriceCents
+        delete payload.billingType
+        delete payload.durationDays
+        delete payload.accessUntil
+        delete payload.active
+      }     
 
       if(editing){
         await plansApi.updatePlan(editing._id, payload)

@@ -141,6 +141,10 @@ export const verifyPayment = async (req, res, next) => {
       const planSlug = notes.planSlug || notes.planslug || null
       const userId = notes.userid || notes.userId || null
 
+        console.log('[verifyPayment] webhook received for order', razorpay_order_id) // debug webhook
+        console.log('[verifyPayment] payload notes:', notes) // debug notes
+       
+
       if (!userId) {
         console.warn('[verifyPayment] webhook missing user id in order notes')
         return res.status(200).json({ status: 'success', message: 'No user id in notes' })

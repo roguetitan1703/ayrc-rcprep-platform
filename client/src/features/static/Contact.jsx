@@ -54,7 +54,12 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Email Us</h3>
                   <p className="text-text-secondary mb-2">Send us an email anytime!</p>
-                  <a href={`mailto:${content.contact.supportEmail}`} className="text-info-blue hover:text-primary transition-colors">{content.contact.supportEmail}</a>
+                  <a
+                    href={`mailto:${content.contact.supportEmail}`}
+                    className="text-info-blue hover:text-primary transition-colors"
+                  >
+                    {content.contact.supportEmail}
+                  </a>
                 </div>
               </div>
             </div>
@@ -68,7 +73,12 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Call Us</h3>
                   <p className="text-text-secondary mb-2">We're available during business hours</p>
-                  <a href={`tel:${content.contact.supportPhone}`} className="text-info-blue hover:text-primary transition-colors">{content.contact.supportPhone}</a>
+                  <a
+                    href={`tel:${content.contact.supportPhone}`}
+                    className="text-info-blue hover:text-primary transition-colors"
+                  >
+                    {content.contact.supportPhone}
+                  </a>
                 </div>
               </div>
             </div>
@@ -82,8 +92,13 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-text-primary mb-2">Response Time</h3>
                   <p className="text-text-secondary mb-2">We typically respond within 24 hours</p>
-                    <span className="text-success-green font-medium">{content.contact.businessHours}</span>
-                    <div className="text-text-secondary text-sm mt-1">Response SLA: <span className="font-medium">{content.contact.responseTime}</span></div>
+                  <span className="text-success-green font-medium">
+                    {content.contact.businessHours}
+                  </span>
+                  <div className="text-text-secondary text-sm mt-1">
+                    Response SLA:{' '}
+                    <span className="font-medium">{content.contact.responseTime}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -99,7 +114,7 @@ export default function ContactPage() {
                   <p className="text-text-secondary">
                     Raipur, Chhattisgarh
                     <br />
-                {content.contact.address}
+                    {content.contact.address}
                   </p>
                 </div>
               </div>
@@ -118,9 +133,9 @@ export default function ContactPage() {
                   <p className="text-text-secondary mb-2">
                     Your input helps us improve. We’d love to hear your thoughts.
                   </p>
-                  <a href="#" className="text-success-green hover:text-primary transition-colors">
+                  <p className="text-success-green hover:text-primary transition-colors">
                     Share Feedback
-                  </a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -216,11 +231,14 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="mt-16 text-center">
-            <p className="text-text-secondary mb-4">
-              Looking for quick answers? Check out our{' '}
-              <a href="/faq" className="text-info-blue hover:text-primary transition-colors font-medium">Frequently Asked Questions</a>
-            </p>
+        <div className="mt-20 text-center">
+          <p className="text-info-blue text-lg font-medium mb-3">
+            Got questions? We’re just a message away.
+          </p>
+          <p className="text-text-secondary">
+            Reach us via <span className="font-semibold text-info-blue">email</span> or{' '}
+            <span className="font-semibold text-info-blue">phone</span> — we’ll be happy to help!
+          </p>
         </div>
       </StaticPage>
     </div>

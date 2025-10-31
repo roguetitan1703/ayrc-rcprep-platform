@@ -40,14 +40,14 @@ export default function Subscriptions() {
       period: 'forever',
       description: 'Get started and practice daily',
       icon: Target,
-      color: '#5C6784',
+      color: 'text-secondary',
       features: [
         'Access 2 RCs per day',
         'View RCs only after attempting and giving feedback',
         'Cannot see RCs uploaded before joining',
         'Question explanations after attempt',
         'Basic performance tracking',
-        'Community support'
+       
       ],
       limitations: [
         'Must provide feedback to attempt RC',
@@ -63,14 +63,14 @@ export default function Subscriptions() {
       period: 'week',
       description: 'Practice daily with limited archive access',
       icon: Zap,
-      color: '#3B82F6',
+      color: 'info-blue',
       recommended: true,
       features: [
         'Access 2 RCs per day',
         'RCs uploaded from the day of joining are accessible for 7 days',
         'Question explanations',
         'Performance tracking with recent 7-day history',
-        'Community support'
+       
       ],
       limitations: [
         'RCs uploaded before joining are not visible',
@@ -86,7 +86,7 @@ export default function Subscriptions() {
       period: 'until CAT 2025',
       description: 'Unlimited access to all RCs till CAT 2025',
       icon: Crown,
-      color: '#D33F49',
+      color: 'primary',
       features: [
         'Access 2 RCs per day',
         'Full archive access including RCs uploaded before joining',
@@ -94,7 +94,6 @@ export default function Subscriptions() {
         'Advanced performance analytics',
         'Extended history of attempts',
         'Personalized insights and recommendations',
-        'Priority community support',
         'Download practice materials'
       ],
       limitations: [
@@ -139,7 +138,7 @@ export default function Subscriptions() {
     // icon/color mapping for known slugs
     const slugKey = String(slug).toLowerCase()
     const iconMap = { free: Target, weekly: Zap, 'till-cat': Crown, 'till-cat-2026': Crown }
-    const colorMap = { free: '#5C6784', weekly: '#3B82F6', 'till-cat': '#D33F49', 'till-cat-2026': '#D33F49' }
+    const colorMap = { free: 'text-secondary', weekly: 'info-blue', 'till-cat': 'primary', 'till-cat-2026': 'primary' }
 
     return {
       id: slugKey,
@@ -148,7 +147,7 @@ export default function Subscriptions() {
       price,
       period,
       icon: iconMap[slugKey] || Target,
-      color: colorMap[slugKey] || '#5C6784',
+      color: colorMap[slugKey] || 'text-secondary',
       features: featuresArr.length ? featuresArr : (p.featuresList || []),
       limitations: p.limitations || [],
       recommended: !!p.recommended,
@@ -219,7 +218,7 @@ export default function Subscriptions() {
       </div>
 
       {/* Current Usage Card */}
-      <Card className="bg-gradient-to-br from-[#D33F49]/10 via-[#3B82F6]/5 to-[#23A094]/10 border border-border-soft hover:shadow-lg transition-shadow">
+      <Card className="bg-gradient-to-br from-[primary]/10 via-info-blue/5 to-success-green/10 border border-border-soft hover:shadow-lg transition-shadow">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Current Plan Info */}
@@ -239,7 +238,7 @@ export default function Subscriptions() {
                     {currentPlan.name} Plan
                   </h2>
                   {currentPlan.recommended && (
-                    <Badge className="bg-[#D33F49]/10 text-[#D33F49] border-[#D33F49]/30">
+                    <Badge className="bg-[primary]/10 text-[primary] border-[primary]/30">
                       Active
                     </Badge>
                   )}
@@ -300,7 +299,7 @@ export default function Subscriptions() {
                       toast.show('Loading plans — please select a plan to continue', { variant: 'default' })
                     }
                   }}
-                  className="bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
+                  className="bg-[primary] hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
                 >
                   Upgrade Now
                 </Button>
@@ -317,7 +316,7 @@ export default function Subscriptions() {
               {user?.issubexp && (
                 <Button 
                   onClick={() => setShowSelector(!showSelector)}
-                  className="bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold"
+                  className="bg-[primary] hover:bg-[#B83441] text-white font-semibold"
                 >
                   Renew Subscription
                 </Button>
@@ -361,16 +360,16 @@ export default function Subscriptions() {
                 className={`
                   relative bg-white border transition-all duration-200 text-sm rounded-lg
                   ${plan.recommended 
-                    ? 'border-[#3B82F6] shadow-md' 
-                    : 'border-border-soft hover:border-[#3B82F6]/40 hover:shadow-sm'
+                    ? 'border-info-blue shadow-md' 
+                    : 'border-border-soft hover:border-info-blue/40 hover:shadow-sm'
                   }
-                  ${isCurrent ? 'ring-1 ring-[#23A094] ring-offset-1' : ''}
+                  ${isCurrent ? 'ring-1 ring-success-green ring-offset-1' : ''}
                 `}
               >
                 {/* Recommended Badge */}
                 {plan.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-[#3B82F6] text-white px-4 py-1 shadow-lg">
+                    <Badge className="bg-info-blue text-white px-4 py-1 shadow-lg">
                       Most Popular
                     </Badge>
                   </div>
@@ -379,7 +378,7 @@ export default function Subscriptions() {
                 {/* Current Plan Badge */}
                 {isCurrent && (
                   <div className="absolute -top-3 right-4">
-                    <Badge className="bg-[#23A094] text-white px-3 py-1 shadow-lg flex items-center gap-1">
+                    <Badge className="bg-success-green text-white px-3 py-1 shadow-lg flex items-center gap-1">
                       <Check size={14} />
                       Current
                     </Badge>
@@ -403,7 +402,7 @@ export default function Subscriptions() {
                     <div className="mt-2 text-xs text-text-secondary">
                       {plan.features && plan.features[0] && (
                         <div className="flex items-center gap-2">
-                          <Check size={12} className="text-[#23A094]" />
+                          <Check size={12} className="text-success-green" />
                           <span className="truncate">{plan.features[0]}</span>
                         </div>
                       )}
@@ -439,7 +438,7 @@ export default function Subscriptions() {
                           toast.show('Select a plan to continue', { variant: 'default' })
                         }
                       }}
-                      className="w-full bg-[#D33F49] hover:bg-[#B83441] text-white font-semibold py-2"
+                      className="w-full bg-[primary] hover:bg-[#B83441] text-white font-semibold py-2"
                     >
                       Upgrade
                     </Button>
@@ -463,7 +462,7 @@ export default function Subscriptions() {
       </Card>
 
       {/* FAQ or Additional Info */}
-      <Card className="bg-gradient-to-br from-[#3B82F6]/5 to-[#D33F49]/5 border border-border-soft">
+      <Card className="bg-gradient-to-br from-info-blue/5 to-[primary]/5 border border-border-soft">
         <CardContent className="p-6">
           <div className="text-center">
             <h3 className="text-lg font-bold text-text-primary mb-2">

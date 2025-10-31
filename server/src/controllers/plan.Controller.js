@@ -193,12 +193,9 @@ export async function updatePlan(req, res, next) {
           return next(badRequest('Cannot modify billing fields of the Free plan'))
         }
       }
-    } catch (e) {
+    } catch (err) {
+      next(err)
       // ignore lookup errors and continue; validations below will catch invalid ids
-    }
-    // Prevent editing slug to 'free'
-    if (updates.slug && String(updates.slug).toLowerCase() === 'free') {
-      return next(badRequest('Cannot set slug to reserved value `free`'))
     }
 
     // If slug provided, validate format

@@ -1,6 +1,7 @@
 import { verifyJwt } from "../utils/jwt.js";
 import { unauthorized, forbidden } from "../utils/http.js";
 import { User } from "../models/User.js";
+
 export async function authRequired(req, res, next) {
   try {
     const token =
@@ -15,6 +16,7 @@ export async function authRequired(req, res, next) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const lastActiveDate = user.lastActiveDate;
+    // console.log(`User ${user.email} last active date: ${lastActiveDate}`);
     if (!lastActiveDate || lastActiveDate.toDateString() !== today.toDateString()) {
       await user.updateDailyStreak();
       console.log(`User ${user.email} streak updated to: ${user.dailyStreak}`);

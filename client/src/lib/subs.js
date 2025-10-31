@@ -7,6 +7,7 @@ export async function createOrder({ planId, subtype } = {}) {
   if (planId) payload.planId = planId
   if (subtype) payload.subtype = subtype
   const { data } = await api.post('/sub/create-order', payload)
+  console.log('createOrder data:', data);  // debug order data
   return data.order
 }
 

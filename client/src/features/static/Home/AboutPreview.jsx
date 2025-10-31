@@ -223,11 +223,11 @@ export default function AboutPreview() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.4, type: "spring" }}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-primary mb-1"
+                    className="text-lg md:text-xl font-bold text-primary mb-1"
                   >
                     Gaining Momentum
                   </motion.div>
-                  <div className="text-sm text-text-secondary">Growing community- More learners joining everyday</div>
+                  <div className="md:max-w-[12rem] mx-auto text-xs text-text-secondary">Growing community-More learners joining everyday</div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -240,11 +240,11 @@ export default function AboutPreview() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.5, type: "spring" }}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-success-green mb-1"
+                    className="text-lg md:text-xl font-bold text-success-green mb-1"
                   >
                     2 RCs Everyday
                   </motion.div>
-                  <div className="text-sm text-text-secondary">New expertly-crafted RCs added daily</div>
+                  <div className="md:max-w-[10rem] mx-auto text-xs text-text-secondary">New expertly-crafted RCs added daily</div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -257,11 +257,11 @@ export default function AboutPreview() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.6, type: "spring" }}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-accent-amber mb-1"
+                    className="text-lg md:text-xl font-bold text-accent-amber mb-1"
                   >
                     100% Adaptive
                   </motion.div>
-                  <div className="text-sm text-text-secondary">Smart learning engine that evolves with you</div>
+                  <div className="md:max-w-[10rem] mx-auto text-xs text-text-secondary">Smart learning engine that evolves with you</div>
                 </motion.div>
               </div>
             </motion.div>
