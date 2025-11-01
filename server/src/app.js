@@ -1,3 +1,21 @@
+const originalLog = console.log;
+const originalerr = console.error
+const originalwarn = console.warn
+
+console.log = function (...args) {
+  const timestamp = new Date().toISOString();
+  originalLog(`[log ${timestamp}]`, ...args);
+};
+console.error = function (...args) {
+  const timestamp = new Date().toISOString();
+  originalerr(`[Err ${timestamp}]`, ...args);
+};
+
+console.warn = function (...args) {
+  const timestamp = new Date().toISOString();
+  originalwarn(`[War ${timestamp}]`, ...args);
+};
+
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
@@ -5,7 +23,7 @@ import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
-
+import chalk from 'chalk'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/users.js'
 import rcRoutes from './routes/rcs.js'
@@ -50,9 +68,40 @@ app.use(
 )
 app.use(express.urlencoded({ extended: true }))
 
-morgan.token('date', () => new Date().toISOString()) // ISO timestamp
-app.use(morgan(':date[iso] :method :url :status :response-time ms - :res[content-length]'))
+const morganMiddleware = morgan(function (tokens, req, res) {
+  function statusColor() {
+    const status = tokens.status(req, res);
+    if (status >= 100 && status < 200) {
+      return chalk.grey.bold(tokens.status(req, res));
+    } else if (status >= 200 && status < 300) {
+      return chalk.green.bold(tokens.status(req, res));
+    } else if (status >= 300 && status < 400) {
+      return chalk.red.bold(tokens.status(req, res));
+    } else if (status >= 400 && status < 500) {
+      return chalk.blue.bold(tokens.status(req, res));
+    } else {
+      // Default color for status codes outside the expected range
+      return chalk.yellow.bold(tokens.status(req, res));
+    }
+  }
 
+  return [
+    chalk.hex("#34ace0").bold(tokens.method(req, res)),
+    statusColor(),
+    chalk.hex("#ff5252").bold(tokens.url(req, res)),
+    chalk.hex("#2ed573").bold(tokens["response-time"](req, res) + " ms"),
+    chalk.hex("#f78fb3").bold("@ " + tokens.date(req, res)),
+    chalk.yellow(tokens["remote-addr"](req, res)),
+    chalk.hex("#fffa65").bold("from " + tokens.referrer(req, res)),
+    chalk.hex("#1e90ff")(tokens["user-agent"](req, res)),
+    "\n",
+  ].join(" ");
+});
+if (process.env.NODE_ENV !== "production") {
+  app.use(morganMiddleware);
+} else {
+  app.use(morganMiddleware);
+}
 // Global rate limit
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 800 })
 app.use(limiter)
@@ -87,7 +136,7 @@ app.use('/api/v1/all', aggregationRoutes)
 // Scheduler: always-on subscription maintenance (run once at startup and daily at midnight)
 // Skip background jobs when running tests to avoid open handles and flakiness.
 if (process.env.NODE_ENV !== 'test') {
-  ;(async () => {
+  ; (async () => {
     try {
       await nullifyExpiredSubscriptions({ dryRun: false })
       console.log('✅ Initial subscription nullification completed')

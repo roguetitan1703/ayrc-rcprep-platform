@@ -61,6 +61,20 @@ export const createOrder = async (req, res, next) => {
         userid: req.user.id,
       },
     }
+
+    let existingtransaction;
+    try {
+      existingtransaction = await Transaction.findOne({ user: req.user.id, plan: plan._id, status: 'created' });
+    } catch (err) {
+      console.error('Error checking existing transaction:', err)
+    }
+
+    if (existingtransaction) {
+      console.log('Existing transaction found, reusing order id:', existingtransaction.razorpay_order_id)
+      existingtransaction.amount_cents = amount;
+      await existingtransaction.save()
+      return res.status(200).json({ status: 'success', message: 'Order already exists', order: { id: existingtransaction.razorpay_order_id, amount: amount, currency: plan.currency || 'INR' } })
+    }
     //   } catch (err) {
     //   console.error('Error creating Razorpay order:', err)
     //   return res.status(500).json({ status: 'fail', message: 'Error creating Razorpay order' })
@@ -77,7 +91,7 @@ export const createOrder = async (req, res, next) => {
 
     // Persist a Transaction record referencing this order
     try {
-     const transaction =  await Transaction.create({
+      const transaction = await Transaction.create({
         user: req.user.id,
         plan: plan._id,
         amount_cents: options.amount,
@@ -86,13 +100,13 @@ export const createOrder = async (req, res, next) => {
         status: 'created',
         metadata: options.notes || {},
       })
-      console.log("trasaction", transaction )
+      console.log("trasaction", transaction)
     } catch (txErr) {
       console.error('Error creating Transaction record:', txErr)
       // proceed even if transaction persistence failed - client still has orde
     }
     console.log('Created Razorpay order:', order)
-    
+
     res.status(200).json({ status: 'success', message: 'Order created successfully', order })
   } catch (error) {
     console.error('Error creating order:', error)
@@ -145,9 +159,9 @@ export const verifyPayment = async (req, res, next) => {
       const userId = notes.userid || notes.userId || null
 
       console.log('payemnt captured webhook received:', req.body.payload) // debug full payload
-        console.log('[verifyPayment] webhook received for order', razorpay_order_id) // debug webhook
-        console.log('[verifyPayment] payload notes:', notes) // debug notes
-       
+      console.log('[verifyPayment] webhook received for order', razorpay_order_id) // debug webhook
+      console.log('[verifyPayment] payload notes:', notes) // debug notes
+
 
       if (!userId) {
         console.warn('[verifyPayment] webhook missing user id in order notes')
