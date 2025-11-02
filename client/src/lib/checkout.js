@@ -24,7 +24,7 @@ export async function startCheckout({ plan, user, onSuccess, onError } = {}) {
     await loadRazorpayScript()
 
     const key = import.meta.env.VITE_RAZORPAY_KEY_PROD
-       
+
     const options = {
       key,
       amount: order.amount,
@@ -44,8 +44,8 @@ export async function startCheckout({ plan, user, onSuccess, onError } = {}) {
       theme: { color: '#D33F49' },
     }
 
-  console.log('key:', key)
-  const rzp = new window.Razorpay(options)
+    console.log('key:', key)
+    const rzp = new window.Razorpay(options)
     rzp.on('payment.failed', (response) => {
       console.log('razorpay response:', response)
       console.log('razorpay key:', key)
