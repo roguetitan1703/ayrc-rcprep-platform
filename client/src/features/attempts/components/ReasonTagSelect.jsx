@@ -2,7 +2,14 @@ import React, { useState } from 'react'
 import { REASON_CODES } from '../../../lib/reasonCodes'
 import { api } from '../../../lib/api'
 
-export function ReasonTagSelect({ questionIndex, attemptId, currentReason, onReasonSelected, onNext }) {
+export function ReasonTagSelect({
+  isCorrect,
+  questionIndex,
+  attemptId,
+  currentReason,
+  onReasonSelected,
+  onNext,
+}) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState(null)
@@ -35,6 +42,19 @@ export function ReasonTagSelect({ questionIndex, attemptId, currentReason, onRea
     if (onNext) onNext()
   }
 
+  if (isCorrect) {
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleNextClick}
+          className="px-3 py-2 border border-soft rounded-lg bg-card-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-focus-ring disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="mt-4 pt-4 border-t border-soft">
       <label className="text-sm text-text-secondary mb-2 block">
@@ -60,8 +80,9 @@ export function ReasonTagSelect({ questionIndex, attemptId, currentReason, onRea
         {saved && <span className="text-sm text-success-green">✓ Saved</span>}
 
         <button
-        onClick={handleNextClick} 
-        className="px-3 py-2 border border-soft rounded-lg bg-card-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-focus-ring disabled:opacity-50">
+          onClick={handleNextClick}
+          className="px-3 py-2 border border-soft rounded-lg bg-card-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-focus-ring disabled:opacity-50"
+        >
           Next
         </button>
       </div>

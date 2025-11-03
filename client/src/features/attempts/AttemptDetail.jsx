@@ -15,7 +15,7 @@ export default function AttemptDetail() {
 
   useEffect(() => {
     let mounted = true
-    const fetchAttempt = async () => {F
+    const fetchAttempt = async () => {
       try {
         setLoading(true)
         // The backend exposes attempt analysis at /attempts/analysis/:id
@@ -192,7 +192,7 @@ export default function AttemptDetail() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 overflow-hidden">
                   <div className="bg-gradient-to-br from-white to-primary/20 rounded-lg p-4 flex items-center gap-3 shadow-sm">
                     <div className="p-2 rounded-full bg-info-blue/10 text-info-blue">
                       <Clock3 className="h-5 w-5" />

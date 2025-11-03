@@ -357,10 +357,10 @@ export default function Analysis() {
                   <div className="bg-surface-muted p-3 rounded-lg text-sm leading-relaxed">
                     <strong className="text-text-primary">Explanation:</strong> {q.explanation}
                   </div>
-                  {!q.isCorrect && (
                     <div className="pt-3 border-t border-soft">
                       <div className="flex items-center gap-3">
                         <ReasonTagSelect
+                          isCorrect={q.isCorrect}
                           questionIndex={i}
                           attemptId={analysis.attemptId}
                           currentReason={current}
@@ -371,14 +371,13 @@ export default function Analysis() {
                             }
                           }}
                         />
-                        {!current && (
+                        {!current && !q.isCorrect && (
                           <span className="text-[10px] text-text-secondary uppercase tracking-wide">
                             Tag Reason
                           </span>
                         )}
                       </div>
                     </div>
-                  )}
                 </CardContent>
               </Card>
             )

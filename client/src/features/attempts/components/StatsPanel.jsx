@@ -17,12 +17,13 @@ export function StatsPanel({ stats, loading, totalAttempts = 0 }) {
   }
 
   const {
-    attempts7d = 0,
-    accuracy7d = 0,
-    avgDuration = 0,
+    topicsCovered = 0,
+    accuracyOverall = 0,
+    avgDurationOverall = 0,
     taggedWrong = 0,
     totalWrong = 0,
   } = stats || {}
+
   const coveragePercent = totalWrong > 0 ? taggedWrong / totalWrong : 0
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -33,10 +34,10 @@ export function StatsPanel({ stats, loading, totalAttempts = 0 }) {
   return (
     <div className="relative overflow-hidden rounded-xl p-6 lg:p-8 border border-soft bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-  <StatTile label="Total attempts" value={totalAttempts} icon={ListChecks} />
-        <StatTile label="Attempts (7d)" value={attempts7d} icon={Activity} />
-        <StatTile label="Accuracy (7d)" value={`${Math.round(accuracy7d * 100)}%`} icon={Target} />
-        <StatTile label="Avg Duration" value={formatDuration(avgDuration)} icon={Clock3} />
+        <StatTile label="Total Attempts" value={totalAttempts} icon={ListChecks} />
+        <StatTile label="Topics Covered" value={topicsCovered} icon={Activity} />
+        <StatTile label="Accuracy" value={`${Math.round(accuracyOverall * 100)}%`} icon={Target} />
+        <StatTile label="Avg Duration" value={formatDuration(avgDurationOverall)} icon={Clock3} />
       </div>
       <CoverageMeter
         coverage={coveragePercent}

@@ -535,11 +535,9 @@ export default function Subscriptions() {
             </p>
             <div className="flex justify-center gap-3">
               <Link to="/dashboard/help">
-                <Button variant="secondary">Visit Help Center</Button>
+                <Button variant="primary">Visit Help Center</Button>
               </Link>
-              <Link to="/feedback">
-                <Button variant="primary">Contact Support</Button>
-              </Link>
+              
             </div>
           </div>
         </CardContent>

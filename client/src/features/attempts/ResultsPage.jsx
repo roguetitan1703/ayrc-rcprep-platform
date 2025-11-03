@@ -28,13 +28,39 @@ export default function ResultsPage() {
       setError(null)
 
       const attemptsRes = await api.get(`/attempts?page=${page}&limit=${limit}`)
-      setAttempts(attemptsRes.data?.attempts || [])
-  setTotalPages(attemptsRes.data?.pagination?.totalPages || 1)
-  // API returns `totalAttempts` in pagination (rename mismatch fix)
-  setTotalCount(attemptsRes.data?.pagination?.totalAttempts || attemptsRes.data?.pagination?.total || 0)
+      const topics = new Set()
+      let totalDuration = 0
+      let totalQuestions = 0
+      let totalCorrect = 0
 
-      if (page === 1 && attemptsRes.data?.stats) {
-        setStats(attemptsRes.data.stats)
+      setAttempts(attemptsRes.data?.attempts || [])
+      setTotalPages(attemptsRes.data?.pagination?.totalPages || 1)
+      // API returns `totalAttempts` in pagination (rename mismatch fix)
+      setTotalCount(
+        attemptsRes.data?.pagination?.totalAttempts || attemptsRes.data?.pagination?.total || 0
+      )
+
+      if (page === 1 && attemptsRes.data?.stats && attemptsRes.data?.attempts) {
+        attemptsRes.data.attempts.forEach((attempt) => {
+          attempt.rcPassage?.topicTags?.forEach((tag) => topics.add(tag))
+          // Aggregate accuracy + duration
+          totalCorrect += attempt.correctCount || 0
+          totalQuestions += attempt.totalQuestions || 0
+          totalDuration += attempt.durationSeconds || 0
+        })
+
+        const avgDurationOverall =
+          attemptsRes.data.attempts.length > 0
+            ? Math.round(totalDuration / attemptsRes.data.attempts.length)
+            : 0
+
+        const stats_ = {
+          ...attemptsRes.data.stats,
+          topicsCovered: topics.size,
+          accuracyOverall: totalQuestions > 0 ? totalCorrect / totalQuestions : 0,
+          avgDurationOverall,
+        }
+        setStats(stats_)
       }
     } catch (err) {
       setError('Failed to load attempts')
@@ -64,6 +90,12 @@ export default function ResultsPage() {
     )
   }
 
+  // set the topics count into the existing stats for display
+  // setStats(prevStats => ({
+  //   ...prevStats,
+  //   topicsCovered: topics.size,
+  // }))
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -74,7 +106,7 @@ export default function ResultsPage() {
         </p>
       </div>
 
-  <StatsPanel stats={stats} loading={loading && page === 1} totalAttempts={totalCount} />
+      <StatsPanel stats={stats} loading={loading && page === 1} totalAttempts={totalCount} />
 
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-border-soft bg-[#F7F8FC]">
@@ -164,7 +196,7 @@ export default function ResultsPage() {
                                 year: 'numeric',
                               })
                             : 'N/A'}
-                        </td> 
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`text-lg font-bold ${scoreColor}`}>
                             {attempt.score}/4

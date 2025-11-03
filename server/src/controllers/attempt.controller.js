@@ -414,7 +414,7 @@ export async function listUserAttempts(req, res, next) {
       const recentAttempts = await Attempt.find({
         userId: req.user.id,
         attemptType: 'official',
-        attemptedAt: { $gte: sevenDaysAgo },
+        // attemptedAt: { $gte: sevenDaysAgo },
       })
         .select('score durationSeconds answers analysisFeedback')
         .lean()

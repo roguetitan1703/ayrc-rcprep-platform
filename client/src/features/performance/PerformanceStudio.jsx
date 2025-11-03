@@ -89,7 +89,7 @@ export default function PerformanceStudio() {
           
           <RecentAttempts 
             attempts={data.progressTimeline.slice(-10).reverse()} 
-            personalBest={data.overview.personalBest}
+            // personalBest={data.overview.personalBest}
           />
         </>
       )}
