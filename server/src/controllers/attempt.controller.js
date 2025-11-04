@@ -69,6 +69,11 @@ export async function submitAttempt(req, res, next) {
 
     // Subscription-based access control
     if (subscription === 'free') {
+
+      const rcCreatedTs = dayStartTs(rc.createdAt)
+      const joinedTs = dayStartTs(joinedDate)
+      console.log('[submitAttempt] free user rcCreatedTs:', rcCreatedTs, 'joinedTs:', joinedTs)
+
       if (dayStartTs(rc.createdAt) < dayStartTs(joinedDate))
         return next(forbidden('Not allowed: RC uploaded before you joined'))
       // Only allow attempt if scheduledDate is today (not for missed RCs)

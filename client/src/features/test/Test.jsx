@@ -1,4 +1,3 @@
- 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
 import { Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -20,78 +19,82 @@ import { FullscreenExitedModal } from './components/FullscreenExitedModal'
 import PreventBackModal from './components/PreventBackModal'
 
 export default function Test() {
-
   // --- All state and const declarations at the top ---
   // Prevent back navigation modal state
-  const [showPreventBack, setShowPreventBack] = useState(false);
-  const { id } = useParams();
-  const { search } = useLocation();
-  const params = new URLSearchParams(search);
-  const mode = params.get('mode');
-  const isPractice = mode === 'practice' || params.get('practice') === '1';
-  const isPreview = mode === 'preview' || params.get('preview') === '1';
-  const [rc, setRc] = useState(null);
-  const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''));
-  const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false));
-  const [visited, setVisited] = useState(Array.from({ length: QUESTION_COUNT }, () => false));
-  const [qIndex, setQIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS);
-  const [startedAt, setStartedAt] = useState(null);
-  const [questionTimers, setQuestionTimers] = useState(Array.from({ length: QUESTION_COUNT }, () => 0));
-  const questionStartRef = useRef(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [revealAnswers, setRevealAnswers] = useState(false);
-  const nav = useNavigate();
-  const toast = useToast();
-  const intervalRef = useRef(null);
-  const autosaveRef = useRef(null);
+  const [showPreventBack, setShowPreventBack] = useState(false)
+  const { id } = useParams()
+  const { search } = useLocation()
+  const params = new URLSearchParams(search)
+  const mode = params.get('mode')
+  const isPractice = mode === 'practice' || params.get('practice') === '1'
+  const isPreview = mode === 'preview' || params.get('preview') === '1'
+  const [rc, setRc] = useState(null)
+  const [answers, setAnswers] = useState(Array.from({ length: QUESTION_COUNT }, () => ''))
+  const [marked, setMarked] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
+  const [visited, setVisited] = useState(Array.from({ length: QUESTION_COUNT }, () => false))
+  const [qIndex, setQIndex] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(TEST_DURATION_SECONDS)
+  const [startedAt, setStartedAt] = useState(null)
+  const [questionTimers, setQuestionTimers] = useState(
+    Array.from({ length: QUESTION_COUNT }, () => 0)
+  )
+  const questionStartRef = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [revealAnswers, setRevealAnswers] = useState(false)
+  const nav = useNavigate()
+  const toast = useToast()
+  const intervalRef = useRef(null)
+  const autosaveRef = useRef(null)
   // Fullscreen and Instructions State
-  const [showFullscreenRequired, setShowFullscreenRequired] = useState(!isPractice && !isPreview);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [showOtherInstructions, setShowOtherInstructions] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showFullscreenExited, setShowFullscreenExited] = useState(false);
-  const [testStarted, setTestStarted] = useState(false);
-  const [timerPaused, setTimerPaused] = useState(false);
+  const [showFullscreenRequired, setShowFullscreenRequired] = useState(!isPractice && !isPreview)
+  const [showInstructions, setShowInstructions] = useState(false)
+  const [showOtherInstructions, setShowOtherInstructions] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showFullscreenExited, setShowFullscreenExited] = useState(false)
+  const [testStarted, setTestStarted] = useState(false)
+  const [timerPaused, setTimerPaused] = useState(false)
   // Window size check state
-  const [windowTooSmall, setWindowTooSmall] = useState(false);
+  const [windowTooSmall, setWindowTooSmall] = useState(false)
   // Sidebar collapse state
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // --- End of state/const declarations ---
 
   // When modal closes, just hide it (user remains on test page)
   const handleClosePreventBack = () => setShowPreventBack(false)
 
-
   // Attach a single fullscreenchange listener for all fullscreen enforcement (instructions, other instructions, test)
   useEffect(() => {
-    if (isPractice || isPreview) return;
+    if (isPractice || isPreview) return
     function handleFullscreenChange() {
-      const isFs = document.fullscreenElement != null || document.webkitFullscreenElement != null || document.mozFullScreenElement != null || document.msFullscreenElement != null;
+      const isFs =
+        document.fullscreenElement != null ||
+        document.webkitFullscreenElement != null ||
+        document.mozFullScreenElement != null ||
+        document.msFullscreenElement != null
       if (!isFs) {
         if (testStarted) {
-          setTimerPaused(true);
-          setShowFullscreenExited(true);
+          setTimerPaused(true)
+          setShowFullscreenExited(true)
         } else {
           // If in instructions or other instructions, close them and show fullscreen required
-          if (showInstructions) setShowInstructions(false);
-          if (showOtherInstructions) setShowOtherInstructions(false);
-          setShowFullscreenRequired(true);
+          if (showInstructions) setShowInstructions(false)
+          if (showOtherInstructions) setShowOtherInstructions(false)
+          setShowFullscreenRequired(true)
         }
       }
     }
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, [showInstructions, showOtherInstructions, isPractice, isPreview, testStarted]);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+    }
+  }, [showInstructions, showOtherInstructions, isPractice, isPreview, testStarted])
 
   useEffect(() => {
     if (!(testStarted && !isPractice && !isPreview)) return
@@ -113,7 +116,6 @@ export default function Test() {
       }
     }
   }, [testStarted, isPractice, isPreview])
-
 
   useEffect(() => {
     ;(async () => {
@@ -359,24 +361,72 @@ export default function Test() {
 
   const prevIndexRef = useRef(qIndex)
 
-  // record time when moving between questions
+  // ---------- START: session tracking (place once inside the component) ----------
   useEffect(() => {
-    // whenever qIndex changes, close previous timer and start new
+    // Only activate session tracking for real tests (not practice/preview)
+    if (isPractice || isPreview) return
+
+    // Only start tracking when the test is actually started
+    if (!testStarted) return
+
+    const key = LOCAL_PROGRESS_KEY(id, 'test') // keep same key format you already use
     const now = Date.now()
-    if (questionStartRef.current != null) {
-      const delta = Math.floor((now - questionStartRef.current) / 1000)
-      setQuestionTimers((t) => {
-        const a = [...t]
-        const idx = prevIndexRef.current ?? 0
-        a[idx] = (a[idx] || 0) + delta
-        return a
-      })
+    const attempt = JSON.parse(localStorage.getItem(key)) || {}
+
+    // Ensure we preserve any previous sessionDurations, but don't overwrite them
+    attempt.sessionDurations = Array.isArray(attempt.sessionDurations)
+      ? attempt.sessionDurations
+      : []
+    // Start a fresh "active" session timestamp only when the test begins/resumes
+    attempt.lastActiveAt = now
+    localStorage.setItem(key, JSON.stringify(attempt))
+
+    // Visibility handler: pause when tab hidden, resume when visible
+    const handleVisibility = () => {
+      const data = JSON.parse(localStorage.getItem(key)) || {}
+      const now = Date.now()
+
+      // If tab becomes hidden and there was an active session, close it
+      if (document.hidden && data.lastActiveAt) {
+        data.sessionDurations = Array.isArray(data.sessionDurations) ? data.sessionDurations : []
+        data.sessionDurations.push(now - data.lastActiveAt)
+        data.lastActiveAt = null
+        localStorage.setItem(key, JSON.stringify(data))
+        return
+      }
+
+      // If tab becomes visible and there is no active session, start one
+      if (!document.hidden && !data.lastActiveAt) {
+        data.lastActiveAt = now
+        localStorage.setItem(key, JSON.stringify(data))
+      }
     }
-    // start new timer for current
-    questionStartRef.current = now
-    prevIndexRef.current = qIndex
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qIndex])
+
+    // beforeunload: close any active session and persist
+    const handleBeforeUnload = () => {
+      const data = JSON.parse(localStorage.getItem(key)) || {}
+      if (data.lastActiveAt) {
+        data.sessionDurations = Array.isArray(data.sessionDurations) ? data.sessionDurations : []
+        data.sessionDurations.push(Date.now() - data.lastActiveAt)
+        data.lastActiveAt = null
+        try {
+          localStorage.setItem(key, JSON.stringify(data))
+        } catch {}
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      // on cleanup (unmount/test end) close any open session
+      handleBeforeUnload()
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+    // only re-run when these change (start/resume)
+  }, [testStarted, id, isPractice, isPreview])
+  // ---------- END: session tracking ----------
 
   async function submit() {
     try {
@@ -394,18 +444,43 @@ export default function Test() {
         } catch (err) {
           console.error('Error exiting fullscreen after practice', err)
         }
-        // No navigation to analysis or results in practice mode
         return
       }
+
       // finalize timers (compute synchronously so we can send correct payload)
+      const key = LOCAL_PROGRESS_KEY(id, 'test')
+      const attempt = JSON.parse(localStorage.getItem(key)) || {}
       const now = Date.now()
       const finalTimers = [...questionTimers]
+
       if (questionStartRef.current != null) {
         const delta = Math.floor((now - questionStartRef.current) / 1000)
         finalTimers[qIndex] = (finalTimers[qIndex] || 0) + delta
       }
+      // update UI state
       setQuestionTimers(finalTimers)
-      const totalDuration = Math.floor((now - (startedAt || now)) / 1000)
+
+      // ---------- Accurate duration calculation ----------
+      attempt.sessionDurations = Array.isArray(attempt.sessionDurations)
+        ? attempt.sessionDurations
+        : []
+
+      // If there's an active session (user didn't switch tab before submitting), close it now
+      if (attempt.lastActiveAt) {
+        attempt.sessionDurations.push(now - attempt.lastActiveAt)
+        attempt.lastActiveAt = null
+      }
+
+      // Persist the attempt object (so sessionDurations are saved) — optional but safe
+      try {
+        localStorage.setItem(key, JSON.stringify(attempt))
+      } catch {}
+
+      // Sum all sessions (ms -> seconds)
+      const totalDurationMs = attempt.sessionDurations.reduce((a, b) => a + b, 0)
+      const totalDuration = Math.floor(totalDurationMs / 1000)
+      // --------------------------------------------------
+
       // derive device type
       const ua = navigator.userAgent || ''
       const deviceType = /Mobi|Android|iPhone|iPad/.test(ua)
@@ -430,20 +505,28 @@ export default function Test() {
         q_details,
         attemptType: 'official',
       }
+
       const { data } = await api.post('/attempts', payload)
+
       try {
         localStorage.removeItem(LOCAL_PROGRESS_KEY(id))
       } catch {}
+
       // Exit fullscreen when official test is submitted, before navigating to results
       try {
         await exitFullscreen()
       } catch (err) {
         console.error('Error exiting fullscreen before results nav:', err)
       }
-    // Determine attempt id returned by backend and navigate to the overview (not directly to analysis)
-    const attemptId = data.attemptId || data.id || data._id || (data.attempt && (data.attempt.id || data.attempt._id)) || id
-    // Navigate to the attempt overview and replace history so Back does not return to the test
-    nav(`/attempts/${attemptId}`, { replace: true })
+
+      const attemptId =
+        data.attemptId ||
+        data.id ||
+        data._id ||
+        (data.attempt && (data.attempt.id || data.attempt._id)) ||
+        id
+
+      nav(`/attempts/${attemptId}`, { replace: true })
     } catch (e) {
       const msg = extractErrorMessage(e, 'Submit failed')
       setError(msg)
@@ -546,7 +629,6 @@ export default function Test() {
     return <InstructionsModal rc={rc} onNext={handleInstructionsNext} />
   }
 
-
   // Show other instructions screen
   if (showOtherInstructions && !isPractice && !isPreview) {
     return (
@@ -555,7 +637,7 @@ export default function Test() {
         onPrevious={handleOtherInstructionsPrevious}
         onStartTest={handleStartTest}
       />
-    );
+    )
   }
 
   return (
