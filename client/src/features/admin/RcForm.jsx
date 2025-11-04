@@ -18,6 +18,7 @@ const defaultQuestion = {
     { id: 'D', text: '' },
   ],
   correctAnswerId: 'A',
+  correctAnsText: '',
   explanation: '',
   questionType: 'inference',
   difficulty: 'medium',
@@ -99,17 +100,14 @@ export default function RcForm() {
       return
     }
 
-     // ✅ Frontend validation: check correct answer text matches the selected option
-  const selectedOption = currentQ.options.find(
-    (o) => o.id === currentQ.correctAnswerId
-  )
-  if (!selectedOption || !selectedOption.text.trim()) {
-    toast.show(
-      'Selected correct answer option is empty. Please fill the option text.',
-      { variant: 'warning' }
-    )
-    return
-  }
+    // ✅ Frontend validation: check correct answer text matches the selected option
+    const selectedOption = currentQ.options.find((o) => o.id === currentQ.correctAnswerId)
+    if (!selectedOption || !selectedOption.text.trim()) {
+      toast.show('Selected correct answer option is empty. Please fill the option text.', {
+        variant: 'warning',
+      })
+      return
+    }
 
     setForm((f) => {
       const updated = [...f.questions]
@@ -147,12 +145,13 @@ export default function RcForm() {
         passageText: form.passageText.trim(),
         source: form.source.trim() || undefined,
         topicTags: form.topicTags
-          ? form.topicTags.split(',').map((s) => s.trim()).filter(Boolean)
+          ? form.topicTags
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [],
         status: form.status,
-        scheduledDate: form.scheduledDate
-          ? new Date(form.scheduledDate)
-          : undefined,
+        scheduledDate: form.scheduledDate ? new Date(form.scheduledDate) : undefined,
         questions: form.questions,
       }
 
@@ -204,16 +203,11 @@ export default function RcForm() {
 
             <div>
               <label className="block text-sm mb-1">Source</label>
-              <Input
-                value={form.source}
-                onChange={(e) => setField('source', e.target.value)}
-              />
+              <Input value={form.source} onChange={(e) => setField('source', e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-sm mb-1">
-                Topic Tags (comma separated)
-              </label>
+              <label className="block text-sm mb-1">Topic Tags (comma separated)</label>
               <Input
                 value={form.topicTags}
                 onChange={(e) => setField('topicTags', e.target.value)}
@@ -257,9 +251,7 @@ export default function RcForm() {
             {/* Question Builder */}
             <div className="border border-white/10 p-4 rounded-md bg-background/40 space-y-3">
               <h2 className="font-semibold text-lg">
-                {editIndex !== null
-                  ? `Edit Question ${editIndex + 1}`
-                  : 'Add a Question'}
+                {editIndex !== null ? `Edit Question ${editIndex + 1}` : 'Add a Question'}
               </h2>
 
               <textarea
@@ -273,10 +265,7 @@ export default function RcForm() {
                 {currentQ.options.map((opt) => (
                   <div key={opt.id}>
                     <label className="block text-xs mb-1">Option {opt.id}</label>
-                    <Input
-                      value={opt.text}
-                      onChange={(e) => setOption(opt.id, e.target.value)}
-                    />
+                    <Input value={opt.text} onChange={(e) => setOption(opt.id, e.target.value)} />
                   </div>
                 ))}
               </div>
@@ -287,9 +276,7 @@ export default function RcForm() {
                   <select
                     className="bg-background border border-white/10 rounded-md px-8 py-2 text-sm"
                     value={currentQ.correctAnswerId}
-                    onChange={(e) =>
-                      setQuestionField('correctAnswerId', e.target.value)
-                    }
+                    onChange={(e) => setQuestionField('correctAnswerId', e.target.value)}
                   >
                     <option value="A">A</option>
                     <option value="B">B</option>
@@ -303,18 +290,14 @@ export default function RcForm() {
                   <select
                     className="bg-background border border-white/10 rounded-md px-3 py-2 text-sm"
                     value={currentQ.questionType}
-                    onChange={(e) =>
-                      setQuestionField('questionType', e.target.value)
-                    }
+                    onChange={(e) => setQuestionField('questionType', e.target.value)}
                   >
                     <option value="main-idea">Main Idea</option>
                     <option value="inference">Inference</option>
                     <option value="detail">Detail</option>
                     <option value="vocabulary">Vocabulary</option>
                     <option value="tone-attitude">Tone/Attitude</option>
-                    <option value="structure-function">
-                      Structure/Function
-                    </option>
+                    <option value="structure-function">Structure/Function</option>
                     <option value="application">Application</option>
                   </select>
                 </div>
@@ -324,9 +307,7 @@ export default function RcForm() {
                   <select
                     className="bg-background border border-white/10 rounded-md px-8 py-2 text-sm"
                     value={currentQ.difficulty}
-                    onChange={(e) =>
-                      setQuestionField('difficulty', e.target.value)
-                    }
+                    onChange={(e) => setQuestionField('difficulty', e.target.value)}
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -335,18 +316,27 @@ export default function RcForm() {
                 </div>
               </div>
 
-              <textarea
-                className="w-full p-2 border border-white/10 rounded-md bg-background"
-                placeholder="Explanation"
-                value={currentQ.explanation}
-                onChange={(e) => setQuestionField('explanation', e.target.value)}
-              />
+              <div>
+                <label className="block text-sm mb-1">Answer Text</label>
+                <textarea
+                  className="w-full p-2 border border-white/10 rounded-md bg-background"
+                  placeholder="Correct Answer text"
+                  value={currentQ.correctAnsText}
+                  onChange={(e) => setQuestionField('correctAnsText', e.target.value)}
+                />
+              </div>
 
-              <Button
-                type="button"
-                onClick={addOrUpdateQuestion}
-                className="mt-2"
-              >
+              <div>
+                <label className="block text-sm mb-1">Explanation</label>
+                <textarea
+                  className="w-full p-2 border border-white/10 rounded-md bg-background"
+                  placeholder="Explanation"
+                  value={currentQ.explanation}
+                  onChange={(e) => setQuestionField('explanation', e.target.value)}
+                />
+              </div>
+
+              <Button type="button" onClick={addOrUpdateQuestion} className="mt-2">
                 {editIndex !== null ? 'Update Question' : 'Add Question'}
               </Button>
             </div>
@@ -361,22 +351,13 @@ export default function RcForm() {
                     className="border border-white/10 rounded-md p-3 bg-background/30 flex justify-between items-center"
                   >
                     <div>
-                      <span className="font-medium">Q{i + 1}:</span>{' '}
-                      {q.questionText.slice(0, 80)}
+                      <span className="font-medium">Q{i + 1}:</span> {q.questionText.slice(0, 80)}
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => editQuestion(i)}
-                      >
+                      <Button type="button" variant="secondary" onClick={() => editQuestion(i)}>
                         Edit
                       </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        onClick={() => deleteQuestion(i)}
-                      >
+                      <Button type="button" variant="danger" onClick={() => deleteQuestion(i)}>
                         Remove
                       </Button>
                     </div>

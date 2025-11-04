@@ -8,6 +8,7 @@ import { startOfIST } from '../utils/date.js'
 import { REASON_CODES } from '../utils/reasonCodes.js'
 import planAccess from '../lib/planAccess.js'
 
+
 const qDetailZ = z.object({
   questionIndex: z.number().int().min(0),
   timeSpent: z.number().int().min(0),
@@ -38,6 +39,8 @@ const submitSchema = z.object({
   attemptType: z.enum(['official', 'practice']).optional(),
 })
 
+const dayStartTs = (d) => startOfIST(d).getTime();
+
 export async function submitAttempt(req, res, next) {
   try {
     // Validate user authentication
@@ -66,7 +69,7 @@ export async function submitAttempt(req, res, next) {
 
     // Subscription-based access control
     if (subscription === 'free') {
-      if (rc.createdAt < joinedDate)
+      if (dayStartTs(rc.createdAt) < dayStartTs(joinedDate))
         return next(forbidden('Not allowed: RC uploaded before you joined'))
       // Only allow attempt if scheduledDate is today (not for missed RCs)
       const today = startOfIST()
@@ -75,9 +78,11 @@ export async function submitAttempt(req, res, next) {
         return next(forbidden("Not allowed: You can only attempt today's RCs"))
       }
     } else if (subscription === 'weekly' || subscription === '1 week plan') {
-      const sevenDaysAfterJoin = new Date(joinedDate)
+      const joinDay = startOfIST(joinedDate)
+      const sevenDaysAfterJoin = new Date(joinDay)
       sevenDaysAfterJoin.setDate(sevenDaysAfterJoin.getDate() + 7)
-      if (rc.createdAt < joinedDate || rc.createdAt > sevenDaysAfterJoin) {
+      const rcCreatedDayTs = dayStartTs(rc.createdAt)
+      if (rcCreatedDayTs < joinDay.getTime() || rcCreatedDayTs > sevenDaysAfterJoin.getTime()) {
         return next(forbidden('Not allowed: RC not in your subscription window'))
       }
     } // else for till CAT, allow all
@@ -159,8 +164,8 @@ export async function submitAttempt(req, res, next) {
       // Streak logic: completing at least one official RC for the day counts
       const today = startOfIST()
       const user = await User.findById(req.user.id)
-      const last = user.lastActiveDate ? new Date(user.lastActiveDate) : null
-      if (!last || last < today) {
+      const last = user.lastActiveDate ? startOfIST(user.lastActiveDate) : null
+      if (!last || last.getTime() < today.getTime()) {
         const yesterday = new Date(today)
         yesterday.setDate(yesterday.getDate() - 1)
         const newStreak =
