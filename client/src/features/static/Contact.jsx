@@ -95,16 +95,12 @@ export default function ContactPage() {
                   <span className="text-success-green font-medium">
                     {content.contact.businessHours}
                   </span>
-                  <div className="text-text-secondary text-sm mt-1">
-                    Response SLA:{' '}
-                    <span className="font-medium">{content.contact.responseTime}</span>
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
+            {/* <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-gradient-to-br from-success-green to-success-green/30 rounded-lg group-hover:scale-110 transition-transform duration-300">
                   <MapPin className="w-6 h-6 text-white" />
@@ -118,7 +114,7 @@ export default function ContactPage() {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Card 4 - Feedback & Suggestions */}
             <div className="bg-background bg-opacity-50 backdrop-blur-sm p-6 rounded-xl border border-border-soft hover:border-primary-light transition-all duration-300 group">

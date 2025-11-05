@@ -42,7 +42,7 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     if (!earliestDate) return defaultDays
-    const spanMs = today.getTime() - (new Date(earliestDate)).getTime()
+    const spanMs = today.getTime() - new Date(earliestDate).getTime()
     const spanDays = Math.ceil(spanMs / (1000 * 60 * 60 * 24)) + 1
     if (spanDays <= autoZoomThreshold) {
       // keep zoomed view but not too tiny — use 90 days minimum for readability
@@ -69,18 +69,25 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
 
     const daysData = {}
     for (let i = 0; i < numDays; i++) {
+      // console.log('Initializing day in contribution graph:', i)
       const date = new Date(startDate)
+      // console.log('Date before increment:', date)
       date.setDate(date.getDate() + i)
-      const key = date.toISOString().split('T')[0]
+      // console.log('Date after increment:', date)
+      const key = date.toLocaleDateString('en-CA') // 'YYYY-MM-DD' format in local time
+      // console.log('Day key:', key)
       daysData[key] = { date, count: 0 }
+      // console.log('Initialized day in contribution graph:', key, date)
     }
 
     // Fill attempt counts into daysData
     if (attempts && attempts.length > 0) {
+      // console.log('Filling attempts into contribution graph:', attempts)
       attempts.forEach((attempt) => {
         const date = new Date(attempt.createdAt)
         if (isNaN(date)) return
         const key = date.toISOString().split('T')[0]
+        // console.log('Processing attempt on date:', key)
         if (daysData[key]) daysData[key].count++
       })
     }
@@ -118,9 +125,11 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
       weeksArray.push(currentWeek)
     }
 
+    // console.log('Computed weeks for contribution graph:', daysData)
+
     return weeksArray
   }, [attempts, numDays])
-  
+
   const getColorClass = (count) => {
     if (count === null) return 'bg-transparent border-transparent cursor-default'
     if (count === 0) return 'bg-surface-muted border-border-soft'
@@ -128,7 +137,7 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
     if (count === 2) return 'bg-[#D33F49]/60 border-[#D33F49]/70'
     return 'bg-[#D33F49] border-[#D33F49]' // 3+
   }
-  
+
   // Generate month labels based on the computed weeks and startDate so labels align
   const monthLabels = useMemo(() => {
     // If there are no weeks yet, return empty
@@ -154,7 +163,7 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
 
     return labels
   }, [weeks])
-  
+
   return (
     // allow horizontal scrolling but keep vertical overflow visible so tooltips don't get clipped
     <div className="space-y-3 w-full overflow-x-auto overflow-y-visible pb-4">
@@ -173,11 +182,14 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
           <span>More</span>
         </div>
       </div>
-      
+
       <div className="relative">
         <div className="flex">
           {/* Fixed-width weekday labels column */}
-          <div style={{ width: DAY_LABEL_WIDTH }} className="flex flex-col gap-[3px] text-[10px] text-text-secondary font-medium justify-between py-1">
+          <div
+            style={{ width: DAY_LABEL_WIDTH }}
+            className="flex flex-col gap-[3px] text-[10px] text-text-secondary font-medium justify-between py-1"
+          >
             <div className="h-[11px] leading-[11px]">Sun</div>
             <div className="h-[11px] leading-[11px]">Mon</div>
             <div className="h-[11px] leading-[11px]">Tue</div>
@@ -234,10 +246,14 @@ export function ContributionGraph({ attempts = [], defaultDays = 365, autoZoomTh
                     return (
                       <Tooltip
                         key={dayIdx}
-                        content={`${day.count} ${day.count === 1 ? 'attempt' : 'attempts'} on ${dateStr}`}
+                        content={`${day.count} ${
+                          day.count === 1 ? 'attempt' : 'attempts'
+                        } on ${dateStr}`}
                       >
                         <div
-                          className={`rounded-sm border transition-all cursor-pointer hover:ring-2 hover:ring-[#D33F49]/30 ${getColorClass(day.count)}`}
+                          className={`rounded-sm border transition-all cursor-pointer hover:ring-2 hover:ring-[#D33F49]/30 ${getColorClass(
+                            day.count
+                          )}`}
                           style={{ width: CELL, height: CELL }}
                           aria-label={`${day.count} contributions on ${dateStr}`}
                         />
@@ -260,7 +276,7 @@ export default function App() {
   const sampleAttempts = useMemo(() => {
     const attempts = []
     const startDate = new Date('2025-10-01')
-    
+
     // Random attempts throughout the year
     for (let i = 0; i < 200; i++) {
       const randomDay = Math.floor(Math.random() * 365)
@@ -268,17 +284,15 @@ export default function App() {
       date.setDate(date.getDate() + randomDay)
       attempts.push({ createdAt: date.toISOString() })
     }
-    
+
     return attempts
   }, [])
-  
+
   return (
     <div className="p-8 bg-[#F7F8FC] min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl border border-border-soft p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-text-primary mb-4">
-            Yearly Performance Activity
-          </h1>
+          <h1 className="text-xl font-bold text-text-primary mb-4">Yearly Performance Activity</h1>
           <ContributionGraph attempts={sampleAttempts} />
         </div>
       </div>

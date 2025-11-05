@@ -120,7 +120,7 @@ export default function Test() {
   useEffect(() => {
     ;(async () => {
       try {
-        const { data } = await api.get(`/rcs/${id}${isPractice ? '?practice=1' : ''}`)
+        const { data } = await api.get(`/rcs/${id}${search}`)
         // Debug: log RC and user info
         console.log('RC fetch:', { rc: data, user: window.arcUser })
         setRc(data)

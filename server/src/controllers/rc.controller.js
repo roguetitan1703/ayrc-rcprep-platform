@@ -123,6 +123,11 @@ export async function getRcById(req, res, next) {
     const joinedDate = user.subon || user.createdAt
     const now = new Date()
 
+    // console the req object to debug query params
+    console.log('[getRcById] req.query:', req.query, )
+    // console the user object to debug user info
+    console.log('[getRcById] user info:', { id: user.id, subscription, joinedDate })
+
     // Debug: log user and RC after rc is defined
     console.log('[getRcById] user:', { id: user.id, subscription, joinedDate }, 'rc:', rc._id)
 
@@ -132,6 +137,8 @@ export async function getRcById(req, res, next) {
       String(req.query.practice || '') === '1' || String(req.query.mode || '') === 'practice'
 
     // Restrict access to future scheduled content (unless admin preview)
+    // log preview
+    console.log('[getRcById] preview mode:', preview)
     if (!preview) {
       if (rc.scheduledDate) {
         const nowDay = startOfIST()
@@ -150,6 +157,7 @@ export async function getRcById(req, res, next) {
       if (!access.allowed) {
         // Map reason to a friendly message where possible
         const reason = access.reason || 'access denied'
+        console.log(`[getRcById] access denied for user ${user.role} to RC ${rc._id}: ${reason}`)
         throw forbiddenErr(`Not allowed: ${reason}`)
       }
     }

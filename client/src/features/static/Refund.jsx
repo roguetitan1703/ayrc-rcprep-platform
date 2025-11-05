@@ -25,7 +25,9 @@ export default function Refund() {
             {sec.points ? (
               <ul className="list-disc pl-6 space-y-2 text-text-secondary">
                 {sec.points.map((p, pi) => (
-                  <li key={pi} className="text-text-secondary">{p}</li>
+                  <li key={pi} className="text-text-secondary">
+                    {p}
+                  </li>
                 ))}
               </ul>
             ) : (
@@ -34,8 +36,15 @@ export default function Refund() {
           </div>
         ))}
 
-        <p className='text-text-secondary'>
-          To request a refund, contact us at <a href={`mailto:${content.contact.supportEmail}`} className="text-info-blue hover:text-primary">{content.contact.supportEmail}</a> or call <strong>{content.contact.supportPhone}</strong>.
+        <p className="text-text-secondary">
+          To request a refund, contact us at{' '}
+          <a
+            href={`mailto:${content.contact.supportEmail}`}
+            className="text-info-blue hover:text-primary"
+          >
+            {content.contact.supportEmail}
+          </a>{' '}
+          or call <strong>{content.contact.supportPhone}</strong>.
         </p>
       </div>
     </StaticPage>
