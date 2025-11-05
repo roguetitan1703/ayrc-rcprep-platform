@@ -142,12 +142,17 @@ export async function stats(req, res, next) {
   try {
     const userId = req.user.id
     const attempts = await Attempt.find({ userId, attemptType: 'official' }).select(
-      'score attemptedAt'
+      'score attemptedAt timeTaken'
     )
     const totalAttempts = attempts.length // official attempts only
     const totalCorrect = attempts.reduce((a, c) => a + (c.score || 0), 0) // each score is #correct
     const accuracy =
       totalAttempts > 0 ? Number(((totalCorrect / (totalAttempts * 4)) * 100).toFixed(1)) : 0
+
+// total practice hours (sum of all attempt durations)
+    const totalMinutes = attempts.reduce((a, c) => a + (c.timeTaken || 0), 0)
+    const practiceHours = Number((totalMinutes / 60).toFixed(1)) 
+
     // last 7 days streak-like continuity (based on actual attempt days) and per-day attempt presence
     const today = startOfIST()
     const daySet = new Set(
@@ -160,7 +165,7 @@ export async function stats(req, res, next) {
       if (daySet.has(startOfIST(d).toISOString())) rolling++
       else break
     }
-    return success(res, { totalAttempts, accuracy, rollingConsistentDays: rolling })
+    return success(res, { totalAttempts, accuracy, practiceHours, rollingConsistentDays: rolling })
   } catch (e) {
     next(e)
   }
