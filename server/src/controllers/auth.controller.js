@@ -100,8 +100,27 @@ export async function login(req, res, next) {
 
 export async function me(req, res, next) {
   try {
-    const user = await User.findById(req.user.id).select('-password')
+    // 1️⃣ Fetch user and populate their plan reference
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('subscriptionPlan', 'name slug') // only bring name & slug, not full plan object
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // 2️⃣ If user has a plan, copy its name into the legacy `subscription` field
+    if (user.subscriptionPlan) {
+      user.subscription = user.subscriptionPlan.name || 'unknown'
+    } else {
+      // fallback to "free" if no active plan
+      user.subscription = 'free'
+    }
+
+    // 3️⃣ Optionally ensure caching
     res.set('Cache-Control', 'private, max-age=30')
+
+    // 4️⃣ Return the final object
     return success(res, user)
   } catch (e) {
     next(e)

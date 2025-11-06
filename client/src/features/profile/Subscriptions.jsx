@@ -33,7 +33,7 @@ export default function Subscriptions() {
         })
       : 'Not set'
 
-  // fallback plans (used when API fails)
+  // fallback plans (used only in comparison / static UI)
   const fallbackPlans = [
     {
       id: 'free',
@@ -46,7 +46,7 @@ export default function Subscriptions() {
         'Access 2 RCs per day',
         'Question explanations',
         'View RCs only after attempting and giving feedback',
-        'Cannot see RCs uploaded before joining',        
+        'Cannot see RCs uploaded before joining',
         'Basic performance tracking',
       ],
       limitations: [
@@ -91,7 +91,7 @@ export default function Subscriptions() {
         'Advanced performance analytics for every attempt',
         'Extended history of attempts',
         'Personalized insights and recommendations',
-        "No need to renew weekly — single subscription till exam"
+        'No need to renew weekly — single subscription till exam',
       ],
       limitations: ['None – full access till CAT 2025'],
     },
@@ -157,10 +157,15 @@ export default function Subscriptions() {
           const normalized = data.map(normalizePlan).filter(Boolean)
           setPlans(normalized)
         } else if (mounted) {
-          setPlans(fallbackPlans)
+          // Do NOT use fallback plans as the visual fallback.
+          // Set plans to empty array to indicate "no plans" (API responded but no data)
+          setPlans([])
         }
       } catch (err) {
-        if (mounted) setPlans(fallbackPlans)
+        if (mounted) {
+          // On error, set to empty array so UI can show appropriate empty state.
+          setPlans([])
+        }
         console.warn('Could not fetch public plans', err)
       }
     })()
@@ -190,9 +195,24 @@ export default function Subscriptions() {
     ? plans.find((p) => p.recommended) || plans.find((p) => p.id !== 'free') || plans[0]
     : null
 
+  // Get user's plan identifier which may be either:
+  // - an ObjectId string (old behaviour), or
+  // - a slug (new behaviour returned from populated subscriptionPlan)
   const userPlanSlug = getEffectiveSubscriptionSlug(user)
-  const userPlanId = userPlanSlug ? String(userPlanSlug).toLowerCase() : 'free'
-  const currentPlan = plans ? plans.find((p) => p.id === userPlanId) || plans[0] : fallbackPlans[0]
+  const userPlanKey = userPlanSlug ? String(userPlanSlug).toLowerCase() : null
+
+  // Resolve currentPlan by matching either plan id or plan slug against the user key.
+  // While plans === null, keep currentPlan null (loading state).
+  const currentPlan =
+    plans === null
+      ? null
+      : plans.find((p) => {
+          const planId = p.id ? String(p.id).toLowerCase() : ''
+          const planSlug = p.slug ? String(p.slug).toLowerCase() : ''
+          return userPlanKey && (planId === userPlanKey || planSlug === userPlanKey)
+        }) ||
+        plans[0] ||
+        null
 
   console.log('plans', plans)
   console.log('currentPlan', currentPlan)
@@ -207,110 +227,139 @@ export default function Subscriptions() {
       </div>
 
       {/* Current Plan Card */}
-      <Card className="bg-gradient-to-br from-primary/10 via-info-blue/5 to-success-green/10 border border-border-soft hover:shadow-lg transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="p-4 rounded-2xl shadow-md" style={{ backgroundColor: '#D33F4915' }}>
-                {React.createElement(currentPlan.icon, {
-                  className: `h-8 w-8`,
-                  style: { color: '#D33F49' },
-                })}
+      {currentPlan === null ? (
+        <Card className="min-h-[140px]">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="p-4 rounded-2xl shadow-md" style={{ backgroundColor: '#D33F4915' }}>
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+                <div className="flex-1">
+                  <Skeleton className="h-6 w-1/3 mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-4" />
+                  <div className="flex items-center gap-6 text-sm">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold text-text-primary">{currentPlan.name} Plan</h2>
-                  {currentPlan.recommended && (
-                    <Badge
-                      variant="custom"
-                      className="bg-primary text-white border border-primary/30 shadow-sm"
-                    >
-                      Active
-                    </Badge>
-                    
-                  )}
-                </div>
-                <p className="text-sm text-text-secondary mb-4">{currentPlan.description}</p>
-                <div className="flex items-center gap-6 text-sm">
-                  {user?.subon && (
-                    <div className="flex items-center gap-2 text-text-secondary">
-                      <Calendar size={14} />
-                      <span>Started: {formatDate(user.subon)}</span>
-                    </div>
-                  )}
-                  {user?.subexp && (
-                    <div className="flex items-center gap-2 text-text-secondary">
-                      <Calendar size={14} />
-                      <span className={user.issubexp ? 'text-[#E4572E] font-semibold' : ''}>
-                        {user.issubexp ? 'Expired' : 'Expires'}: {formatDate(user.subexp)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+
+              {/* Actions skeleton */}
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-10 w-36" />
+                <Skeleton className="h-10 w-36" />
               </div>
             </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="bg-gradient-to-br from-primary/10 via-info-blue/5 to-success-green/10 border border-border-soft hover:shadow-lg transition-shadow">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="p-4 rounded-2xl shadow-md" style={{ backgroundColor: '#D33F4915' }}>
+                  {React.createElement(currentPlan.icon, {
+                    className: `h-8 w-8`,
+                    style: { color: '#D33F49' },
+                  })}
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2 className="text-2xl font-bold text-text-primary">
+                      {currentPlan.name} Plan
+                    </h2>
+                    {currentPlan.recommended && (
+                      <Badge
+                        variant="custom"
+                        className="bg-primary text-white border border-primary/30 shadow-sm"
+                      >
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-text-secondary mb-4">{currentPlan.description}</p>
+                  <div className="flex items-center gap-6 text-sm">
+                    {user?.subon && (
+                      <div className="flex items-center gap-2 text-text-secondary">
+                        <Calendar size={14} />
+                        <span>Started: {formatDate(user.subon)}</span>
+                      </div>
+                    )}
+                    {user?.subexp && (
+                      <div className="flex items-center gap-2 text-text-secondary">
+                        <Calendar size={14} />
+                        <span className={user.issubexp ? 'text-[#E4572E] font-semibold' : ''}>
+                          {user.issubexp ? 'Expired' : 'Expires'}: {formatDate(user.subexp)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3">
-              {currentPlan.id === 'free' && (
-                <Button
-                  onClick={async () => {
-                    const fallbackChoice =
-                      recommendedPlan ||
-                      fallbackPlans.find((p) => p.id !== 'free') ||
-                      fallbackPlans[0]
-                    if (recommendedPlan && recommendedPlan.raw && recommendedPlan.raw._id) {
-                      try {
-                        await startCheckout({
-                          plan: recommendedPlan,
-                          user,
-                          onSuccess: async () => {
-                            try {
-                              await refreshUserUntilUpdated()
-                            } catch (err) {
-                              console.warn('Could not refresh user after payment', err)
-                            }
-                            toast.show(`Subscription active — ${recommendedPlan.name}`, {
-                              variant: 'success',
-                            })
-                          },
-                          onError: (err) => {
-                            console.warn('Payment error', err)
-                            toast.show('Payment failed. Please try again.', {
-                              variant: 'error',
-                            })
-                          },
-                        })
-                      } catch (err) {
-                        console.error(err)
-                        toast.show('Could not start checkout. Try again later.', {
-                          variant: 'error',
+              {/* Actions */}
+              <div className="flex flex-col gap-3">
+                {currentPlan.id === 'free' && (
+                  <Button
+                    onClick={async () => {
+                      const fallbackChoice =
+                        recommendedPlan ||
+                        fallbackPlans.find((p) => p.id !== 'free') ||
+                        fallbackPlans[0]
+                      if (recommendedPlan && recommendedPlan.raw && recommendedPlan.raw._id) {
+                        try {
+                          await startCheckout({
+                            plan: recommendedPlan,
+                            user,
+                            onSuccess: async () => {
+                              try {
+                                await refreshUserUntilUpdated()
+                              } catch (err) {
+                                console.warn('Could not refresh user after payment', err)
+                              }
+                              toast.show(`Subscription active — ${recommendedPlan.name}`, {
+                                variant: 'success',
+                              })
+                            },
+                            onError: (err) => {
+                              console.warn('Payment error', err)
+                              toast.show('Payment failed. Please try again.', {
+                                variant: 'error',
+                              })
+                            },
+                          })
+                        } catch (err) {
+                          console.error(err)
+                          toast.show('Could not start checkout. Try again later.', {
+                            variant: 'error',
+                          })
+                        }
+                      } else {
+                        setSelectedPlan(fallbackChoice)
+                        setShowSelector(true)
+                        toast.show('Loading plans — please select a plan to continue', {
+                          variant: 'default',
                         })
                       }
-                    } else {
-                      setSelectedPlan(fallbackChoice)
-                      setShowSelector(true)
-                      toast.show('Loading plans — please select a plan to continue', {
-                        variant: 'default',
-                      })
-                    }
-                  }}
-                  className="bg-primary hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
-                >
-                  Upgrade Now
-                </Button>
-              )}
-              {currentPlan.id !== 'free' && !user?.issubexp && (
-                <Link to="/profile">
-                  <Button variant="secondary" className="w-full">
-                    Manage Subscription
+                    }}
+                    className="bg-primary hover:bg-[#B83441] text-white font-semibold whitespace-nowrap"
+                  >
+                    Upgrade Now
                   </Button>
-                </Link>
-              )}
+                )}
+                {currentPlan.id !== 'free' && !user?.issubexp && (
+                  <Link to="/profile">
+                    <Button variant="secondary" className="w-full">
+                      Manage Subscription
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Plan Cards */}
       <div>
@@ -336,7 +385,8 @@ export default function Subscriptions() {
                 .filter((p) => p.slug !== 'free')
                 .map((plan, idx) => {
                   const Icon = plan.icon
-                  const isCurrent = plan.id === userPlanId
+                  // Determine if this plan is the currently active one by comparing resolved currentPlan's id
+                  const isCurrent = currentPlan ? String(plan.id) === String(currentPlan.id) : false
 
                   return (
                     <Card
@@ -465,61 +515,55 @@ export default function Subscriptions() {
         <CardHeader className="p-4 border-b border-border-soft">
           <h2 className="text-lg font-semibold text-text-primary">Feature Comparison</h2>
           <p className="text-sm text-text-secondary mt-1">
-             Compare what’s included in each subscription plan.
+            Compare what’s included in each subscription plan.
           </p>
         </CardHeader>
         <CardContent className="p-4 overflow-x-auto">
-             {fallbackPlans && fallbackPlans.length > 0 ? (
-      <table className="min-w-full border-collapse text-sm">
-        <thead>
-          <tr>
-            <th className="text-left py-2 px-3 text-text-secondary font-medium">Feature</th>
-            {fallbackPlans
-              .filter((p) => p.slug !== 'free')
-              .map((plan) => (
-                <th
-                  key={plan.id}
-                  className="text-center py-2 px-3 text-text-primary font-semibold"
-                >
-                  {plan.name}
-                </th>
-              ))}
-          </tr>
-        </thead>
+          {fallbackPlans && fallbackPlans.length > 0 ? (
+            <table className="min-w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left py-2 px-3 text-text-secondary font-medium">Feature</th>
+                  {fallbackPlans
+                    .filter((p) => p.slug !== 'free')
+                    .map((plan) => (
+                      <th
+                        key={plan.id}
+                        className="text-center py-2 px-3 text-text-primary font-semibold"
+                      >
+                        {plan.name}
+                      </th>
+                    ))}
+                </tr>
+              </thead>
 
-        <tbody>
-          {/** Collect all unique features across all plans */}
-          {Array.from(
-            new Set(fallbackPlans.flatMap((p) => p.features || []))
-          ).map((feature, idx) => (
-            <tr
-              key={idx}
-              className={idx % 2 === 0 ? 'bg-muted/5' : ''}
-            >
-              <td className="py-2 px-3 text-text-secondary">{feature}</td>
-              {fallbackPlans
-                .filter((p) => p.slug !== 'free')
-                .map((plan) => (
-                  <td
-                    key={plan.id}
-                    className="text-center py-2 px-3"
-                  >
-                    {plan.features?.includes(feature) ? (
-                      <span className="text-success-green font-medium">✔</span>
-                    ) : (
-                      <span className="text-text-secondary/40">—</span>
-                    )}
-                  </td>
-                ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <div className="text-sm text-text-secondary">
-        No plan data available for comparison.
-      </div>
-    )}
+              <tbody>
+                {/** Collect all unique features across all plans */}
+                {Array.from(new Set(fallbackPlans.flatMap((p) => p.features || []))).map(
+                  (feature, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-muted/5' : ''}>
+                      <td className="py-2 px-3 text-text-secondary">{feature}</td>
+                      {fallbackPlans
+                        .filter((p) => p.slug !== 'free')
+                        .map((plan) => (
+                          <td key={plan.id} className="text-center py-2 px-3">
+                            {plan.features?.includes(feature) ? (
+                              <span className="text-success-green font-medium">✔</span>
+                            ) : (
+                              <span className="text-text-secondary/40">—</span>
+                            )}
+                          </td>
+                        ))}
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-sm text-text-secondary">
+              No plan data available for comparison.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -537,7 +581,6 @@ export default function Subscriptions() {
               <Link to="/dashboard/help">
                 <Button variant="primary">Visit Help Center</Button>
               </Link>
-              
             </div>
           </div>
         </CardContent>
