@@ -43,21 +43,21 @@ export default function AdminDashboard() {
   const nav = useNavigate()
 
   // Defensive defaults for all analytics fields
-  const attemptsByDay = analytics.attemptsByDay ?? [];
-  const attemptsToday = analytics.attemptsToday ?? 0;
-  const attemptsWeek = analytics.attemptsWeek ?? 0;
-  const totalAttempts = analytics.totalAttempts ?? 0;
-  const activeUsersTrend = analytics.activeUsersTrend ?? [];
-  const activeUsersToday = analytics.activeUsersToday ?? 0;
-  const activeUsersWeek = analytics.activeUsersWeek ?? 0;
-  const avgAccuracy = analytics.avgAccuracy ?? 0;
-  const ratingsDist = analytics.ratingsDist ?? [];
-  const topics = analytics.topics ?? [];
-  const coverage = analytics.coverage ?? 0;
-  const reasons = analytics.reasons ?? { top: [] };
-  const attempts7d = analytics.attempts7d ?? 0;
-  const taggedWrong = analytics.taggedWrong ?? 0;
-  const totalWrong = analytics.totalWrong ?? 0;
+  const attemptsByDay = analytics.attemptsByDay ?? []
+  const attemptsToday = analytics.attemptsToday ?? 0
+  const attemptsWeek = analytics.attemptsWeek ?? 0
+  const totalAttempts = analytics.totalAttempts ?? 0
+  const activeUsersTrend = analytics.activeUsersTrend ?? []
+  const activeUsersToday = analytics.activeUsersToday ?? 0
+  const activeUsersWeek = analytics.activeUsersWeek ?? 0
+  const avgAccuracy = analytics.avgAccuracy ?? 0
+  const ratingsDist = analytics.ratingsDist ?? []
+  const topics = analytics.topics ?? []
+  const coverage = analytics.coverage ?? 0
+  const reasons = analytics.reasons ?? { top: [] }
+  const attempts7d = analytics.attempts7d ?? 0
+  const taggedWrong = analytics.taggedWrong ?? 0
+  const totalWrong = analytics.totalWrong ?? 0
 
   useEffect(() => {
     ;(async () => {
@@ -130,16 +130,23 @@ export default function AdminDashboard() {
       {/* Hero Section / Title */}
       <div className="w-full flex flex-col items-start mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-1">Admin Dashboard</h1>
-        <p className="text-sm text-text-secondary">Monitor, manage, and analyze all RCs, user activity, and platform performance in one place.</p>
+        <p className="text-sm text-text-secondary">
+          Monitor, manage, and analyze all RCs, user activity, and platform performance in one
+          place.
+        </p>
       </div>
 
       {/* KPI Cards - 6 column grid on desktop */}
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {/* Total RCs */}
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Total RCs</div>
-            <div className="text-3xl font-bold text-text-primary">{total > 0 ? total : 'No data'}</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Total RCs
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {total > 0 ? total : 'No data'}
+            </div>
           </CardContent>
         </Card>
 
@@ -147,16 +154,24 @@ export default function AdminDashboard() {
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-primary/10 to-accent-amber/10 rounded-lg flex flex-col items-center justify-center py-6">
             <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Live RCs</div>
-            <div className="text-3xl font-bold text-success-green">{live > 0 ? live : 'No data'}</div>
+            <div className="text-3xl font-bold text-success-green">{live > 0 ? live : '0'}</div>
           </CardContent>
         </Card>
 
         {/* Active Users (Today / This Week) */}
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-accent-amber/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Active Users</div>
-            <div className="text-2xl font-bold text-primary">{activeUsersToday > 0 ? activeUsersToday : 'No data'} <span className="text-xs text-text-secondary font-normal">today</span></div>
-            <div className="text-lg font-semibold text-success-green">{activeUsersWeek > 0 ? activeUsersWeek : 'No data'} <span className="text-xs text-text-secondary font-normal">this week</span></div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Active Users
+            </div>
+            <div className="text-2xl font-bold text-primary">
+              {activeUsersToday > 0 ? activeUsersToday : 'No data'}{' '}
+              <span className="text-xs text-text-secondary font-normal">today</span>
+            </div>
+            <div className="text-lg font-semibold text-success-green">
+              {activeUsersWeek > 0 ? activeUsersWeek : 'No data'}{' '}
+              <span className="text-xs text-text-secondary font-normal">this week</span>
+            </div>
           </CardContent>
         </Card>
 
@@ -164,23 +179,35 @@ export default function AdminDashboard() {
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
             <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Attempts</div>
-            <div className="text-2xl font-bold text-accent-amber">{attemptsToday > 0 ? attemptsToday : 'No data'} <span className="text-xs text-text-secondary font-normal">today</span></div>
-            <div className="text-lg font-semibold text-primary">{attemptsWeek > 0 ? attemptsWeek : 'No data'} <span className="text-xs text-text-secondary font-normal">this week</span></div>
+            <div className="text-2xl font-bold text-accent-amber">
+              {attemptsToday > 0 ? attemptsToday : 'No data'}{' '}
+              <span className="text-xs text-text-secondary font-normal">today</span>
+            </div>
+            <div className="text-lg font-semibold text-primary">
+              {attemptsWeek > 0 ? attemptsWeek : 'No data'}{' '}
+              <span className="text-xs text-text-secondary font-normal">this week</span>
+            </div>
           </CardContent>
         </Card>
 
         {/* Avg Accuracy % */}
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Avg Accuracy %</div>
-            <div className="text-3xl font-bold text-success-green">{avgAccuracy > 0 ? `${avgAccuracy}%` : 'No data'}</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Avg Accuracy %
+            </div>
+            <div className="text-3xl font-bold text-success-green">
+              {avgAccuracy > 0 ? `${avgAccuracy}%` : 'No data'}
+            </div>
           </CardContent>
         </Card>
 
         {/* Retention Rate */}
         <Card className="h-full">
           <CardContent className="h-full bg-gradient-to-br from-primary/10 to-success-green/10 rounded-lg flex flex-col items-center justify-center py-6">
-            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Retention Rate</div>
+            <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">
+              Retention Rate
+            </div>
             <div className="text-3xl font-bold text-primary">
               {typeof analytics.retentionRate === 'number' && analytics.retentionRate >= 0
                 ? `${analytics.retentionRate}%`
@@ -197,14 +224,14 @@ export default function AdminDashboard() {
           <CardHeader>Attempts Overview</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              {attemptsByDay.length > 0 && attemptsByDay.some(d => d.attempts > 0) ? (
+              {attemptsByDay.length > 0 && attemptsByDay.some((d) => d.attempts > 0) ? (
                 <Bar
                   data={{
-                    labels: attemptsByDay.map(d => d.date),
+                    labels: attemptsByDay.map((d) => d.date),
                     datasets: [
                       {
                         label: 'Attempts',
-                        data: attemptsByDay.map(d => d.attempts),
+                        data: attemptsByDay.map((d) => d.attempts),
                         backgroundColor: '#3B82F6',
                         borderRadius: 6,
                         borderSkipped: false,
@@ -225,7 +252,9 @@ export default function AdminDashboard() {
                   }}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-text-secondary">No attempts in last 7 days</div>
+                <div className="flex items-center justify-center h-full text-text-secondary">
+                  No attempts in last 7 days
+                </div>
               )}
             </div>
             <div className="grid grid-cols-3 gap-2 text-center text-sm">
@@ -250,14 +279,14 @@ export default function AdminDashboard() {
           <CardHeader>Active Learners</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              {activeUsersTrend.length > 0 && activeUsersTrend.some(d => d.count > 0) ? (
+              {activeUsersTrend.length > 0 && activeUsersTrend.some((d) => d.count > 0) ? (
                 <Line
                   data={{
-                    labels: activeUsersTrend.map(d => d.date),
+                    labels: activeUsersTrend.map((d) => d.date),
                     datasets: [
                       {
                         label: 'Active Users',
-                        data: activeUsersTrend.map(d => d.count),
+                        data: activeUsersTrend.map((d) => d.count),
                         borderColor: '#23A094',
                         backgroundColor: 'rgba(35, 160, 148, 0.12)',
                         tension: 0.4,
@@ -282,7 +311,9 @@ export default function AdminDashboard() {
                   }}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-text-secondary">No active users in last 7 days</div>
+                <div className="flex items-center justify-center h-full text-text-secondary">
+                  No active users in last 7 days
+                </div>
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 text-center text-sm">
@@ -303,7 +334,7 @@ export default function AdminDashboard() {
           <CardHeader>Learner Feedback & Reviews</CardHeader>
           <CardContent>
             <div className="h-48 mb-4">
-              {(ratingsDist.length > 0 && ratingsDist.some(v => v > 0)) ? (
+              {ratingsDist.length > 0 && ratingsDist.some((v) => v > 0) ? (
                 <Pie
                   data={{
                     labels: ['5★', '4★', '3★', '2★', '1★'],
@@ -311,13 +342,7 @@ export default function AdminDashboard() {
                       {
                         label: 'Ratings',
                         data: ratingsDist,
-                        backgroundColor: [
-                          '#23A094',
-                          '#3B82F6',
-                          '#F6B26B',
-                          '#FB923C',
-                          '#E4572E',
-                        ],
+                        backgroundColor: ['#23A094', '#3B82F6', '#F6B26B', '#FB923C', '#E4572E'],
                         borderColor: '#FFFFFF',
                         borderWidth: 2,
                       },
@@ -333,7 +358,9 @@ export default function AdminDashboard() {
                   }}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-text-secondary">No ratings submitted yet</div>
+                <div className="flex items-center justify-center h-full text-text-secondary">
+                  No ratings submitted yet
+                </div>
               )}
             </div>
           </CardContent>
@@ -366,9 +393,15 @@ export default function AdminDashboard() {
 
         <div className="flex gap-2 ml-auto">
           <Button onClick={() => nav('/admin/rcs/new')}>Upload New RC</Button>
-          <Button variant="outline" onClick={() => nav('/admin/schedule')}>Schedule RC</Button>
-          <Button variant="ghost" onClick={() => nav('/admin/plans')}>Plans</Button>
-          <Button variant="ghost" onClick={() => nav('/admin/transactions')}>Transactions</Button>
+          <Button variant="outline" onClick={() => nav('/admin/schedule')}>
+            Schedule RC
+          </Button>
+          <Button variant="ghost" onClick={() => nav('/admin/plans')}>
+            Plans
+          </Button>
+          <Button variant="ghost" onClick={() => nav('/admin/transactions')}>
+            Transactions
+          </Button>
         </div>
       </div>
 

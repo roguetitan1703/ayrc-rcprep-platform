@@ -2,6 +2,7 @@ import { Feedback } from '../models/Feedback.js'
 import { FeedbackQuestion } from '../models/FeedbackQuestion.js'
 import { success, badRequest } from '../utils/http.js'
 import { startOfIST } from '../utils/date.js'
+import { endOfIST } from '../utils/date.js'
 import { z } from 'zod'
 import mongoose from 'mongoose'
 
@@ -229,22 +230,38 @@ export async function archiveFeedbackQuestion(req, res, next) {
 // ADMIN: Get all feedback questions
 export async function getAllFeedbackQuestions(req, res, next) {
   try {
-    // Optional: restrict to admin only
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Only admins can access feedback questions' })
     }
 
-    // // ✅ Update all questions where status is 'published' → 'live'
-    // await FeedbackQuestion.updateMany(
-    //   { status: 'published' },
-    //   { $set: { status: 'live' } }
-    // )
+    // 🕒 Get IST-based day boundaries
+    const todayStart = startOfIST()
+    const todayEnd = endOfIST()
 
-    // Fetch all questions, no filters
-    const questions = await FeedbackQuestion.find().sort({ createdAt: -1 })
+    // 1️⃣ Archive questions older than today
+    await FeedbackQuestion.updateMany(
+      { date: { $lt: todayStart } },
+      { $set: { status: 'archived' } }
+    )
+
+    // 2️⃣ Mark today's questions as live
+    await FeedbackQuestion.updateMany(
+      { date: { $gte: todayStart, $lt: todayEnd } },
+      { $set: { status: 'live' } }
+    )
+
+    // 3️⃣ Mark future questions as scheduled
+    await FeedbackQuestion.updateMany(
+      { date: { $gte: todayEnd } },
+      { $set: { status: 'scheduled' } }
+    )
+
+    // 4️⃣ Fetch all questions sorted by newest first
+    const questions = await FeedbackQuestion.find().sort({ date: -1 })
 
     return success(res, { questions })
   } catch (e) {
+    console.error('[getAllFeedbackQuestions] error:', e)
     next(e)
   }
 }

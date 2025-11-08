@@ -145,6 +145,7 @@ export default function AdminFeedback() {
               <option value="all">All Status</option>
               <option value="live">Live</option>
               <option value="archived">Archived</option>
+              <option value="scheduled">Scheduled</option>
             </select>
           </div>
           <div>
@@ -178,24 +179,62 @@ export default function AdminFeedback() {
         <Table
           columns={[
             { header: 'Label', field: 'label', sortable: true, render: (q) => q.label },
-            { header: 'Date', field: 'date', sortable: true, render: (q) => (q.date ? new Date(q.date).toLocaleDateString('en-US') : 'N/A') },
+            {
+              header: 'Date',
+              field: 'date',
+              sortable: true,
+              render: (q) => (q.date ? new Date(q.date).toLocaleDateString('en-US') : 'N/A'),
+            },
             { header: 'Type', field: 'type', sortable: true, render: (q) => q.type },
-            { header: 'Status', field: 'status', sortable: true, render: (q) => (
-                <Badge color={q.status === 'archived' ? 'default' : q.status === 'live' ? 'success' : 'warning'}>
+            {
+              header: 'Status',
+              field: 'status',
+              sortable: true,
+              render: (q) => (
+                <Badge
+                  color={
+                    q.status === 'archived'
+                      ? 'default'
+                      : q.status === 'live'
+                      ? 'success'
+                      : 'warning'
+                  }
+                >
                   {q.status}
                 </Badge>
-              ) },
-            { header: 'Actions', field: 'actions', render: (q) => (
+              ),
+            },
+            {
+              header: 'Actions',
+              field: 'actions',
+              render: (q) => (
                 <div className="inline-flex items-center justify-center gap-1">
                   {q.status === 'archived' ? (
-                    <Button size="sm" variant="success" onClick={() => republishQuestion(q._id)}>Republish</Button>
+                    <Button size="sm" variant="success" onClick={() => republishQuestion(q._id)}>
+                      Republish
+                    </Button>
                   ) : (
-                    <Button size="sm" variant="danger" onClick={() => archiveQuestion(q._id)}>Archive</Button>
+                    <Button size="sm" variant="danger" onClick={() => archiveQuestion(q._id)}>
+                      Archive
+                    </Button>
                   )}
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(q._id)}>Delete</Button>
-                  <Button size="sm" variant="outline" onClick={() => { setEditingQuestion(q); setModalOpen(true); }}>Edit</Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(q._id)}>
+                    Delete
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingQuestion(q)
+                      setModalOpen(true)
+                    }}
+                  >
+                    Edit
+                  </Button>
                 </div>
-              ), cellClassName: 'px-2 py-2 text-center whitespace-nowrap' },
+              ),
+              cellClassName: 'px-2 py-2 text-center whitespace-nowrap',
+            },
           ]}
           data={paged}
           loading={loading}
@@ -209,7 +248,7 @@ export default function AdminFeedback() {
         />
       )}
 
-{/* modal to add and edit feedback questions */}
+      {/* modal to add and edit feedback questions */}
       {modalOpen && (
         <div className="fixed h-100vh inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
           <div className="bg-background p-8 rounded-xl w-full max-w-2xl shadow-2xl border border-white/10">
@@ -264,7 +303,7 @@ export default function AdminFeedback() {
                 <input
                   name="label"
                   defaultValue={editingQuestion?.label || ''}
-                  className="w-full border border-gray-200 rounded-lg bg-background/50 px-3 py-2 text-sm  outline-none" 
+                  className="w-full border border-gray-200 rounded-lg bg-background/50 px-3 py-2 text-sm  outline-none"
                   required
                 />
               </div>

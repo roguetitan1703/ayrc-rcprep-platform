@@ -47,8 +47,11 @@ export default function Archive() {
           // call API (existing API used before)
           const dataResp = await rcApi.getArchive(pageIdx, pageSize)
           // the API shape previously was either data.data or data
-          const fetched =
-            Array.isArray(dataResp?.data) ? dataResp.data : Array.isArray(dataResp) ? dataResp : []
+          const fetched = Array.isArray(dataResp?.data)
+            ? dataResp.data
+            : Array.isArray(dataResp)
+            ? dataResp
+            : []
 
           if (fetched.length === 0) break
 
@@ -172,9 +175,7 @@ export default function Archive() {
       header: 'Title',
       field: 'title',
       sortable: true,
-      render: (rc) => (
-        <div className="font-medium text-text-primary line-clamp-2">{rc.title}</div>
-      ),
+      render: (rc) => <div className="font-medium text-text-primary line-clamp-2">{rc.title}</div>,
     },
     {
       header: 'Date',
@@ -185,7 +186,11 @@ export default function Archive() {
         return (
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             <Calendar size={14} />
-            <span>{d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
+            <span>
+              {d
+                ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                : '—'}
+            </span>
           </div>
         )
       },
@@ -225,13 +230,21 @@ export default function Archive() {
       header: 'Topics',
       field: 'topicTags',
       render: (rc) => {
-        if (!rc.topicTags || rc.topicTags.length === 0) return <span className="text-sm text-text-secondary">—</span>
+        if (!rc.topicTags || rc.topicTags.length === 0)
+          return <span className="text-sm text-text-secondary">—</span>
         return (
           <div className="flex flex-wrap gap-1">
             {rc.topicTags.slice(0, 3).map((t, i) => (
-              <span key={i} className="px-2 py-0.5 bg-surface-muted text-text-primary rounded text-[11px] font-medium">{t}</span>
+              <span
+                key={i}
+                className="px-2 py-0.5 bg-surface-muted text-text-primary rounded text-[11px] font-medium"
+              >
+                {t}
+              </span>
             ))}
-            {rc.topicTags.length > 3 && <span className="text-xs text-text-secondary">+{rc.topicTags.length - 3}</span>}
+            {rc.topicTags.length > 3 && (
+              <span className="text-xs text-text-secondary">+{rc.topicTags.length - 3}</span>
+            )}
           </div>
         )
       },
@@ -246,7 +259,9 @@ export default function Archive() {
           <div className="inline-flex items-center gap-2">
             {attempted && (
               <Link to={`/attempts/${id}`}>
-                <Button size="sm" variant="primary">View</Button>
+                <Button size="sm" variant="primary">
+                  View
+                </Button>
               </Link>
             )}
             {/* Attempted: "Practice" with ?mode=practice
@@ -264,69 +279,71 @@ export default function Archive() {
   ]
 
   // If user toggled "only unattempted" and none found => show custom message
-  const showAllAttemptedEmptyState = showOnlyUnattempted && filteredSorted.length === 0 && !loading && !error
+  const showAllAttemptedEmptyState =
+    showOnlyUnattempted && filteredSorted.length === 0 && !loading && !error
 
   // Paginate the filtered + sorted data
-const paginatedData = useMemo(() => {
-  const startIdx = (currentPage - 1) * rowsPerPage
-  return filteredSorted.slice(startIdx, startIdx + rowsPerPage)
-}, [filteredSorted, currentPage, rowsPerPage])
-
+  const paginatedData = useMemo(() => {
+    const startIdx = (currentPage - 1) * rowsPerPage
+    return filteredSorted.slice(startIdx, startIdx + rowsPerPage)
+  }, [filteredSorted, currentPage, rowsPerPage])
 
   return (
     <div className="flex flex-col space-y-6 p-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-text-primary mb-2">Archive</h1>
-        <p className="text-sm text-text-secondary">Your complete practice history and performance insights</p>
+        <p className="text-sm text-text-secondary">
+          Your complete practice history and performance insights
+        </p>
       </div>
 
       {/* Stats — now 4 cards (Attempted, Unattempted, Average Score, Topics Covered) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-border-soft">
-          <CardContent className="p-6 flex items-start justify-between">
+          <CardContent className="p-5 flex items-start justify-between">
             <div>
               <div className="text-sm text-text-secondary mb-1">Attempted</div>
               <div className="text-3xl font-bold text-text-primary">{stats.attemptedCount}</div>
             </div>
-            <div className="bg-info-blue/10 p-3 rounded-lg">
-              <ArchiveIcon size={24} className="text-info-blue" />
+            <div className="bg-info-blue/10 p-2 rounded-lg">
+              <ArchiveIcon size={20} className="text-info-blue" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-border-soft">
-          <CardContent className="p-6 flex items-start justify-between">
+          <CardContent className="p-5 flex items-start justify-between">
             <div>
               <div className="text-sm text-text-secondary mb-1">Unattempted</div>
               <div className="text-3xl font-bold text-text-primary">{stats.unattemptedCount}</div>
             </div>
-            <div className="bg-accent-amber/10 p-3 rounded-lg">
-              <Filter size={24} className="text-accent-amber" />
+            <div className="bg-accent-amber/10 p-2 rounded-lg">
+              <Filter size={20} className="text-accent-amber" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-border-soft">
-          <CardContent className="p-6 flex items-start justify-between">
+          <CardContent className="p-5 flex items-start justify-between">
             <div>
               <div className="text-sm text-text-secondary mb-1">Average Score</div>
               <div className="text-3xl font-bold text-text-primary">{stats.avgScore}/4</div>
             </div>
-            <div className="bg-success-green/10 p-3 rounded-lg">
-              <TrendingUp size={24} className="text-success-green" />
+            <div className="bg-success-green/10 p-2 rounded-lg">
+              <TrendingUp size={20} className="text-success-green" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 border border-border-soft">
-          <CardContent className="p-6 flex items-start justify-between">
+          <CardContent className="p-5 flex items-start justify-between">
             <div>
               <div className="text-sm text-text-secondary mb-1">Topics Covered</div>
               <div className="text-3xl font-bold text-text-primary">{stats.uniqueTopics}</div>
             </div>
-            <div className="bg-primary/10 p-3 rounded-lg">
-              <Award size={24} className="text-primary" />
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Award size={20} className="text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -336,7 +353,10 @@ const paginatedData = useMemo(() => {
       <Card className="bg-white border border-border-soft">
         <CardContent className="p-6 flex flex-col sm:flex-row gap-4 items-center">
           <div className="flex-1 relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+            />
             <input
               type="text"
               placeholder="Search by title or topic..."
@@ -366,15 +386,19 @@ const paginatedData = useMemo(() => {
         <Card className="bg-white border border-border-soft">
           <CardContent className="p-12 text-center">
             <ArchiveIcon size={48} className="mx-auto text-[#8B95A8] mb-4" />
-            <div className="text-lg font-semibold text-text-primary mb-2">You’ve attempted all available RCs!</div>
-            <p className="text-sm text-text-secondary">Great job — keep practising to improve your scores.</p>
+            <div className="text-lg font-semibold text-text-primary mb-2">
+              You’ve attempted all available RCs!
+            </div>
+            <p className="text-sm text-text-secondary">
+              Great job — keep practising to improve your scores.
+            </p>
           </CardContent>
         </Card>
       ) : (
         // Table (paginated at 10 rows per page)
         <Table
           columns={columns}
-            data={paginatedData} 
+          data={paginatedData}
           loading={loading}
           error={error}
           page={currentPage}
