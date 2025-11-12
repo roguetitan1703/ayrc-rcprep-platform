@@ -43,12 +43,10 @@ const app = express()
 const ORIGINS = [process.env.CLIENT_URL, 'https://www.ayrc-rcprep-9r4a.vercel.app', 'http://localhost:5173']
   .filter(Boolean)
   .map((s) => s.trim())
-  console.log('[CORS CHECK]', { origin, allowed: ORIGINS })
-
 
 app.use(
   cors({
-    origin: (origin, cb) => {
+    origin: (origin, cb) => { 
       if (!origin || ORIGINS.includes(origin)) return cb(null, true)
       return cb(new Error('Not allowed by CORS'))
     },
