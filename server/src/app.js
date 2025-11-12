@@ -40,9 +40,11 @@ import { nullifyExpiredSubscriptions } from './services/subscription.service.js'
 const app = express()
 
 // CORS setup
-const ORIGINS = [process.env.CLIENT_URL, 'http://localhost:5173']
+const ORIGINS = [process.env.CLIENT_URL, 'https://www.ayrc-rcprep-9r4a.vercel.app', 'http://localhost:5173']
   .filter(Boolean)
   .map((s) => s.trim())
+  console.log('[CORS CHECK]', { origin, allowed: ORIGINS })
+
 
 app.use(
   cors({
