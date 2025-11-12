@@ -40,20 +40,36 @@ import { nullifyExpiredSubscriptions } from './services/subscription.service.js'
 const app = express()
 
 // CORS setup
-const ORIGINS = [process.env.CLIENT_URL, 'https://www.ayrc-rcprep-9r4a.vercel.app', 'http://localhost:5173']
-  .filter(Boolean)
-  .map((s) => s.trim())
+const ORIGINS = [
+  process.env.CLIENT_URL,      
+  'https://www.ayrc-rcprep-9r4a.vercel.app',
+  'http://localhost:5173',
+].filter(Boolean).map((s) => s.replace(/\/$/, '').trim()) // remove trailing slash
+
+const allowedPattern = /^https:\/\/ayrc-rcprep.*\.vercel\.app$/
 
 app.use(
   cors({
-    origin: (origin, cb) => { 
-        console.log('[CORS CHECK]', { origin, allowed: ORIGINS })
-      if (!origin || ORIGINS.includes(origin)) return cb(null, true)
-      return cb(new Error('Not allowed by CORS'))
+    origin: (origin, cb) => {
+      console.log('[CORS CHECK]', { origin, allowed: ORIGINS })
+
+      if (!origin) return cb(null, true) // allow curl/postman
+
+      const cleanOrigin = origin.replace(/\/$/, '')
+      const isAllowed =
+        ORIGINS.includes(cleanOrigin) || allowedPattern.test(cleanOrigin)
+
+      if (isAllowed) {
+        return cb(null, true)
+      } else {
+        console.warn('Blocked by CORS:', origin)
+        return cb(new Error('Not allowed by CORS'))
+      }
     },
     credentials: true,
   })
 )
+
 
 app.use(helmet())
 app.use(cookieParser())
