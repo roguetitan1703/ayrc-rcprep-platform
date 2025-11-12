@@ -47,6 +47,7 @@ const ORIGINS = [process.env.CLIENT_URL, 'https://www.ayrc-rcprep-9r4a.vercel.ap
 app.use(
   cors({
     origin: (origin, cb) => { 
+        console.log('[CORS CHECK]', { origin, allowed: ORIGINS })
       if (!origin || ORIGINS.includes(origin)) return cb(null, true)
       return cb(new Error('Not allowed by CORS'))
     },
