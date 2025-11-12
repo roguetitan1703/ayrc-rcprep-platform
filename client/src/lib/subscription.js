@@ -14,5 +14,11 @@ export function getEffectiveSubscriptionSlug(user) {
 }
 
 export function hasEffectiveSubscription(user) {
-  return !!getEffectiveSubscriptionSlug(user)
+  return !!(
+    user &&
+    (
+      (user.subscription && user.subscription.status === 'active') || 
+      user.subscriptionPlan
+    )
+  );
 }

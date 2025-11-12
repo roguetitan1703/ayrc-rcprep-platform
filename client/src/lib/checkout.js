@@ -1,7 +1,6 @@
 import { createOrder } from './subs'
 import content from '../content/static.json'
 
-
 function loadRazorpayScript() {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject(new Error('No window'))
@@ -20,10 +19,21 @@ export async function startCheckout({ plan, user, onSuccess, onError } = {}) {
   }
 
   try {
-    const order = await createOrder({ planId: plan.raw._id })
+    const resp = await createOrder({ planId: plan.raw._id })
     await loadRazorpayScript()
 
-    const key = import.meta.env.VITE_RAZORPAY_KEY_PROD
+    const order = resp?.order ? resp.order : resp
+
+    const isProd = import.meta.env.MODE === 'production'
+    const key =
+      order?.key ||
+      import.meta.env.VITE_RAZORPAY_KEY_ID_PROD ||
+      import.meta.env.VITE_RAZORPAY_KEY_ID
+
+    console.log(`Razorpay Mode: ${isProd ? 'LIVE' : 'TEST'}`)
+    console.log(import.meta.env, key)
+
+    if (!key) throw new Error('Razorpay public key missing. Check VITE_RAZORPAY_KEY_ID[*] in env')
 
     const options = {
       key,

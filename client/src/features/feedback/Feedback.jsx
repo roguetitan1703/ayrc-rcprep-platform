@@ -27,11 +27,6 @@ export default function Feedback() {
         const questions = await getTodaysQuestions()
         if (!questions || questions.length === 0) {
           // No feedback required today, unlock access
-          try {
-            await api.post('/feedback/skip')
-          } catch (e) {
-            // ignore error, maybe already unlocked
-          }
           setSubmittedToday(true)
           setSuccess(true)
           setDailyQuestions([])
@@ -172,12 +167,8 @@ export default function Feedback() {
     return (
       <div className="flex items-center justify-center px-4">
         <div className="max-w-xl w-full bg-gradient-to-r from-primary/5 via-info-blue/5 to-success-green/5 rounded-lg p-6 border border-neutral-gray shadow-sm text-center space-y-4">
-          <h2 className="text-lg font-semibold text-text-primary">
-            No feedback required today
-          </h2>
-          <p className="text-text-secondary">
-            You have access to today's RC. Enjoy your practice!
-          </p>
+          <h2 className="text-lg font-semibold text-text-primary">No feedback required today</h2>
+          <p className="text-text-secondary">You have access to today's RC. Enjoy your practice!</p>
           <Button onClick={() => nav('/dashboard')} variant="primary">
             Back to Dashboard
           </Button>

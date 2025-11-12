@@ -50,19 +50,28 @@ export async function submitFeedback(req, res, next) {
 export async function getTodayFeedbackStatus(req, res, next) {
   try {
     const today = startOfIST()
+    const todayEnd = endOfIST()
     // Check if there are any feedback questions for today
-    const todayStr = today.toISOString().slice(0, 10)
+    // const todayStr = today.toISOString().slice(0, 10)
     const questions = await FeedbackQuestion.find().sort({ _id: 1 })
     const todaysQuestions = questions.filter(
-      (q) => q.date?.toISOString().slice(0, 10) === todayStr || !q.date
+      (q) => !q.date || (q.date >= today && q.date < todayEnd)
     )
 
     let fb = await Feedback.findOne({ userId: req.user.id, date: today })
-    if ((!todaysQuestions || todaysQuestions.length === 0) && !fb) {
+
+    const hasQuestions = todaysQuestions && todaysQuestions.length > 0
+    const isSubscribed = req.user?.subscription?.status === 'active'
+
+    if (!hasQuestions && !fb && isSubscribed) {
       // No questions for today, auto-unlock by creating a Feedback doc
       fb = await Feedback.create({ userId: req.user.id, date: today, answers: [] })
+    } else if (hasQuestions && !isSubscribed && !fb) {
+      // Free user hasn't submitted feedback yet → remain locked
+      return success(res, { submitted: false })
     }
-    return success(res, { submitted: !!fb })
+    // ✅ If feedback exists or user is subscribed → allow access
+    return success(res, { submitted: true })
   } catch (e) {
     next(e)
   }
@@ -71,12 +80,13 @@ export async function getTodayFeedbackStatus(req, res, next) {
 export async function getTodaysQuestions(req, res, next) {
   try {
     const today = startOfIST()
-    const todayStr = today.toISOString().slice(0, 10) // 'YYYY-MM-DD'
+    const todayEnd = endOfIST()
+    // const todayStr = today.toISOString().slice(0, 10)
 
     const questions = await FeedbackQuestion.find().sort({ _id: 1 })
 
     const formatted = questions
-      .filter((q) => q.date?.toISOString().slice(0, 10) === todayStr || !q.date) // include global questions with null date
+      .filter((q) => !q.date || (q.date >= today && q.date < todayEnd)) // include global questions with null date
       .map((q) => ({
         id: q._id?.toString(),
         date: q.date,

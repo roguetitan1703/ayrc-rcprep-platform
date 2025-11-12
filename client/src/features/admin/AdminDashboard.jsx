@@ -165,7 +165,7 @@ export default function AdminDashboard() {
               Active Users
             </div>
             <div className="text-2xl font-bold text-primary">
-              {activeUsersToday > 0 ? activeUsersToday : 'No data'}{' '}
+              {activeUsersToday > 0 ? activeUsersToday : '0'}{' '}
               <span className="text-xs text-text-secondary font-normal">today</span>
             </div>
             <div className="text-lg font-semibold text-success-green">
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
           <CardContent className="h-full bg-gradient-to-br from-success-green/10 to-primary/10 rounded-lg flex flex-col items-center justify-center py-6">
             <div className="text-xs text-text-secondary mb-2 font-semibold uppercase">Attempts</div>
             <div className="text-2xl font-bold text-accent-amber">
-              {attemptsToday > 0 ? attemptsToday : 'No data'}{' '}
+              {attemptsToday > 0 ? attemptsToday : '0'}{' '}
               <span className="text-xs text-text-secondary font-normal">today</span>
             </div>
             <div className="text-lg font-semibold text-primary">

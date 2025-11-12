@@ -62,18 +62,35 @@ export const createOrder = async (req, res, next) => {
       },
     }
 
-    let existingtransaction;
+    let existingtransaction
     try {
-      existingtransaction = await Transaction.findOne({ user: req.user.id, plan: plan._id, status: 'created' });
+      existingtransaction = await Transaction.findOne({
+        user: req.user.id,
+        plan: plan._id,
+        status: 'created',
+      })
     } catch (err) {
       console.error('Error checking existing transaction:', err)
     }
 
     if (existingtransaction) {
-      console.log('Existing transaction found, reusing order id:', existingtransaction.razorpay_order_id)
-      existingtransaction.amount_cents = amount;
+      console.log(
+        'Existing transaction found, reusing order id:',
+        existingtransaction.razorpay_order_id
+      )
+      existingtransaction.amount_cents = amount
       await existingtransaction.save()
-      return res.status(200).json({ status: 'success', message: 'Order already exists', order: { id: existingtransaction.razorpay_order_id, amount: amount, currency: plan.currency || 'INR' } })
+      return res
+        .status(200)
+        .json({
+          status: 'success',
+          message: 'Order already exists',
+          order: {
+            id: existingtransaction.razorpay_order_id,
+            amount: amount,
+            currency: plan.currency || 'INR',
+          },
+        })
     }
     //   } catch (err) {
     //   console.error('Error creating Razorpay order:', err)
@@ -86,7 +103,6 @@ export const createOrder = async (req, res, next) => {
         status: 'fail',
         message: 'Error creating order',
       })
-
     }
 
     // Persist a Transaction record referencing this order
@@ -100,14 +116,21 @@ export const createOrder = async (req, res, next) => {
         status: 'created',
         metadata: options.notes || {},
       })
-      console.log("trasaction", transaction)
+      console.log('trasaction', transaction)
     } catch (txErr) {
       console.error('Error creating Transaction record:', txErr)
       // proceed even if transaction persistence failed - client still has orde
     }
     console.log('Created Razorpay order:', order)
 
-    res.status(200).json({ status: 'success', message: 'Order created successfully', order })
+    res
+      .status(200)
+      .json({
+        status: 'success',
+        message: 'Order created successfully',
+        order: { id: order.id, amount: order.amount, currency: order.currency },
+        key: process.env.RAZORPAY_KEY_ID,
+      })
   } catch (error) {
     console.error('Error creating order:', error)
     res.status(500).json({ error: 'Error creating order' })
@@ -161,7 +184,6 @@ export const verifyPayment = async (req, res, next) => {
       console.log('payemnt captured webhook received:', req.body.payload) // debug full payload
       console.log('[verifyPayment] webhook received for order', razorpay_order_id) // debug webhook
       console.log('[verifyPayment] payload notes:', notes) // debug notes
-
 
       if (!userId) {
         console.warn('[verifyPayment] webhook missing user id in order notes')
@@ -359,6 +381,7 @@ export const verifyPayment = async (req, res, next) => {
           }
 
           // update user's quick fields
+          currentUser.subscription = sub._id
           currentUser.subscriptionPlan = plan._id
           currentUser.subon = newSubon
           currentUser.subexp = newSubexp
