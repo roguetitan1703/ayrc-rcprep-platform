@@ -373,6 +373,7 @@ export default function AdminFeedback() {
                   <input
                     name="minWords"
                     type="number"
+                    required
                     defaultValue={editingQuestion?.minWords || 0}
                     className="w-full border border-gray-200 rounded-lg bg-background/50 px-3 py-2 text-sm  outline-none"
                     placeholder="e.g. 20"
